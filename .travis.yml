@@ -52,6 +52,7 @@ matrix:
         file: "kronos_ubuntu.zip"
         skip_cleanup: true
         on:
+          branch: extui-align
           tags: true
     - os: windows
       language: C++
@@ -65,6 +66,4 @@ matrix:
         - python -m aqt install --outputdir /c/Qt 5.15.1 windows desktop win64_msvc2019_64
       script:
         - mkdir build
-        - cd build
-        - cmake -DCMAKE_PREFIX_PATH="C:\Qt\5.15.1\msvc2019_64" -DCMAKE_BUILD_TYPE=RELEASE -DDEPLOY_QT_LIBRARIES=ON ..
-        - cmake --build .
+        - cmake --build . --config x64-Release --parallel 
