@@ -19,39 +19,52 @@ matrix:
             - libsdl2-dev
             - libmini18n-dev
 
-env:
-  global:
-    - MAKEFLAGS="-j 16"
+      env:
+        global:
 
-language: cpp
+      language: cpp
 
-sudo: false
+      sudo: false
 
-before_install:
-  # only build the first port if running a coverity scan. otherwise coverity will attempt to analyze all the builds
-  - cd yabause
-  - mkdir build
-  - cd build
+      before_install:
+        # only build the first port if running a coverity scan. otherwise coverity will attempt to analyze all the builds
+        - cd yabause
+        - mkdir build
+        - cd build
 
-script:
-  - cmake ..
-  - make
-  - make DESTDIR=../install install
+      script:
+        - cmake ..
+        - make
+        - make DESTDIR=../install install
 
-before_deploy:
-  # Set up git user name and tag this commit
-  - cd ../install/
-  - zip -r ../kronos_ubuntu.zip .
-  - cd ..
-  - git config --local user.name "Francois CARON"
-  - git config --local user.email "francois.caron.perso@gmail.com"
+      before_deploy:
+        # Set up git user name and tag this commit
+        - cd ../install/
+        - zip -r ../kronos_ubuntu.zip .
+        - cd ..
+        - git config --local user.name "Francois CARON"
+        - git config --local user.email "francois.caron.perso@gmail.com"
 
-deploy:
-  provider: releases
-  api_key: 
-    secure: "fd1OmbeotEF8vNRR9/87boQg6Zlj1AWhxIVhEPCHYSfo+82JMQQUIi1KY9JyyN1zbB2LMTW2vK7phy/i87tMoaF2y8Wt5R6Aa5CBr3ahNvpSCUsnJwEEujTKctn6ZwulVYNalPUUVpfiuJnr3Y2MIYV+h/sKqcPsgKkxUyNJ+2qtiKQwgmKRmJpfXTyhEqGDDvy2ji/V+b5mIPRXVh+JmMDw8q35/An+mJY36S6acBjfdt302T1Zd5hGmjXS//JpdpdsD7pocyqSxv/IBrUu0N4R+xRb3/3O5r12t8nlbV2FNNr/LzC2j8pCm2FvjLr8ECD9c2Ue8RCRWH2fjQttMwbe3eNMb3Fu5VclpZLb+i5Xfk5nXD17qfVBUFxyUnHXGl0YehftNpwppSRPPkZLtVjeYeLm2yCA1ztAYPVqbivygxOj5PFJzOwfPcpDTJ67KfkzeiTeD19A8rQGbkBVk7jKXgA7TegAzuSzHeL0noI5fks4wG8TJrq3GdExwdek0fau9KVgB0ZVfmoz/VEhpdJMVf0awmKbh82oZ3wTOwUtqpVLBcV7QaKuKcnTa3SLB8RCz6aW+VWAXAJzHoHu7pNFpxkY1Z/JBY2vERKE9sIA6/FpqY+ZJ7cs6nYhioYAyrdLlIGa+QJ5zALW0cPLqSZBpCbrm2PmXhwIEY2yymc="
-  file: "kronos_ubuntu.zip"
-  skip_cleanup: true
-  on:
-    tags: true
-
+      deploy:
+        provider: releases
+        api_key: 
+          secure: "fd1OmbeotEF8vNRR9/87boQg6Zlj1AWhxIVhEPCHYSfo+82JMQQUIi1KY9JyyN1zbB2LMTW2vK7phy/i87tMoaF2y8Wt5R6Aa5CBr3ahNvpSCUsnJwEEujTKctn6ZwulVYNalPUUVpfiuJnr3Y2MIYV+h/sKqcPsgKkxUyNJ+2qtiKQwgmKRmJpfXTyhEqGDDvy2ji/V+b5mIPRXVh+JmMDw8q35/An+mJY36S6acBjfdt302T1Zd5hGmjXS//JpdpdsD7pocyqSxv/IBrUu0N4R+xRb3/3O5r12t8nlbV2FNNr/LzC2j8pCm2FvjLr8ECD9c2Ue8RCRWH2fjQttMwbe3eNMb3Fu5VclpZLb+i5Xfk5nXD17qfVBUFxyUnHXGl0YehftNpwppSRPPkZLtVjeYeLm2yCA1ztAYPVqbivygxOj5PFJzOwfPcpDTJ67KfkzeiTeD19A8rQGbkBVk7jKXgA7TegAzuSzHeL0noI5fks4wG8TJrq3GdExwdek0fau9KVgB0ZVfmoz/VEhpdJMVf0awmKbh82oZ3wTOwUtqpVLBcV7QaKuKcnTa3SLB8RCz6aW+VWAXAJzHoHu7pNFpxkY1Z/JBY2vERKE9sIA6/FpqY+ZJ7cs6nYhioYAyrdLlIGa+QJ5zALW0cPLqSZBpCbrm2PmXhwIEY2yymc="
+        file: "kronos_ubuntu.zip"
+        skip_cleanup: true
+        on:
+          tags: true
+    - os: windows
+      language: C++
+      env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
+      before_install:
+        #  - choco install -y visualstudio2017buildtools
+        #  - choco install -y visualstudio2017-workload-vctools
+        - choco install  python --version 3.8.0
+        - python -m pip install --upgrade pip
+        - python -m pip install aqtinstall
+        - python -m aqt install --outputdir /c/Qt 5.15.1 windows desktop win64_msvc2019_64
+      script:
+        - mkdir build
+        - cd build
+        - cmake -DCMAKE_PREFIX_PATH="C:\Qt\5.15.1\msvc2019_64" -DCMAKE_BUILD_TYPE=RELEASE -DDEPLOY_QT_LIBRARIES=ON ..
+        - cmake --build .
