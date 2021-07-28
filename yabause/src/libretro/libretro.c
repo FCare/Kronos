@@ -1361,19 +1361,46 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
    }
 }
 
+static struct frame_savestate_t
+{
+   void *buffer;
+   size_t size;
+   int error;
+} frame_savestate = { NULL, 0, 0};
+
+static void frame_savestate_reset() {
+   if (frame_savestate.buffer != NULL) {
+      free(frame_savestate.buffer);
+      frame_savestate.buffer = NULL;
+   }
+   frame_savestate.size = 0;
+   frame_savestate.error = 0;
+}
+
+static int frame_savestate_store() {
+   if (frame_savestate.size == 0 && frame_savestate.buffer == NULL) {
+      frame_savestate.error = YabSaveStateBuffer (&frame_savestate.buffer, &frame_savestate.size);
+   }
+   return frame_savestate.error;
+}
+
+static int frame_savestate_get_size() {
+   return frame_savestate.size;
+}
+
+static void * frame_savestate_get_buffer() {
+   return frame_savestate.buffer;
+}
+
 size_t retro_serialize_size(void)
 {
    // Disabling savestates until they are safe
    if (!rendering_started)
       return 0;
-   void *buffer;
-   size_t size;
 
-   YabSaveStateBuffer (&buffer, &size);
+   frame_savestate_store();
 
-   free(buffer);
-
-   return size;
+   return frame_savestate_get_size();
 }
 
 bool retro_serialize(void *data, size_t size)
@@ -1381,14 +1408,13 @@ bool retro_serialize(void *data, size_t size)
    // Disabling savestates until they are safe
    if (!rendering_started)
       return true;
-   void *buffer;
-   size_t out_size;
 
-   int error = YabSaveStateBuffer (&buffer, &out_size);
+   int error = frame_savestate_store();
 
-   memcpy(data, buffer, size);
+   memcpy(data, frame_savestate_get_buffer(), size);
 
-   free(buffer);
+   frame_savestate_reset();
+
    return !error;
 }
 
@@ -1397,6 +1423,7 @@ bool retro_unserialize(const void *data, size_t size)
    // Disabling savestates until they are safe
    if (!rendering_started)
       return true;
+
    int error = YabLoadStateBuffer(data, size);
    VIDCore->Resize(0, 0, window_width, window_height, 0);
 
