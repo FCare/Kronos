@@ -51,6 +51,7 @@
 #include "movie.h"
 #include "osdcore.h"
 #include "stv.h"
+#include "db.h"
 
 #ifdef HAVE_LIBSDL
 #if defined(__APPLE__) || defined(GEKKO)
