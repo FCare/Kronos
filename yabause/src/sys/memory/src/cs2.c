@@ -4015,81 +4015,80 @@ u8 Cs2GetRegionID(void)
 
 //////////////////////////////////////////////////////////////////////////////
 
-int Cs2SaveState(FILE * fp) {
+int Cs2SaveState(void ** stream) {
    int offset, i, i2;
-   IOCheck_struct check = { 0, 0 };
 
    // This is mostly kludge, but it will have to do until I have time to rewrite it all
 
-   offset = StateWriteHeader(fp, "CS2 ", 2);
+   offset = MemStateWriteHeader(stream, "CS2 ", 2);
 
    // Write cart type
-   ywrite(&check, (void *) &Cs2Area->carttype, 4, 1, fp);
+   MemStateWrite((void *)&Cs2Area->carttype, 4, 1, stream);
 
    // Write cd block registers
-   ywrite(&check, (void *) &Cs2Area->reg, sizeof(blockregs_struct), 1, fp);
+   MemStateWrite((void *)&Cs2Area->reg, sizeof(blockregs_struct), 1, stream);
 
    // Write current Status variables(needs a rewrite)
-   ywrite(&check, (void *) &Cs2Area->FAD, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->status, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->options, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->repcnt, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->ctrladdr, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->track, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->index, 1, 1, fp);
+   MemStateWrite((void *)&Cs2Area->FAD, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->status, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->options, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->repcnt, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->ctrladdr, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->track, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->index, 1, 1, stream);
 
    // Write other cd block internal variables
-   ywrite(&check, (void *) &Cs2Area->satauth, 2, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->mpgauth, 2, 1, fp);
+   MemStateWrite((void *)&Cs2Area->satauth, 2, 1, stream);
+   MemStateWrite((void *)&Cs2Area->mpgauth, 2, 1, stream);
 
-   ywrite(&check, (void *) &Cs2Area->transfercount, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->cdwnum, 4, 1, fp);
-   ywrite(&check, (void *) Cs2Area->TOC, 4, 102, fp);
-   ywrite(&check, (void *) &Cs2Area->playFAD, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->playendFAD, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->maxrepeat, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->getsectsize, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->putsectsize, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->calcsize, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->infotranstype, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->datatranstype, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->isonesectorstored, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->isdiskchanged, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->isbufferfull, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->speed1x, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->isaudio, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->transfileinfo, 1, 12, fp);
-   ywrite(&check, (void *) &Cs2Area->lastbuffer, 1, 1, fp);
-   ywrite(&check, (void *)&Cs2Area->transscodeq, 5*2, 1, fp);
-   ywrite(&check, (void *)&Cs2Area->transscoderw, 12*2, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->_command, 1, 1, fp);
+   MemStateWrite((void *)&Cs2Area->transfercount, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->cdwnum, 4, 1, stream);
+   MemStateWrite((void *)Cs2Area->TOC, 4, 102, stream);
+   MemStateWrite((void *)&Cs2Area->playFAD, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->playendFAD, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->maxrepeat, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->getsectsize, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->putsectsize, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->calcsize, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->infotranstype, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->datatranstype, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->isonesectorstored, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->isdiskchanged, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->isbufferfull, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->speed1x, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->isaudio, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->transfileinfo, 1, 12, stream);
+   MemStateWrite((void *)&Cs2Area->lastbuffer, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->transscodeq, 5*2, 1, stream);
+   MemStateWrite((void *)&Cs2Area->transscoderw, 12*2, 1, stream);
+   MemStateWrite((void *)&Cs2Area->_command, 1, 1, stream);
    {
       u32 temp = (Cs2Area->_periodictiming + 3) / 3;
-      ywrite(&check, (void *) &temp, 4, 1, fp);
+      MemStateWrite((void *)&temp, 4, 1, stream);
    }
-   ywrite(&check, (void *) &Cs2Area->_commandtiming, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->outconcddevnum, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->outconmpegfbnum, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->outconmpegbufnum, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->outconmpegromnum, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->outconhostnum, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->datatranspartitionnum, 1, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->datatransoffset, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->datanumsecttrans, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->datatranssectpos, 2, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->datasectstotrans, 2, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->blockfreespace, 4, 1, fp);
-   ywrite(&check, (void *) &Cs2Area->curdirsect, 4, 1, fp);
+   MemStateWrite((void *)&Cs2Area->_commandtiming, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->outconcddevnum, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->outconmpegfbnum, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->outconmpegbufnum, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->outconmpegromnum, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->outconhostnum, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->datatranspartitionnum, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->datatransoffset, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->datanumsecttrans, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->datatranssectpos, 2, 1, stream);
+   MemStateWrite((void *)&Cs2Area->datasectstotrans, 2, 1, stream);
+   MemStateWrite((void *)&Cs2Area->blockfreespace, 4, 1, stream);
+   MemStateWrite((void *)&Cs2Area->curdirsect, 4, 1, stream);
 
    // Write CD buffer
-   ywrite(&check, (void *)Cs2Area->block, sizeof(block_struct), MAX_BLOCKS, fp);
+   MemStateWrite((void *)Cs2Area->block, sizeof(block_struct), MAX_BLOCKS, stream);
 
    // Write partition data
    for (i = 0; i < MAX_SELECTORS; i++)
    {
-      ywrite(&check, (void *)&Cs2Area->partition[i].size, 4, 1, fp);
-      ywrite(&check, (void *)Cs2Area->partition[i].blocknum, 1, MAX_BLOCKS, fp);
-      ywrite(&check, (void *)&Cs2Area->partition[i].numblocks, 1, 1, fp);
+      MemStateWrite((void *)&Cs2Area->partition[i].size, 4, 1, stream);
+      MemStateWrite((void *)Cs2Area->partition[i].blocknum, 1, MAX_BLOCKS, stream);
+      MemStateWrite((void *)&Cs2Area->partition[i].numblocks, 1, 1, stream);
 
       u32 index = 0;
       for (i2 = 0; i2 < MAX_BLOCKS; i2++)
@@ -4098,33 +4097,33 @@ int Cs2SaveState(FILE * fp) {
           index = 0xFFFFFFFF;
         else
           index = Cs2Area->partition[i].block[i2] - Cs2Area->block;
-        ywrite(&check, &index, 4, 1, fp);
+        MemStateWrite(&index, 4, 1, stream);
       }
    }
 
    // Write filter data
-   ywrite(&check, (void *)Cs2Area->filter, sizeof(filter_struct), MAX_SELECTORS, fp);
+   MemStateWrite((void *)Cs2Area->filter, sizeof(filter_struct), MAX_SELECTORS, stream);
 
    // Write File Info Table
-   ywrite(&check, (void *)Cs2Area->fileinfo, sizeof(dirrec_struct), MAX_FILES, fp);
+   MemStateWrite((void *)Cs2Area->fileinfo, sizeof(dirrec_struct), MAX_FILES, stream);
 
    // Write MPEG card registers here
 
    // Write current MPEG card status variables
-   ywrite(&check, (void *)&Cs2Area->actionstatus, 1, 1, fp);
-   ywrite(&check, (void *)&Cs2Area->pictureinfo, 1, 1, fp);
-   ywrite(&check, (void *)&Cs2Area->mpegaudiostatus, 1, 1, fp);
-   ywrite(&check, (void *)&Cs2Area->mpegvideostatus, 2, 1, fp);
-   ywrite(&check, (void *)&Cs2Area->vcounter, 2, 1, fp);
+   MemStateWrite((void *)&Cs2Area->actionstatus, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->pictureinfo, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->mpegaudiostatus, 1, 1, stream);
+   MemStateWrite((void *)&Cs2Area->mpegvideostatus, 2, 1, stream);
+   MemStateWrite((void *)&Cs2Area->vcounter, 2, 1, stream);
 
    // Write other MPEG card internal variables
-   ywrite(&check, (void *)&Cs2Area->mpegintmask, 4, 1, fp);
-   ywrite(&check, (void *)Cs2Area->mpegcon, sizeof(mpegcon_struct), 2, fp);
-   ywrite(&check, (void *)Cs2Area->mpegstm, sizeof(mpegstm_struct), 2, fp);
+   MemStateWrite((void *)&Cs2Area->mpegintmask, 4, 1, stream);
+   MemStateWrite((void *)Cs2Area->mpegcon, sizeof(mpegcon_struct), 2, stream);
+   MemStateWrite((void *)Cs2Area->mpegstm, sizeof(mpegstm_struct), 2, stream);
 
-   ywrite(&check, (void *)&Cs2Area->playtype, 4, 1, fp);
+   MemStateWrite((void *)&Cs2Area->playtype, 4, 1, stream);
 
-   return StateFinishHeader(fp, offset);
+   return MemStateFinishHeader(stream, offset);
 }
 
 //////////////////////////////////////////////////////////////////////////////

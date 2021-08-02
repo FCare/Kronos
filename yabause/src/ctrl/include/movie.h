@@ -54,7 +54,7 @@ struct MovieBufferStruct* ReadMovieIntoABuffer(FILE* fp);
 
 void MovieLoadState(void);
 
-void SaveMovieInState(FILE* fp, IOCheck_struct check);
+void SaveMovieInState(void ** stream);
 void ReadMovieInState(FILE* fp);
 
 void TestWrite(struct MovieBufferStruct tempbuffer);

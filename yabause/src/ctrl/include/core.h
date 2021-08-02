@@ -144,6 +144,11 @@ extern "C" {
 
 #endif // !GEKKO
 
+  void MemStateWrite(void * ptr, size_t size, size_t nmemb, void ** stream);
+  void MemStateWriteOffset(void * ptr, size_t size, size_t nmemb, void ** stream, int offset);
+  int MemStateWriteHeader(void ** stream, const char *name, int version);
+  int MemStateFinishHeader(void ** stream, int offset);
+
   typedef struct {
     unsigned int size;
     unsigned int done;
@@ -157,28 +162,6 @@ extern "C" {
   static INLINE void yread(IOCheck_struct * check, void * ptr, size_t size, size_t nmemb, FILE * stream) {
     check->done += (unsigned int)fread(ptr, size, nmemb, stream);
     check->size += (unsigned int)nmemb;
-  }
-
-  static INLINE int StateWriteHeader(FILE *fp, const char *name, int version) {
-    IOCheck_struct check = { 0, 0 };
-    fprintf(fp, "%s", name);
-    check.done = 0;
-    check.size = 0;
-    ywrite(&check, (void *)&version, sizeof(version), 1, fp);
-    ywrite(&check, (void *)&version, sizeof(version), 1, fp); // place holder for size
-    return (check.done == check.size) ? ftell(fp) : -1;
-  }
-
-  static INLINE int StateFinishHeader(FILE *fp, int offset) {
-    IOCheck_struct check = { 0, 0 };
-    int size = 0;
-    size = ftell(fp) - offset;
-    fseek(fp, offset - 4, SEEK_SET);
-    check.done = 0;
-    check.size = 0;
-    ywrite(&check, (void *)&size, sizeof(size), 1, fp); // write true size
-    fseek(fp, 0, SEEK_END);
-    return (check.done == check.size) ? (size + 12) : -1;
   }
 
   static INLINE int StateCheckRetrieveHeader(FILE *fp, const char *name, int *version, int *size) {

@@ -1662,39 +1662,75 @@ void FormatBackupRam(void *mem, u32 size)
 
 //////////////////////////////////////////////////////////////////////////////
 
+static int MemStateCurrentOffset;
+
+void MemStateWrite(void * ptr, size_t size, size_t nmemb, void ** stream)
+{
+   if (stream != NULL)
+      memcpy(*stream + MemStateCurrentOffset, ptr, size*nmemb);
+   MemStateCurrentOffset += size*nmemb;
+}
+
+void MemStateWriteOffset(void * ptr, size_t size, size_t nmemb, void ** stream, int offset)
+{
+   if (stream != NULL)
+      memcpy(*stream + offset, ptr, size*nmemb);
+}
+
+int MemStateWriteHeader(void ** stream, const char *name, int version)
+{
+   MemStateWrite((void *)name, strlen(name), 1, stream);
+   MemStateWrite((void *)&version, sizeof(version), 1, stream);
+   MemStateWrite((void *)&version, sizeof(version), 1, stream); // place holder for size
+   return MemStateCurrentOffset;
+}
+
+int MemStateFinishHeader(void ** stream, int offset)
+{
+   int size = 0;
+   size = MemStateCurrentOffset - offset;
+   MemStateWriteOffset((void *)&size, sizeof(size), 1, stream, offset - 4);
+   return (size + 12);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 int YabSaveStateBuffer(void ** buffer, size_t * size)
 {
-   FILE * fp;
    int status;
-   size_t num_read = 0;
 
+   // Reset buffer & size if needed
    if (buffer != NULL) *buffer = NULL;
    *size = 0;
 
-   if ((fp = tmpfile()) == NULL)
-      return -1;
-
+   // Lock scsp thread (workaround for audio issues ? it doesn't seem reliable though)
    ScspLockThread();
-   status = YabSaveStateStream(fp);
-   ScspUnLockThread();
 
-   if (status != 0)
-   {
-      fclose(fp);
+   // Get size
+   status = YabSaveStateStream(NULL);
+   if (status != 0) {
+      ScspUnLockThread();
+      return status;
+   }
+   *size = MemStateCurrentOffset;
+
+   // Allocate buffer
+   *buffer = malloc(*size);
+   if (buffer == NULL) {
+      ScspUnLockThread();
+      return -1;
+   }
+
+   // Fill buffer
+   status = YabSaveStateStream(buffer);
+   if (status != 0) {
+      ScspUnLockThread();
       return status;
    }
 
-   fseek(fp, 0, SEEK_END);
-   *size = ftell(fp);
-   fseek(fp, 0, SEEK_SET);
+   // Unlock scsp thread
+   ScspUnLockThread();
 
-   if (buffer != NULL)
-   {
-      *buffer = malloc(*size);
-      num_read = fread(*buffer, 1, *size, fp);
-   }
-
-   fclose(fp);
    return 0;
 }
 
@@ -1705,19 +1741,42 @@ int YabSaveState(const char *filename)
    FILE *fp;
    int status;
 
-   //use a second set of savestates for movies
+   // use a second set of savestates for movies
    filename = MakeMovieStateName(filename);
    if (!filename)
       return -1;
 
+   // stop if we can't open file
    if ((fp = fopen(filename, "wb")) == NULL)
       return -1;
-   ScspLockThread();
-   status = YabSaveStateStream(fp);
-   ScspUnLockThread();
-   fclose(fp);
 
-   return status;
+   // retrieve savestate buffer and its size
+   void *buffer;
+   size_t size;
+   status = YabSaveStateBuffer(&buffer, &size);
+
+   // if retrieval failed, cleanup and stop
+   if (status != 0) {
+      fclose(fp);
+      if(buffer)
+         free(buffer);
+      return status;
+   }
+
+   // if writing fails (out of space ?), cleanup and stop
+   if (fwrite(buffer, 1, size, fp) != size) {
+      fclose(fp);
+      if(buffer)
+         free(buffer);
+      return -1;
+   }
+
+   // cleanup
+   fclose(fp);
+   if(buffer)
+      free(buffer);
+
+   return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1735,11 +1794,10 @@ int YabSaveState(const char *filename)
 //    [sh2core.c] frc.div changed to frc.shift
 //    [sh2core.c] wdt probably needs to be written as well
 
-int YabSaveStateStream(FILE *fp)
+int YabSaveStateStream(void ** stream)
 {
    u32 i;
    int offset;
-   IOCheck_struct check;
    u8 *buf;
    int totalsize;
    int outputwidth;
@@ -1747,64 +1805,66 @@ int YabSaveStateStream(FILE *fp)
    int movieposition;
    int temp;
    u32 temp32;
+   u8 endian;
 
-   check.done = 0;
-   check.size = 0;
+   // Set buffer position to 0
+   MemStateCurrentOffset = 0;
 
    // Write signature
-   fprintf(fp, "YSS");
+   MemStateWrite("YSS", 3, 1, stream);
 
    // Write endianness byte
 #ifdef WORDS_BIGENDIAN
-   fputc(0x00, fp);
+   endian = 0x00;
 #else
-   fputc(0x01, fp);
+   endian = 0x01;
 #endif
+   MemStateWrite((void *)&endian, sizeof(endian), 1, stream);
 
    // Write version(fix me)
    i = 2;
-   ywrite(&check, (void *)&i, sizeof(i), 1, fp);
+   MemStateWrite((void *)&i, sizeof(i), 1, stream);
 
    // Skip the next 4 bytes for now
    i = 0;
-   ywrite(&check, (void *)&i, sizeof(i), 1, fp);
+   MemStateWrite((void *)&i, sizeof(i), 1, stream);
 
    //write frame number
-   ywrite(&check, (void *)&framecounter, 4, 1, fp);
+   MemStateWrite((void *)&framecounter, 4, 1, stream);
 
    //this will be updated with the movie position later
-   ywrite(&check, (void *)&framecounter, 4, 1, fp);
+   MemStateWrite((void *)&framecounter, 4, 1, stream);
 
    // Go through each area and write each state
-   i += CartSaveState(fp);
-   i += Cs2SaveState(fp);
-   i += SH2SaveState(MSH2, fp);
-   i += SH2SaveState(SSH2, fp);
-   i += SoundSaveState(fp);
-   i += ScuSaveState(fp);
-   i += SmpcSaveState(fp);
-   i += Vdp1SaveState(fp);
-   i += Vdp2SaveState(fp);
+   i += CartSaveState(stream);
+   i += Cs2SaveState(stream);
+   i += SH2SaveState(MSH2, stream);
+   i += SH2SaveState(SSH2, stream);
+   i += SoundSaveState(stream);
+   i += ScuSaveState(stream);
+   i += SmpcSaveState(stream);
+   i += Vdp1SaveState(stream);
+   i += Vdp2SaveState(stream);
 
-   offset = StateWriteHeader(fp, "OTHR", 1);
+   offset = MemStateWriteHeader(stream, "OTHR", 1);
 
    // Other data
-   //ywrite(&check, (void *)BupRam, 0x8000, 1, fp); // do we really want to save this?
-   ywrite(&check, (void *)HighWram, 0x100000, 1, fp);
-   ywrite(&check, (void *)LowWram, 0x100000, 1, fp);
+   //MemStateWrite((void *)BupRam, 0x8000, 1, stream); // do we really want to save this?
+   MemStateWrite((void *)HighWram, 0x100000, 1, stream);
+   MemStateWrite((void *)LowWram, 0x100000, 1, stream);
 
-   ywrite(&check, (void *)&yabsys.DecilineCount, sizeof(int), 1, fp);
-   ywrite(&check, (void *)&yabsys.LineCount, sizeof(int), 1, fp);
-   ywrite(&check, (void *)&yabsys.VBlankLineCount, sizeof(int), 1, fp);
-   ywrite(&check, (void *)&yabsys.MaxLineCount, sizeof(int), 1, fp);
+   MemStateWrite((void *)&yabsys.DecilineCount, sizeof(int), 1, stream);
+   MemStateWrite((void *)&yabsys.LineCount, sizeof(int), 1, stream);
+   MemStateWrite((void *)&yabsys.VBlankLineCount, sizeof(int), 1, stream);
+   MemStateWrite((void *)&yabsys.MaxLineCount, sizeof(int), 1, stream);
    temp = yabsys.DecilineStop >> YABSYS_TIMING_BITS;
-   ywrite(&check, (void *)&temp, sizeof(int), 1, fp);
+   MemStateWrite((void *)&temp, sizeof(int), 1, stream);
    temp = (yabsys.CurSH2FreqType == CLKTYPE_26MHZ) ? 268 : 286;
-   ywrite(&check, (void *)&temp, sizeof(int), 1, fp);
+   MemStateWrite((void *)&temp, sizeof(int), 1, stream);
    temp32 = (yabsys.UsecFrac * temp / 10) >> YABSYS_TIMING_BITS;
-   ywrite(&check, (void *)&temp32, sizeof(u32), 1, fp);
-   ywrite(&check, (void *)&yabsys.CurSH2FreqType, sizeof(int), 1, fp);
-   ywrite(&check, (void *)&yabsys.IsPal, sizeof(int), 1, fp);
+   MemStateWrite((void *)&temp32, sizeof(u32), 1, stream);
+   MemStateWrite((void *)&yabsys.CurSH2FreqType, sizeof(int), 1, stream);
+   MemStateWrite((void *)&yabsys.IsPal, sizeof(int), 1, stream);
 
    VIDCore->GetGlSize(&outputwidth, &outputheight);
 
@@ -1825,22 +1885,21 @@ int YabSaveStateStream(FILE *fp)
    #endif
    //YuiSwapBuffers();
 
-   ywrite(&check, (void *)&outputwidth, sizeof(outputwidth), 1, fp);
-   ywrite(&check, (void *)&outputheight, sizeof(outputheight), 1, fp);
+   MemStateWrite((void *)&outputwidth, sizeof(outputwidth), 1, stream);
+   MemStateWrite((void *)&outputheight, sizeof(outputheight), 1, stream);
 
-   ywrite(&check, (void *)buf, totalsize, 1, fp);
+   MemStateWrite((void *)buf, totalsize, 1, stream);
 
-   movieposition=ftell(fp);
+   movieposition=MemStateCurrentOffset;
+
    //write the movie to the end of the savestate
-   SaveMovieInState(fp, check);
+   SaveMovieInState(stream);
 
-   i += StateFinishHeader(fp, offset);
+   i += MemStateFinishHeader(stream, offset);
 
    // Go back and update size
-   fseek(fp, 8, SEEK_SET);
-   ywrite(&check, (void *)&i, sizeof(i), 1, fp);
-   fseek(fp, 16, SEEK_SET);
-   ywrite(&check, (void *)&movieposition, sizeof(movieposition), 1, fp);
+   MemStateWriteOffset((void *)&i, sizeof(i), 1, stream, 8);
+   MemStateWriteOffset((void *)&movieposition, sizeof(movieposition), 1, stream, 16);
 
    free(buf);
 

@@ -374,19 +374,17 @@ int PlayMovie(const char *filename) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-void SaveMovieInState(FILE* fp, IOCheck_struct check) {
+void SaveMovieInState(void ** stream) {
 
 	struct MovieBufferStruct* tempbuffer;
-
-	fseek(fp, 0, SEEK_END);
 
 	if(Movie.Status == Recording || Movie.Status == Playback) {
 		tempbuffer=ReadMovieIntoABuffer(Movie.fp);
 
-		fwrite(&(tempbuffer->size), 4, 1, fp);
-		fwrite(&(tempbuffer->data), tempbuffer->size, 1, fp);
-    free(tempbuffer->data);
-    free(tempbuffer);
+		MemStateWrite(&(tempbuffer->size), 4, 1, stream);
+		MemStateWrite(&(tempbuffer->data), tempbuffer->size, 1, stream);
+		free(tempbuffer->data);
+		free(tempbuffer);
 	}
 }
 

@@ -3172,23 +3172,22 @@ void ScuSendExternalInterrupt15(void) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-int ScuSaveState(FILE *fp)
+int ScuSaveState(void ** stream)
 {
    int offset;
-   IOCheck_struct check = { 0, 0 };
 
-   offset = StateWriteHeader(fp, "SCU ", 4);
+   offset = MemStateWriteHeader(stream, "SCU ", 4);
 
    // Write registers and internal variables
-   ywrite(&check, (void *)ScuRegs, sizeof(Scu), 1, fp);
+   MemStateWrite((void *)ScuRegs, sizeof(Scu), 1, stream);
 
    // Write DSP area
-   ywrite(&check, (void *)ScuDsp, sizeof(scudspregs_struct), 1, fp);
+   MemStateWrite((void *)ScuDsp, sizeof(scudspregs_struct), 1, stream);
 
-   ywrite(&check, incFlg, sizeof(int), 4, fp);
+   MemStateWrite(incFlg, sizeof(int), 4, stream);
 
 
-   return StateFinishHeader(fp, offset);
+   return MemStateFinishHeader(stream, offset);
 }
 
 //////////////////////////////////////////////////////////////////////////////

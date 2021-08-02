@@ -413,7 +413,7 @@ void FASTCALL   Vdp2WriteByte(SH2_struct *context, u8*, u32, u8);
 void FASTCALL   Vdp2WriteWord(SH2_struct *context, u8*, u32, u16);
 void FASTCALL   Vdp2WriteLong(SH2_struct *context, u8*, u32, u32);
 
-int Vdp2SaveState(FILE *fp);
+int Vdp2SaveState(void ** stream);
 int Vdp2LoadState(FILE *fp, int version, int size);
 
 void ToggleNBG0(void);

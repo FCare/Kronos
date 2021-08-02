@@ -1662,27 +1662,27 @@ void CartDeInit(void)
 
 //////////////////////////////////////////////////////////////////////////////
 
-int CartSaveState(FILE * fp)
+int CartSaveState(void ** stream)
 {
    int offset;
 
-   offset = StateWriteHeader(fp, "CART", 1);
+   offset = MemStateWriteHeader(stream, "CART", 1);
 
    // Write cart type
-   fwrite((void *)&CartridgeArea->carttype, 4, 1, fp);
+   MemStateWrite((void *)&CartridgeArea->carttype, 4, 1, stream);
 
    // Write the areas associated with the cart type here
    switch(CartridgeArea->carttype){
       case CART_DRAM8MBIT: {
-         fwrite((void *)CartridgeArea->dram , 1, 0x100000, fp);
+         MemStateWrite((void *)CartridgeArea->dram, 1, 0x100000, stream);
          break;
       }
       case CART_DRAM32MBIT: {
-         fwrite((void *)CartridgeArea->dram , 1, 0x400000, fp);
+         MemStateWrite((void *)CartridgeArea->dram, 1, 0x400000, stream);
          break;      
       }
    }
-   return StateFinishHeader(fp, offset);
+   return MemStateFinishHeader(stream, offset);
 }
 
 //////////////////////////////////////////////////////////////////////////////

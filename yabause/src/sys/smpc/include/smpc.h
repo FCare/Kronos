@@ -108,6 +108,6 @@ void FASTCALL	SmpcWriteByte(SH2_struct *context, u8*, u32, u8);
 void FASTCALL	SmpcWriteWord(SH2_struct *context, u8*, u32, u16);
 void FASTCALL	SmpcWriteLong(SH2_struct *context, u8*, u32, u32);
 
-int SmpcSaveState(FILE *fp);
+int SmpcSaveState(void ** stream);
 int SmpcLoadState(FILE *fp, int version, int size);
 #endif

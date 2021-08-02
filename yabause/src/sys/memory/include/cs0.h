@@ -83,7 +83,7 @@ int CartInit(const char *filename, int);
 void CartFlush(void);
 void CartDeInit(void);
 
-int CartSaveState(FILE *fp);
+int CartSaveState(void ** stream);
 int CartLoadState(FILE *fp, int version, int size);
 
 #endif

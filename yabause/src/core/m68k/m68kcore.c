@@ -140,7 +140,7 @@ static void M68KDummySetWriteB(UNUSED M68K_WRITE *Func) {
 static void M68KDummySetWriteW(UNUSED M68K_WRITE *Func) {
 }
 
-static void M68KDummySaveState(UNUSED FILE *fp) {
+static void M68KDummySaveState(UNUSED void ** stream) {
 }
 
 static void M68KDummyLoadState(UNUSED FILE *fp) {

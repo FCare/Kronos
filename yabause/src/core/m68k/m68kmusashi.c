@@ -171,7 +171,7 @@ static struct {
 	int halted;
 } m68k_substate;
 
-void m68k_save_context(FILE *fp){
+void m68k_save_context(void ** stream){
 	int i;
 	uint32 regd[8];
 	uint32 rega[8];
@@ -184,53 +184,53 @@ void m68k_save_context(FILE *fp){
 	for (i = 0; i<8; i++) {
 		regd[i]=m68k_get_reg(NULL, M68K_REG_D0 + i);
 	}
-	fwrite((void *)&regd, sizeof(uint32), 8, fp );
+	MemStateWrite((void *)&regd, sizeof(uint32), 8, stream );
 	for (i = 0; i<8; i++) {
 		rega[i]=m68k_get_reg(NULL, M68K_REG_A0 + i);
 	}
-	fwrite((void *)&rega, sizeof(uint32), 8, fp );
+	MemStateWrite((void *)&rega, sizeof(uint32), 8, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_PPC);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_PC);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_USP);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_ISP);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_MSP);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_VBR);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_SFC);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_DFC);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_CACR);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_CAAR);
-	fwrite((void *)&val, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&val, sizeof(uint32), 1, stream );
 
 	val = m68k_get_reg(NULL, M68K_REG_SR);
-	fwrite((void *)&m68k_substate.sr, sizeof(uint16), 1, fp );
+	MemStateWrite((void *)&m68k_substate.sr, sizeof(uint16), 1, stream );
 
-	fwrite((void *)&CPU_INT_LEVEL, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&CPU_INT_LEVEL, sizeof(uint32), 1, stream );
 
-	fwrite((void *)&CPU_INT_CYCLES, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&CPU_INT_CYCLES, sizeof(uint32), 1, stream );
 
-	fwrite((void *)&m68k_substate.stopped, sizeof(int), 1, fp );
-	fwrite((void *)&m68k_substate.halted, sizeof(int), 1, fp );
-	fwrite((void *)&CPU_PREF_ADDR, sizeof(uint32), 1, fp );
-	fwrite((void *)&CPU_PREF_DATA, sizeof(uint32), 1, fp );
+	MemStateWrite((void *)&m68k_substate.stopped, sizeof(int), 1, stream );
+	MemStateWrite((void *)&m68k_substate.halted, sizeof(int), 1, stream );
+	MemStateWrite((void *)&CPU_PREF_ADDR, sizeof(uint32), 1, stream );
+	MemStateWrite((void *)&CPU_PREF_DATA, sizeof(uint32), 1, stream );
 
 	#define FLAG_T1          m68ki_cpu.t1_flag
 	#define FLAG_T0          m68ki_cpu.t0_flag
@@ -330,9 +330,9 @@ void m68k_load_context(FILE *fp){
 	m68ki_jump(REG_PC);
 }
 
-static void M68KMusashiSaveState(FILE *fp) {
+static void M68KMusashiSaveState(void ** stream) {
 
-  m68k_save_context(fp);
+  m68k_save_context(stream);
 
 }
 

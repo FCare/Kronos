@@ -981,30 +981,29 @@ void FASTCALL SmpcWriteLong(SH2_struct *context, UNUSED u8* mem, USED_IF_SMPC_DE
 
 //////////////////////////////////////////////////////////////////////////////
 
-int SmpcSaveState(FILE *fp)
+int SmpcSaveState(void ** stream)
 {
    int offset;
-   IOCheck_struct check = { 0, 0 };
 
-   offset = StateWriteHeader(fp, "SMPC", 3);
+   offset = MemStateWriteHeader(stream, "SMPC", 3);
 
    // Write registers
-   ywrite(&check, (void *)SmpcRegs->IREG, sizeof(u8), 7, fp);
-   ywrite(&check, (void *)&SmpcRegs->COMREG, sizeof(u8), 1, fp);
-   ywrite(&check, (void *)SmpcRegs->OREG, sizeof(u8), 32, fp);
-   ywrite(&check, (void *)&SmpcRegs->SR, sizeof(u8), 1, fp);
-   ywrite(&check, (void *)&SmpcRegs->SF, sizeof(u8), 1, fp);
-   ywrite(&check, (void *)SmpcRegs->PDR, sizeof(u8), 2, fp);
-   ywrite(&check, (void *)SmpcRegs->DDR, sizeof(u8), 2, fp);
-   ywrite(&check, (void *)&SmpcRegs->IOSEL, sizeof(u8), 1, fp);
-   ywrite(&check, (void *)&SmpcRegs->EXLE, sizeof(u8), 1, fp);
+   MemStateWrite((void *)SmpcRegs->IREG, sizeof(u8), 7, stream);
+   MemStateWrite((void *)&SmpcRegs->COMREG, sizeof(u8), 1, stream);
+   MemStateWrite((void *)SmpcRegs->OREG, sizeof(u8), 32, stream);
+   MemStateWrite((void *)&SmpcRegs->SR, sizeof(u8), 1, stream);
+   MemStateWrite((void *)&SmpcRegs->SF, sizeof(u8), 1, stream);
+   MemStateWrite((void *)SmpcRegs->PDR, sizeof(u8), 2, stream);
+   MemStateWrite((void *)SmpcRegs->DDR, sizeof(u8), 2, stream);
+   MemStateWrite((void *)&SmpcRegs->IOSEL, sizeof(u8), 1, stream);
+   MemStateWrite((void *)&SmpcRegs->EXLE, sizeof(u8), 1, stream);
 
    // Write internal variables
-   ywrite(&check, (void *)SmpcInternalVars, sizeof(SmpcInternal), 1, fp);
+   MemStateWrite((void *)SmpcInternalVars, sizeof(SmpcInternal), 1, stream);
 
    // Write ID's of currently emulated peripherals(fix me)
 
-   return StateFinishHeader(fp, offset);
+   return MemStateFinishHeader(stream, offset);
 }
 
 //////////////////////////////////////////////////////////////////////////////

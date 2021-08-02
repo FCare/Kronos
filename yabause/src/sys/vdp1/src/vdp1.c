@@ -1355,30 +1355,29 @@ static void FASTCALL Vdp1ReadCommand(vdp1cmd_struct *cmd, u32 addr, u8* ram) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-int Vdp1SaveState(FILE *fp)
+int Vdp1SaveState(void ** stream)
 {
    int offset;
-   IOCheck_struct check = { 0, 0 };
 #ifdef IMPROVED_SAVESTATES
    int i = 0;
    u8 back_framebuffer[0x40000] = { 0 };
 #endif
 
-   offset = StateWriteHeader(fp, "VDP1", 1);
+   offset = MemStateWriteHeader(stream, "VDP1", 1);
 
    // Write registers
-   ywrite(&check, (void *)Vdp1Regs, sizeof(Vdp1), 1, fp);
+   MemStateWrite((void *)Vdp1Regs, sizeof(Vdp1), 1, stream);
 
    // Write VDP1 ram
-   ywrite(&check, (void *)Vdp1Ram, 0x80000, 1, fp);
+   MemStateWrite((void *)Vdp1Ram, 0x80000, 1, stream);
 
 #ifdef IMPROVED_SAVESTATES
    for (i = 0; i < 0x40000; i++)
       back_framebuffer[i] = Vdp1FrameBufferReadByte(NULL, NULL, i);
 
-   ywrite(&check, (void *)back_framebuffer, 0x40000, 1, fp);
+   MemStateWrite((void *)back_framebuffer, 0x40000, 1, stream);
 #endif
-   return StateFinishHeader(fp, offset);
+   return MemStateFinishHeader(stream, offset);
 }
 
 //////////////////////////////////////////////////////////////////////////////
