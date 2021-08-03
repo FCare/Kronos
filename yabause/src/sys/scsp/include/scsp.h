@@ -105,7 +105,7 @@ void ScspExec(void);
 void ScspConvert32uto16s(s32 *srcL, s32 *srcR, s16 *dst, u32 len);
 void ScspReceiveCDDA(const u8 *sector);
 int SoundSaveState(void ** stream);
-int SoundLoadState(FILE *fp, int version, int size);
+int SoundLoadState(const void * stream, int version, int size);
 void ScspSlotDebugStats(u8 slotnum, char *outstring);
 void ScspCommonControlRegisterDebugStats(char *outstring);
 int ScspSlotDebugSaveRegisters(u8 slotnum, const char *filename);

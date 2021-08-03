@@ -1776,21 +1776,19 @@ int Vdp2SaveState(void ** stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-int Vdp2LoadState(FILE *fp, UNUSED int version, int size)
+int Vdp2LoadState(const void * stream, UNUSED int version, int size)
 {
-   IOCheck_struct check = { 0, 0 };
-
    // Read registers
-   yread(&check, (void *)Vdp2Regs, sizeof(Vdp2), 1, fp);
+   MemStateRead((void *)Vdp2Regs, sizeof(Vdp2), 1, stream);
 
    // Read VDP2 ram
-   yread(&check, (void *)Vdp2Ram, 0x100000, 1, fp);
+   MemStateRead((void *)Vdp2Ram, 0x100000, 1, stream);
 
    // Read CRAM
-   yread(&check, (void *)Vdp2ColorRam, 0x1000, 1, fp);
+   MemStateRead((void *)Vdp2ColorRam, 0x1000, 1, stream);
 
    // Read internal variables
-   yread(&check, (void *)&Vdp2Internal, sizeof(Vdp2Internal_struct), 1, fp);
+   MemStateRead((void *)&Vdp2Internal, sizeof(Vdp2Internal_struct), 1, stream);
 
    if(VIDCore) VIDCore->Resize(0,0,0,0,0);
 

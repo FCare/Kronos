@@ -1687,13 +1687,12 @@ int CartSaveState(void ** stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-int CartLoadState(FILE * fp, UNUSED int version, int size)
+int CartLoadState(const void * stream, UNUSED int version, int size)
 {
    int newtype;
-   size_t num_read = 0;
 
    // Read cart type
-   num_read = fread((void *)&newtype, 4, 1, fp);
+   MemStateRead((void *)&newtype, 4, 1, stream);
 
    // Check to see if old cart type and new cart type match, if they don't,
    // reallocate memory areas
@@ -1706,11 +1705,11 @@ int CartLoadState(FILE * fp, UNUSED int version, int size)
       // Read the areas associated with the cart type here
       switch(CartridgeArea->carttype){
             case CART_DRAM8MBIT: {
-               size_t nb = fread((void *)CartridgeArea->dram , 1, 0x100000, fp);
+               MemStateRead((void *)CartridgeArea->dram , 1, 0x100000, stream);
                break;
             }
             case CART_DRAM32MBIT: {
-               size_t nb = fread((void *)CartridgeArea->dram , 1, 0x400000, fp);
+               MemStateRead((void *)CartridgeArea->dram , 1, 0x400000, stream);
                break;      
             }
       }

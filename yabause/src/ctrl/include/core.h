@@ -148,6 +148,11 @@ extern "C" {
   void MemStateWriteOffset(void * ptr, size_t size, size_t nmemb, void ** stream, int offset);
   int MemStateWriteHeader(void ** stream, const char *name, int version);
   int MemStateFinishHeader(void ** stream, int offset);
+  void MemStateRead(void * ptr, size_t size, size_t nmemb, const void * stream);
+  void MemStateReadOffset(void * ptr, size_t size, size_t nmemb, const void * stream, int offset);
+  int MemStateCheckRetrieveHeader(const void * stream, const char *name, int *version, int *size);
+  void MemStateSetOffset(int offset);
+  int MemStateGetOffset();
 
   typedef struct {
     unsigned int size;

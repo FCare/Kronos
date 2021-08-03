@@ -66,7 +66,7 @@ typedef struct {
 	void (*SetWriteW)(M68K_WRITE *Func);
 
    void (*SaveState)(void ** stream);
-   void (*LoadState)(FILE* fp);
+   void (*LoadState)(const void * stream);
 } M68K_struct;
 
 extern M68K_struct * M68K;

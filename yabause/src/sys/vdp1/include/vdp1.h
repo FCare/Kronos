@@ -210,7 +210,7 @@ void FASTCALL	Vdp1WriteWord(SH2_struct *context, u8*, u32, u16);
 void FASTCALL	Vdp1WriteLong(SH2_struct *context, u8*, u32, u32);
 
 int Vdp1SaveState(void ** stream);
-int Vdp1LoadState(FILE *fp, int version, int size);
+int Vdp1LoadState(const void * stream, int version, int size);
 
 char *Vdp1DebugGetCommandNumberName(u32 number);
 void Vdp1DebugCommand(u32 number, char *outstring);

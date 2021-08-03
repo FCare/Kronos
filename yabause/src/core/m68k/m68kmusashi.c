@@ -266,63 +266,63 @@ void m68k_save_context(void ** stream){
 	#define CYC_RESET        m68ki_cpu.cyc_reset
 }
 
-void m68k_load_context(FILE *fp){
+void m68k_load_context(const void * stream){
 	int i;
 	uint32 regd[8];
 	uint32 rega[8];
 	uint32 val;
 
-	fread((void *)&regd, sizeof(uint32), 8, fp );
+	MemStateRead((void *)&regd, sizeof(uint32), 8, stream );
 	for (i = 0; i<8; i++) {
 		m68k_set_reg(M68K_REG_D0 + i, regd[i]);
 	}
 
-	fread((void *)&rega, sizeof(uint32), 8, fp );
+	MemStateRead((void *)&rega, sizeof(uint32), 8, stream );
 	for (i = 0; i<8; i++) {
 		m68k_set_reg(M68K_REG_A0 + i, rega[i]);
 	}
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_PPC, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_PC, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_USP, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_ISP, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_MSP, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_VBR, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_SFC, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_DFC, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_CACR, val);
 
-	fread((void *)&val, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&val, sizeof(uint32), 1, stream );
 	m68k_set_reg(M68K_REG_CAAR, val);
 
-	fread((void *)&m68k_substate.sr, sizeof(uint16), 1, fp );
+	MemStateRead((void *)&m68k_substate.sr, sizeof(uint16), 1, stream );
 	m68ki_set_sr_noint_nosp(val);
 
-	fread((void *)&CPU_INT_LEVEL, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&CPU_INT_LEVEL, sizeof(uint32), 1, stream );
 
-	fread((void *)&CPU_INT_CYCLES, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&CPU_INT_CYCLES, sizeof(uint32), 1, stream );
 
-	fread((void *)&m68k_substate.stopped, sizeof(int), 1, fp );
-	fread((void *)&m68k_substate.halted, sizeof(int), 1, fp );
-	fread((void *)&CPU_PREF_ADDR, sizeof(uint32), 1, fp );
-	fread((void *)&CPU_PREF_DATA, sizeof(uint32), 1, fp );
+	MemStateRead((void *)&m68k_substate.stopped, sizeof(int), 1, stream );
+	MemStateRead((void *)&m68k_substate.halted, sizeof(int), 1, stream );
+	MemStateRead((void *)&CPU_PREF_ADDR, sizeof(uint32), 1, stream );
+	MemStateRead((void *)&CPU_PREF_DATA, sizeof(uint32), 1, stream );
 
 	m68ki_set_sr_noint_nosp(m68k_substate.sr);
 	CPU_STOPPED = m68k_substate.stopped ? STOP_LEVEL_STOP : 0
@@ -336,9 +336,9 @@ static void M68KMusashiSaveState(void ** stream) {
 
 }
 
-static void M68KMusashiLoadState(FILE *fp) {
+static void M68KMusashiLoadState(const void * stream) {
 
-  m68k_load_context(fp);
+  m68k_load_context(stream);
 }
 
 M68K_struct M68KMusashi = {

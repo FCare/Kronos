@@ -378,7 +378,7 @@ int Cs2ReadFilteredSector(u32 rfsFAD, partition_struct **partition);
 u8 Cs2GetIP(int autoregion);
 u8 Cs2GetRegionID(void);
 int Cs2SaveState(void ** stream);
-int Cs2LoadState(FILE *, int, int);
+int Cs2LoadState(const void * stream, int version, int size);
 u32 Cs2GetMasterStackAdress(void);
 u32 Cs2GetSlaveStackAdress(void);
 u64 Cs2GetGameId();

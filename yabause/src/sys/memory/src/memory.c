@@ -1662,7 +1662,7 @@ void FormatBackupRam(void *mem, u32 size)
 
 //////////////////////////////////////////////////////////////////////////////
 
-static int MemStateCurrentOffset;
+static int MemStateCurrentOffset = 0;
 
 void MemStateWrite(void * ptr, size_t size, size_t nmemb, void ** stream)
 {
@@ -1679,7 +1679,7 @@ void MemStateWriteOffset(void * ptr, size_t size, size_t nmemb, void ** stream, 
 
 int MemStateWriteHeader(void ** stream, const char *name, int version)
 {
-   MemStateWrite((void *)name, strlen(name), 1, stream);
+   MemStateWrite((void *)name, 1, 4, stream); // lengths are fixed for this, no need to guess
    MemStateWrite((void *)&version, sizeof(version), 1, stream);
    MemStateWrite((void *)&version, sizeof(version), 1, stream); // place holder for size
    return MemStateCurrentOffset;
@@ -1693,6 +1693,39 @@ int MemStateFinishHeader(void ** stream, int offset)
    return (size + 12);
 }
 
+void MemStateRead(void * ptr, size_t size, size_t nmemb, const void * stream)
+{
+   memcpy(ptr, stream + MemStateCurrentOffset, size*nmemb);
+   MemStateCurrentOffset += size*nmemb;
+}
+
+void MemStateReadOffset(void * ptr, size_t size, size_t nmemb, const void * stream, int offset)
+{
+   memcpy(ptr, stream + offset, size*nmemb);
+}
+
+int MemStateCheckRetrieveHeader(const void * stream, const char *name, int *version, int *size) {
+   char id[4];
+
+   MemStateRead((void *)id, 1, 4, stream);
+
+   if (strncmp(name, id, 4) != 0)
+      return -2;
+
+   MemStateRead((void *)version, 1, 4, stream);
+   MemStateRead((void *)size, 1, 4, stream);
+
+   return 0;
+}
+
+void MemStateSetOffset(int offset) {
+   MemStateCurrentOffset = offset;
+}
+
+int MemStateGetOffset() {
+   return MemStateCurrentOffset;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 int YabSaveStateBuffer(void ** buffer, size_t * size)
@@ -1703,7 +1736,8 @@ int YabSaveStateBuffer(void ** buffer, size_t * size)
    if (buffer != NULL) *buffer = NULL;
    *size = 0;
 
-   // Lock scsp thread (workaround for audio issues ? it doesn't seem reliable though)
+   // Mute scsp & lock its thread (workaround for audio issues ? it doesn't seem reliable though)
+   ScspMuteAudio(SCSP_MUTE_SYSTEM);
    ScspLockThread();
 
    // Get size
@@ -1712,12 +1746,13 @@ int YabSaveStateBuffer(void ** buffer, size_t * size)
       ScspUnLockThread();
       return status;
    }
-   *size = MemStateCurrentOffset;
+   *size = MemStateGetOffset();
 
    // Allocate buffer
-   *buffer = malloc(*size);
+   *buffer = (void *)malloc(*size);
    if (buffer == NULL) {
       ScspUnLockThread();
+      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       return -1;
    }
 
@@ -1725,11 +1760,13 @@ int YabSaveStateBuffer(void ** buffer, size_t * size)
    status = YabSaveStateStream(buffer);
    if (status != 0) {
       ScspUnLockThread();
+      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       return status;
    }
 
    // Unlock scsp thread
    ScspUnLockThread();
+   ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
 
    return 0;
 }
@@ -1808,10 +1845,10 @@ int YabSaveStateStream(void ** stream)
    u8 endian;
 
    // Set buffer position to 0
-   MemStateCurrentOffset = 0;
+   MemStateSetOffset(0);
 
    // Write signature
-   MemStateWrite("YSS", 3, 1, stream);
+   MemStateWrite("YSS", 1, 3, stream);
 
    // Write endianness byte
 #ifdef WORDS_BIGENDIAN
@@ -1819,7 +1856,7 @@ int YabSaveStateStream(void ** stream)
 #else
    endian = 0x01;
 #endif
-   MemStateWrite((void *)&endian, sizeof(endian), 1, stream);
+   MemStateWrite((void *)&endian, 1, 1, stream);
 
    // Write version(fix me)
    i = 2;
@@ -1890,7 +1927,7 @@ int YabSaveStateStream(void ** stream)
 
    MemStateWrite((void *)buf, totalsize, 1, stream);
 
-   movieposition=MemStateCurrentOffset;
+   movieposition=MemStateGetOffset();
 
    //write the movie to the end of the savestate
    SaveMovieInState(stream);
@@ -1911,20 +1948,13 @@ int YabSaveStateStream(void ** stream)
 
 int YabLoadStateBuffer(const void * buffer, size_t size)
 {
-   FILE * fp;
    int status;
 
-   if ((fp = tmpfile()) == NULL)
-      return -1;
-   fwrite(buffer, 1, size, fp);
-
-   fseek(fp, 0, SEEK_SET);
-
+   ScspMuteAudio(SCSP_MUTE_SYSTEM);
    ScspLockThread();
-   status = YabLoadStateStream(fp);
+   status = YabLoadStateStream(buffer, size);
    ScspUnLockThread();
-
-   fclose(fp);
+   ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
 
    return status;
 }
@@ -1943,23 +1973,33 @@ int YabLoadState(const char *filename)
    if ((fp = fopen(filename, "rb")) == NULL)
       return -1;
 
-   ScspLockThread();
-   status = YabLoadStateStream(fp);
-   ScspUnLockThread();
+   // retrieve filesize
+   fseek(fp, 0, SEEK_END);
+   size_t size = ftell(fp);
+   fseek(fp, 0L, SEEK_SET);
+
+   // prepare buffer
+   void *buffer = (void *)malloc(size);
+   if (buffer == NULL) {
+      fclose(fp);
+      return -1;
+   }
+   fread(buffer, 1, size, fp);
 
    fclose(fp);
+
+   status = YabLoadStateBuffer(buffer, size);
 
    return status;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-int YabLoadStateStream(FILE *fp)
+int YabLoadStateStream(const void * stream, size_t size_stream)
 {
    char id[3];
    u8 endian;
    int headerversion, version, size, chunksize, headersize;
-   IOCheck_struct check;
    u8* buf;
    int totalsize;
    int outputwidth;
@@ -1969,15 +2009,15 @@ int YabLoadStateStream(FILE *fp)
    int movieposition;
    int temp;
    u32 temp32;
-	int test_endian;
+   int test_endian;
 
    headersize = 0xC;
-   check.done = 0;
-   check.size = 0;
 
+   // Set buffer position to 0
+   MemStateSetOffset(0);
 
    // Read signature
-   yread(&check, (void *)id, 1, 3, fp);
+   MemStateRead(&id, 1, 3, stream);
 
    if (strncmp(id, "YSS", 3) != 0)
    {
@@ -1986,9 +2026,10 @@ int YabLoadStateStream(FILE *fp)
    }
 
    // Read header
-   yread(&check, (void *)&endian, 1, 1, fp);
-   yread(&check, (void *)&headerversion, 4, 1, fp);
-   yread(&check, (void *)&size, 4, 1, fp);
+   MemStateRead((void *)&endian, 1, 1, stream);
+   MemStateRead((void *)&headerversion, 4, 1, stream);
+   MemStateRead((void *)&size, 4, 1, stream);
+
    switch(headerversion)
    {
       case 1:
@@ -1996,15 +2037,15 @@ int YabLoadStateStream(FILE *fp)
          break;
       case 2:
          /* version 2 adds video recording */
-         yread(&check, (void *)&framecounter, 4, 1, fp);
-		 movieposition=ftell(fp);
-		 yread(&check, (void *)&movieposition, 4, 1, fp);
+         MemStateRead((void *)&framecounter, 4, 1, stream);
+         movieposition=MemStateGetOffset(); // yabause was doing this, why ? it's replaced right after
+         MemStateRead((void *)&movieposition, 4, 1, stream);
          headersize = 0x14;
          break;
       default:
          /* we're trying to open a save state using a future version
           * of the YSS format, that won't work, sorry :) */
-        YuiMsg("Save file is not supported. Might be a future version.\n");
+         YuiMsg("Save file is not supported. Might be a future version.\n");
          return -3;
          break;
    }
@@ -2022,159 +2063,140 @@ int YabLoadStateStream(FILE *fp)
    }
 
    // Make sure size variable matches actual size minus header
-   fseek(fp, 0, SEEK_END);
-
-   if (size != (ftell(fp) - headersize))
-   {
+   if (size != (size_stream - headersize))
       return -2;
-   }
-   fseek(fp, headersize, SEEK_SET);
 
    // Verify version here
 
-   // ScspMuteAudio(SCSP_MUTE_SYSTEM);
-
-   if (StateCheckRetrieveHeader(fp, "CART", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "CART", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "CART", version);
       return -3;
    }
-   CartLoadState(fp, version, chunksize);
+   CartLoadState(stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "CS2 ", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "CS2 ", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "CS2", version);
       return -3;
    }
-   Cs2LoadState(fp, version, chunksize);
+   Cs2LoadState(stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "MSH2", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "MSH2", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "MSH2", version);
       return -3;
    }
-   SH2LoadState(MSH2, fp, version, chunksize);
+   SH2LoadState(MSH2, stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "SSH2", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "SSH2", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "SSH2", version);
       return -3;
    }
-   SH2LoadState(SSH2, fp, version, chunksize);
+   SH2LoadState(SSH2, stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "SCSP", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "SCSP", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "SCSP", version);
       return -3;
    }
-   SoundLoadState(fp, version, chunksize);
+   SoundLoadState(stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "SCU ", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "SCU ", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "SCU", version);
       return -3;
    }
-   ScuLoadState(fp, version, chunksize);
+   ScuLoadState(stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "SMPC", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "SMPC", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "SMPC", version);
       return -3;
    }
-   SmpcLoadState(fp, version, chunksize);
+   SmpcLoadState(stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "VDP1", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "VDP1", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "VDP1", version);
       return -3;
    }
-   Vdp1LoadState(fp, version, chunksize);
+   Vdp1LoadState(stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "VDP2", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "VDP2", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "VDP2", version);
       return -3;
    }
-   Vdp2LoadState(fp, version, chunksize);
+   Vdp2LoadState(stream, version, chunksize);
 
-   if (StateCheckRetrieveHeader(fp, "OTHR", &version, &chunksize) != 0)
+   if (MemStateCheckRetrieveHeader(stream, "OTHR", &version, &chunksize) != 0)
    {
       // Revert back to old state here
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       YuiMsg("Can not load %s (Ver %d)\n", "OTHR", version);
       return -3;
    }
    // Other data
-   //yread(&check, (void *)BupRam, 0x8000, 1, fp);
-   yread(&check, (void *)HighWram, 0x100000, 1, fp);
-   yread(&check, (void *)LowWram, 0x100000, 1, fp);
+   //MemStateRead((void *)BupRam, 0x8000, 1, stream);
+   MemStateRead((void *)HighWram, 0x100000, 1, stream);
+   MemStateRead((void *)LowWram, 0x100000, 1, stream);
 
-   yread(&check, (void *)&yabsys.DecilineCount, sizeof(int), 1, fp);
-   yread(&check, (void *)&yabsys.LineCount, sizeof(int), 1, fp);
-   yread(&check, (void *)&yabsys.VBlankLineCount, sizeof(int), 1, fp);
-   yread(&check, (void *)&yabsys.MaxLineCount, sizeof(int), 1, fp);
-   yread(&check, (void *)&temp, sizeof(int), 1, fp);
-   yread(&check, (void *)&temp, sizeof(int), 1, fp);
-   yread(&check, (void *)&temp32, sizeof(u32), 1, fp);
-   yread(&check, (void *)&yabsys.CurSH2FreqType, sizeof(int), 1, fp);
-   yread(&check, (void *)&yabsys.IsPal, sizeof(int), 1, fp);
+   MemStateRead((void *)&yabsys.DecilineCount, sizeof(int), 1, stream);
+   MemStateRead((void *)&yabsys.LineCount, sizeof(int), 1, stream);
+   MemStateRead((void *)&yabsys.VBlankLineCount, sizeof(int), 1, stream);
+   MemStateRead((void *)&yabsys.MaxLineCount, sizeof(int), 1, stream);
+   MemStateRead((void *)&temp, sizeof(int), 1, stream);
+   MemStateRead((void *)&temp, sizeof(int), 1, stream);
+   MemStateRead((void *)&temp32, sizeof(u32), 1, stream);
+   MemStateRead((void *)&yabsys.CurSH2FreqType, sizeof(int), 1, stream);
+   MemStateRead((void *)&yabsys.IsPal, sizeof(int), 1, stream);
    YabauseChangeTiming(yabsys.CurSH2FreqType);
    yabsys.UsecFrac = (temp32 << YABSYS_TIMING_BITS) * temp / 10;
 
    if (headerversion > 1) {
 
-   yread(&check, (void *)&outputwidth, sizeof(outputwidth), 1, fp);
-   yread(&check, (void *)&outputheight, sizeof(outputheight), 1, fp);
+      MemStateRead((void *)&outputwidth, sizeof(outputwidth), 1, stream);
+      MemStateRead((void *)&outputheight, sizeof(outputheight), 1, stream);
 
-   totalsize=outputwidth * outputheight * sizeof(u32);
+      totalsize=outputwidth * outputheight * sizeof(u32);
 
-   if ((buf = (u8 *)malloc(totalsize)) == NULL)
-   {
-      return -2;
+      if ((buf = (u8 *)malloc(totalsize)) == NULL)
+      {
+         return -2;
+      }
+
+      MemStateRead((void *)buf, totalsize, 1, stream);
+
+      YuiTimedSwapBuffers();
+
+#ifdef USE_OPENGL
+      if(VIDCore->id == VIDCORE_SOFT)
+         glRasterPos2i(0, outputheight);
+      if(VIDCore->id == VIDCORE_OGL)
+         glRasterPos2i(0, outputheight/2);
+#endif
+
+      VIDCore->GetGlSize(&curroutputwidth, &curroutputheight);
+#ifdef USE_OPENGL
+      glPixelZoom((float)curroutputwidth / (float)outputwidth, ((float)curroutputheight / (float)outputheight));
+      glDrawPixels(outputwidth, outputheight, GL_RGBA, GL_UNSIGNED_BYTE, buf);
+#endif
+      YuiTimedSwapBuffers();
+      free(buf);
+
+      MemStateSetOffset(movieposition);
+      MovieReadState(stream);
    }
-
-   yread(&check, (void *)buf, totalsize, 1, fp);
-
-   YuiTimedSwapBuffers();
-
-   #ifdef USE_OPENGL
-   if(VIDCore->id == VIDCORE_SOFT)
-     glRasterPos2i(0, outputheight);
-   if(VIDCore->id == VIDCORE_OGL)
-	 glRasterPos2i(0, outputheight/2);
-   #endif
-
-   VIDCore->GetGlSize(&curroutputwidth, &curroutputheight);
-   #ifdef USE_OPENGL
-   glPixelZoom((float)curroutputwidth / (float)outputwidth, ((float)curroutputheight / (float)outputheight));
-   glDrawPixels(outputwidth, outputheight, GL_RGBA, GL_UNSIGNED_BYTE, buf);
-   #endif
-   YuiTimedSwapBuffers();
-   free(buf);
-
-   fseek(fp, movieposition, SEEK_SET);
-   MovieReadState(fp);
-   }
-
-   // ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
 
    OSDPushMessage(OSDMSG_STATUS, 150, "STATE LOADED");
    return 0;
@@ -2195,9 +2217,9 @@ int YabSaveStateSlot(const char *dirpath, u8 slot)
 #else
    sprintf(filename, "%s/%s_%03d.yss", dirpath, cdip->itemnum, slot);
 #endif
-   ScspMuteAudio(1);
+
    rtn = YabSaveState(filename);
-   ScspUnMuteAudio(1);
+
    return rtn;
 }
 
@@ -2216,9 +2238,9 @@ int YabLoadStateSlot(const char *dirpath, u8 slot)
 #else
    sprintf(filename, "%s/%s_%03d.yss", dirpath, cdip->itemnum, slot);
 #endif
-   ScspMuteAudio(1);
+
    rtn = YabLoadState(filename);
-   ScspUnMuteAudio(1);
+
    return rtn;
 }
 

@@ -1008,21 +1008,20 @@ int SmpcSaveState(void ** stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-int SmpcLoadState(FILE *fp, int version, int size)
+int SmpcLoadState(const void * stream, int version, int size)
 {
-   IOCheck_struct check = { 0, 0 };
    int internalsizev2 = sizeof(SmpcInternal) - 8;
 
    // Read registers
-   yread(&check, (void *)SmpcRegs->IREG, sizeof(u8), 7, fp);
-   yread(&check, (void *)&SmpcRegs->COMREG, sizeof(u8), 1, fp);
-   yread(&check, (void *)SmpcRegs->OREG, sizeof(u8), 32, fp);
-   yread(&check, (void *)&SmpcRegs->SR, sizeof(u8), 1, fp);
-   yread(&check, (void *)&SmpcRegs->SF, sizeof(u8), 1, fp);
-   yread(&check, (void *)SmpcRegs->PDR, sizeof(u8), 2, fp);
-   yread(&check, (void *)SmpcRegs->DDR, sizeof(u8), 2, fp);
-   yread(&check, (void *)&SmpcRegs->IOSEL, sizeof(u8), 1, fp);
-   yread(&check, (void *)&SmpcRegs->EXLE, sizeof(u8), 1, fp);
+   MemStateRead((void *)SmpcRegs->IREG, sizeof(u8), 7, stream);
+   MemStateRead((void *)&SmpcRegs->COMREG, sizeof(u8), 1, stream);
+   MemStateRead((void *)SmpcRegs->OREG, sizeof(u8), 32, stream);
+   MemStateRead((void *)&SmpcRegs->SR, sizeof(u8), 1, stream);
+   MemStateRead((void *)&SmpcRegs->SF, sizeof(u8), 1, stream);
+   MemStateRead((void *)SmpcRegs->PDR, sizeof(u8), 2, stream);
+   MemStateRead((void *)SmpcRegs->DDR, sizeof(u8), 2, stream);
+   MemStateRead((void *)&SmpcRegs->IOSEL, sizeof(u8), 1, stream);
+   MemStateRead((void *)&SmpcRegs->EXLE, sizeof(u8), 1, stream);
 
    // Read internal variables
    if (version == 1)
@@ -1030,16 +1029,16 @@ int SmpcLoadState(FILE *fp, int version, int size)
       // This handles the problem caused by the version not being incremented
       // when SmpcInternal was changed
       if ((size - 48) == internalsizev2)
-         yread(&check, (void *)SmpcInternalVars, internalsizev2, 1, fp);
+         MemStateRead((void *)SmpcInternalVars, internalsizev2, 1, stream);
       else if ((size - 48) == 24)
-         yread(&check, (void *)SmpcInternalVars, 24, 1, fp);
+         MemStateRead((void *)SmpcInternalVars, 24, 1, stream);
       else
-         fseek(fp, size - 48, SEEK_CUR);
+         MemStateSetOffset(size - 48);
    }
    else if (version == 2)
-      yread(&check, (void *)SmpcInternalVars, internalsizev2, 1, fp);
+      MemStateRead((void *)SmpcInternalVars, internalsizev2, 1, stream);
    else
-      yread(&check, (void *)SmpcInternalVars, sizeof(SmpcInternal), 1, fp);
+      MemStateRead((void *)SmpcInternalVars, sizeof(SmpcInternal), 1, stream);
 
    // Read ID's of currently emulated peripherals(fix me)
 

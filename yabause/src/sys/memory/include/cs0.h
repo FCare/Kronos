@@ -84,6 +84,6 @@ void CartFlush(void);
 void CartDeInit(void);
 
 int CartSaveState(void ** stream);
-int CartLoadState(FILE *fp, int version, int size);
+int CartLoadState(const void * stream, int version, int size);
 
 #endif

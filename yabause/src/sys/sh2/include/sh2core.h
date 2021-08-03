@@ -472,7 +472,7 @@ void FASTCALL MSH2InputCaptureWriteWord(SH2_struct *context, UNUSED u8* mem, u32
 void FASTCALL SSH2InputCaptureWriteWord(SH2_struct *context, UNUSED u8* mem, u32 addr, u16 data);
 
 int SH2SaveState(SH2_struct *context, void ** stream);
-int SH2LoadState(SH2_struct *context, FILE *fp, int version, int size);
+int SH2LoadState(SH2_struct *context, const void * stream, int version, int size);
 
 extern SH2Interface_struct SH2Dyn;
 extern SH2Interface_struct SH2DynDebug;

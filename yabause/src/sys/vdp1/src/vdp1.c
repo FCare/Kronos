@@ -1382,23 +1382,22 @@ int Vdp1SaveState(void ** stream)
 
 //////////////////////////////////////////////////////////////////////////////
 
-int Vdp1LoadState(FILE *fp, UNUSED int version, int size)
+int Vdp1LoadState(const void * stream, UNUSED int version, int size)
 {
-   IOCheck_struct check = { 0, 0 };
 #ifdef IMPROVED_SAVESTATES
    int i = 0;
    u8 back_framebuffer[0x40000] = { 0 };
 #endif
 
    // Read registers
-   yread(&check, (void *)Vdp1Regs, sizeof(Vdp1), 1, fp);
+   MemStateRead((void *)Vdp1Regs, sizeof(Vdp1), 1, stream);
 
    // Read VDP1 ram
-   yread(&check, (void *)Vdp1Ram, 0x80000, 1, fp);
+   MemStateRead((void *)Vdp1Ram, 0x80000, 1, stream);
    vdp1Ram_update_start = 0x80000;
    vdp1Ram_update_end = 0x0;
 #ifdef IMPROVED_SAVESTATES
-   yread(&check, (void *)back_framebuffer, 0x40000, 1, fp);
+   MemStateRead((void *)back_framebuffer, 0x40000, 1, stream);
 
    for (i = 0; i < 0x40000; i++)
       Vdp1FrameBufferWriteByte(NULL, NULL, i, back_framebuffer[i]);

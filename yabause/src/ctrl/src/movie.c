@@ -390,37 +390,36 @@ void SaveMovieInState(void ** stream) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-void MovieReadState(FILE* fp) {
+void MovieReadState(const void * stream) {
 
-	ReadMovieInState(fp);
+	ReadMovieInState(stream);
 	MovieLoadState();//file pointer and truncation
 
 }
 
-void ReadMovieInState(FILE* fp) {
+void ReadMovieInState(const void * stream) {
 
 	struct MovieBufferStruct tempbuffer;
 	int fpos;
-   size_t num_read = 0;
 
 	//overwrite the main movie on disk if we are recording or read+write playback
 	if(Movie.Status == Recording || (Movie.Status == Playback && Movie.ReadOnly == 0)) {
 
-		fpos=ftell(fp);//where we are in the savestate
+		fpos=MemStateGetOffset();//where we are in the savestate
 
-      if (fpos < 0)
-      {
-         YabSetError(YAB_ERR_OTHER, "ReadMovieInState fpos is negative");
-         return;
-      }
+		if (fpos < 0)
+		{
+			YabSetError(YAB_ERR_OTHER, "ReadMovieInState fpos is negative");
+			return;
+		}
 
-      num_read = fread(&tempbuffer.size, 4, 1, fp);//size
+		MemStateRead(&tempbuffer.size, 4, 1, stream);//size
 		if ((tempbuffer.data = (char *)malloc(tempbuffer.size)) == NULL)
 		{
 			return;
 		}
-      num_read = fread(tempbuffer.data, 1, tempbuffer.size, fp);//movie
-		fseek(fp, fpos, SEEK_SET);//reset savestate position
+		MemStateRead(tempbuffer.data, 1, tempbuffer.size, stream);//movie
+		MemStateSetOffset(fpos);//reset savestate position
 
 		rewind(Movie.fp);
 		fwrite(&(tempbuffer.data), 1, tempbuffer.size, Movie.fp);
