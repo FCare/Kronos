@@ -894,10 +894,10 @@ static void context_reset(void)
    }
    else
    {
-      VIDCore->Init();
+      if (VIDCore) VIDCore->Init();
       retro_reinit_av_info();
    }
-   VIDCore->Resize(0, 0, window_width, window_height, 0);
+   if (VIDCore) VIDCore->Resize(0, 0, window_width, window_height, 0);
    game_width = _Ygl->width;
    game_height = _Ygl->height;
    set_variable_visibility();
@@ -908,7 +908,7 @@ static void context_reset(void)
 
 static void context_destroy(void)
 {
-   VIDCore->DeInit();
+   if (VIDCore) VIDCore->DeInit();
    rendering_started = false;
    glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, NULL);
 }
@@ -1425,7 +1425,7 @@ bool retro_unserialize(const void *data, size_t size)
       return true;
 
    int error = YabLoadStateBuffer(data, size);
-   VIDCore->Resize(0, 0, window_width, window_height, 0);
+   if (VIDCore) VIDCore->Resize(0, 0, window_width, window_height, 0);
 
    return !error;
 }
@@ -1981,15 +1981,15 @@ void retro_run(void)
          native_resolution_mode = initial_native_resolution_mode;
       }
       resolution_need_update = (prev_resolution_mode != resolution_mode || prev_force_downsampling != force_downsampling);
-      if (prev_resolution_mode != resolution_mode)
+      if (prev_resolution_mode != resolution_mode && VIDCore)
          VIDCore->SetSettingValue(VDP_SETTING_RESOLUTION_MODE, resolution_mode);
       if(PERCore && (prev_multitap[0] != multitap[0] || prev_multitap[1] != multitap[1]))
          PERCore->Init();
-      VIDCore->SetSettingValue(VDP_SETTING_POLYGON_MODE, polygon_mode);
-      VIDCore->SetSettingValue(VDP_SETTING_MESH_MODE, (force_downsampling ? IMPROVED_MESH : mesh_mode)); // we want improved mesh with downsampling, otherwise it'll cause gfx glitches
-      VIDCore->SetSettingValue(VDP_SETTING_BANDING_MODE, banding_mode);
-      VIDCore->SetSettingValue(VDP_SETTING_COMPUTE_SHADER, use_cs);
-      VIDCore->SetSettingValue(VDP_SETTING_WIREFRAME, wireframe_mode);
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_POLYGON_MODE, polygon_mode);
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_MESH_MODE, (force_downsampling ? IMPROVED_MESH : mesh_mode)); // we want improved mesh with downsampling, otherwise it'll cause gfx glitches
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_BANDING_MODE, banding_mode);
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_COMPUTE_SHADER, use_cs);
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_WIREFRAME, wireframe_mode);
       // changing video format on the fly is causing issues
       //if (g_videoformattype != -1)
       //   YabauseSetVideoFormat(g_videoformattype);
