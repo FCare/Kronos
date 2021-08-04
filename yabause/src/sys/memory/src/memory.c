@@ -1667,14 +1667,14 @@ static int MemStateCurrentOffset = 0;
 void MemStateWrite(void * ptr, size_t size, size_t nmemb, void ** stream)
 {
    if (stream != NULL)
-      memcpy(*stream + MemStateCurrentOffset, ptr, size*nmemb);
+      memcpy((char *)(*stream) + MemStateCurrentOffset, ptr, size*nmemb);
    MemStateCurrentOffset += size*nmemb;
 }
 
 void MemStateWriteOffset(void * ptr, size_t size, size_t nmemb, void ** stream, int offset)
 {
    if (stream != NULL)
-      memcpy(*stream + offset, ptr, size*nmemb);
+      memcpy((char *)(*stream) + offset, ptr, size*nmemb);
 }
 
 int MemStateWriteHeader(void ** stream, const char *name, int version)
@@ -1695,13 +1695,13 @@ int MemStateFinishHeader(void ** stream, int offset)
 
 void MemStateRead(void * ptr, size_t size, size_t nmemb, const void * stream)
 {
-   memcpy(ptr, stream + MemStateCurrentOffset, size*nmemb);
+   memcpy(ptr, (const char *)stream + MemStateCurrentOffset, size*nmemb);
    MemStateCurrentOffset += size*nmemb;
 }
 
 void MemStateReadOffset(void * ptr, size_t size, size_t nmemb, const void * stream, int offset)
 {
-   memcpy(ptr, stream + offset, size*nmemb);
+   memcpy(ptr, (const char *)stream + offset, size*nmemb);
 }
 
 int MemStateCheckRetrieveHeader(const void * stream, const char *name, int *version, int *size) {
