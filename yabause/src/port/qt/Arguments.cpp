@@ -163,7 +163,7 @@ namespace Arguments
 
 	void help(const QString& param)
 	{
-		std::cout << "Yabause:" << std::endl;
+		std::cout << std::endl << "Yabause commands:" << std::endl;
 
 		for(Option const & option : availableOptions)
 		{

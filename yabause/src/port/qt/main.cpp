@@ -29,6 +29,23 @@
 
 int main( int argc, char** argv )
 {
+#ifdef _WIN32
+	//attach the console if the program was started from the console (parent) so that we get console output.
+	auto stdout_type = GetFileType(GetStdHandle(STD_OUTPUT_HANDLE));
+	auto stderr_type = GetFileType(GetStdHandle(STD_ERROR_HANDLE));
+	if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+		if (stdout_type == FILE_TYPE_UNKNOWN)
+		{
+			freopen("CONOUT$", "w", stdout);
+		}
+		if (stderr_type == FILE_TYPE_UNKNOWN)
+		{
+			freopen("CONOUT$", "w", stderr);
+		}
+		//freopen("CONIN$", "r", stdin);
+	}
+#endif
+
 	// create application
 	QApplication::setAttribute(Qt::AA_UseDesktopOpenGL);
 	QApplication app( argc, argv );
