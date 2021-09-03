@@ -42,9 +42,7 @@ namespace Arguments
 		void (*callback)(const QString& param);
 	};
 
-	static Option LAST_OPTION = { NULL, NULL, NULL, NULL, 0 };
-
-	static Option availableOptions[] =
+	static std::vector<Option> const availableOptions =
 	{
 		{ NULL,  "--autoframeskip=", "0|1", "Enable or disable auto frame skipping / limiting.",  2, autoframeskip },
 		{ NULL,  "--autoload=", "<SAVESTATE>", "Automatically start emulation and load a save state.",1, autoload },
@@ -59,42 +57,39 @@ namespace Arguments
                 { "-nb", "--no-bios", NULL,         "Use the emulated bios",                              3, nobios },
                 { "-ns", "--no-sound", NULL,        "Turns sound off.",                                   6, nosound },
 		{ "-v",  "--version", NULL,         "Show version and exit.",                             0, version },
-		LAST_OPTION
 	};
 
 	void parse()
 	{
-		QVector<Option *> choosenOptions(8);
-		QVector<QString> params(8);
+		QVector<Option const *> choosenOptions(static_cast<int>(availableOptions.size()));
+		QVector<QString> params(static_cast<int>(availableOptions.size()));
 
-		QStringList arguments = QApplication::arguments();
+		QStringList const arguments = QApplication::arguments();
 		QStringListIterator argit(arguments);
 
 		while(argit.hasNext())
 		{
-			QString argument = argit.next();
-			Option * option = & * availableOptions;
-			while(option->longname)
+			QString const argument = argit.next();
+			for(Option const & option : availableOptions)
 			{
-				if (argument == option->shortname)
+				if (argument == option.shortname)
 				{
-					choosenOptions[option->priority] = option;
-					if (option->parameter)
-						params[option->priority] = argit.next();
+					choosenOptions[option.priority] = &option;
+					if (option.parameter)
+						params[option.priority] = argit.next();
 				}
-				if (argument.startsWith(option->longname))
+				if (argument.startsWith(option.longname))
 				{
-					choosenOptions[option->priority] = option;
-					if (option->parameter)
-						params[option->priority] = argument.mid((int)strlen(option->longname));
+					choosenOptions[option.priority] = &option;
+					if (option.parameter)
+						params[option.priority] = argument.mid((int)strlen(option.longname));
 				}
-				option++;
 			}
 		}
 
-		for(int i = 0;i < 8;i++)
+		for(int i = 0; i < availableOptions.size(); i++)
 		{
-			Option * option = choosenOptions[i];
+			Option const * option = choosenOptions[i];
 			if (option)
 				if (option->parameter)
 					option->callback(params[i]);
@@ -170,21 +165,23 @@ namespace Arguments
 	{
 		std::cout << "Yabause:" << std::endl;
 
-		Option * option = & * availableOptions;
-		while(option->longname)
+		for(Option const & option : availableOptions)
 		{
-			QString longandparam(option->longname);
-			if (option->parameter)
-				longandparam.append(option->parameter);
+			QString longandparam(option.longname);
+			if (option.parameter)
+				longandparam.append(option.parameter);
 
-			if (option->shortname)
-				std::cout << std::setw(5) << std::right << option->shortname << ", ";
+			if (option.shortname)
+			{
+				std::cout << std::setw(5) << std::right << option.shortname << ", ";
+			}
 			else
+			{
 				std::cout << std::setw(7) << ' ';
+			}
 			std::cout << std::setw(27) << std::left << longandparam.toLocal8Bit().constData()
-				<< option->description
+				<< option.description
 				<< std::endl;
-			option++;
 		}
 
 		exit(0);
