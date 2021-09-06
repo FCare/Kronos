@@ -47,6 +47,9 @@ public:
 	void makeCurrent();
 #endif
 
+Q_SIGNALS:
+	void glInitialized();
+
 protected:
         void initializeGL() override;
         void resizeGL(int width, int height) override;

@@ -78,10 +78,19 @@ UIYabause::UIYabause( QWidget* parent )
 	// create glcontext
 	mYabauseGL = new YabauseGL( );
 	// and set it as central application widget
-        QWidget *container = QWidget::createWindowContainer(mYabauseGL);
-        container->setFocusPolicy( Qt::StrongFocus );
-        setFocusPolicy( Qt::StrongFocus );
-        container->setFocusProxy( this );
+	QWidget *container = QWidget::createWindowContainer(mYabauseGL);
+	container->setFocusPolicy( Qt::StrongFocus );
+	setFocusPolicy( Qt::StrongFocus );
+	container->setFocusProxy( this );
+
+	//bind auto start to trigger when gl is initialized. before this emulation will fail due to missing GL context
+	connect(mYabauseGL, &YabauseGL::glInitialized, [&]
+	{
+		auto const * const vs = QtYabause::volatileSettings();
+		if (vs->value("autostart").toBool())
+			aEmulationRun->trigger();
+	});
+
 	setCentralWidget( container );
 	oldMouseX = oldMouseY = 0;
 	mouseCaptured = false;
@@ -155,8 +164,6 @@ void UIYabause::showEvent( QShowEvent* e )
 			menubar->hide();
 		if ( vs->value( "View/Toolbar" ).toInt() == BD_ALWAYSHIDE )
 			toolBar->hide();
-		if ( vs->value( "autostart" ).toBool() )
-			aEmulationRun->trigger();
 		aEmulationVSync->setChecked( vs->value( "General/EnableVSync", 1 ).toBool() );
 		aViewFPS->setChecked( vs->value( "General/ShowFPS" ).toBool() );
 		mInit = true;
