@@ -107,11 +107,25 @@ void SmpcRecheckRegion(void) {
 
 //////////////////////////////////////////////////////////////////////////////
 
+static void SmpcSetLanguage(void) {
+   SmpcInternalVars->SMEM[3] = (SmpcInternalVars->SMEM[3] & 0xF0) | SmpcInternalVars->languageid;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+int SmpcGetLanguage(void) {
+   // TODO : use this in standalone to store currently set language into config
+   return SmpcInternalVars->languageid;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 void SmpcReset(void) {
    memset((void *)SmpcRegs, 0, sizeof(Smpc));
    memset((void *)SmpcInternalVars->SMEM, 0, 4);
 
    SmpcRecheckRegion();
+   SmpcSetLanguage(); // to (re)apply currently stored languageid
 
    SmpcInternalVars->dotsel = 0;
    SmpcInternalVars->mshnmi = 0;
@@ -320,9 +334,6 @@ static void SmpcINTBACKStatus(void) {
    // bit 6 -> CDRES
    SmpcRegs->OREG[11] = SmpcInternalVars->cdres << 6; // FIXME
 
-   // set language
-   SmpcInternalVars->SMEM[3] = (SmpcInternalVars->SMEM[3] & 0xF0) | SmpcInternalVars->languageid;
-
    // SMEM
    for(i = 0;i < 4;i++)
       SmpcRegs->OREG[12+i] = SmpcInternalVars->SMEM[i];
@@ -485,6 +496,9 @@ static void SmpcSETSMEM(void) {
 
    for(i = 0;i < 4;i++)
       SmpcInternalVars->SMEM[i] = SmpcRegs->IREG[i];
+
+   // language might have changed, let's store the new id
+   SmpcInternalVars->languageid = SmpcInternalVars->SMEM[3];
 
    SmpcRegs->OREG[31] = 0x17;
 }
