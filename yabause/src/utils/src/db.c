@@ -8,6 +8,9 @@
 #define NB_GAMES_DB 31
 
 static GameDB GameDBList[NB_GAMES_DB] = {
+   // note : SNK games were developped for 1MB cart,
+   // several of them are known for having issues with 4MB,
+   // let's play it safe by only using 1MB on those
    { "T-3105G", 0, CART_DRAM8MBIT, NULL }, // Real Bout Garou Densetsu
    { "T-3119G", 0, CART_DRAM8MBIT, NULL }, // Real Bout Garou Densetsu Special
    { "T-3116G", 0, CART_DRAM8MBIT, NULL }, // Samurai Spirits - Amakusa Kourin
@@ -15,11 +18,13 @@ static GameDB GameDBList[NB_GAMES_DB] = {
    { "T-3108G", 0, CART_DRAM8MBIT, NULL }, // The King of Fighters '96
    { "T-3121G", 0, CART_DRAM8MBIT, NULL }, // The King of Fighters '97
    { "T-1515G", 0, CART_DRAM8MBIT, NULL }, // Waku Waku 7
+   { "T-3111G", 0, CART_DRAM8MBIT, NULL }, // Metal Slug
+   { "GS-9107", 0, CART_DRAM8MBIT, NULL }, // Fighter's History Dynamite
+   // other games should be fine with 4MB cart
    { "T-1521G", 0, CART_DRAM32MBIT, NULL }, // Astra Superstars
    { "T-9904G", 0, CART_DRAM32MBIT, NULL }, // Magical Night Dreams - Cotton 2
    { "T-1217G", 0, CART_DRAM32MBIT, NULL }, // Cyberbots - Fullmetal Madness
    { "T-1245G", 0, CART_DRAM32MBIT, NULL }, // Dungeons & Dragons Collection - Shadow over Mystara
-   { "GS-9107", 0, CART_DRAM32MBIT, NULL }, // Fighter's History Dynamite
    { "T-1248G", 0, CART_DRAM32MBIT, NULL }, // Final Fight Revenge
    { "T-20109G", 0, CART_DRAM32MBIT, NULL }, // Friends: Seishun no Kagayaki
    { "T-14411G", 0, CART_DRAM32MBIT, NULL }, // Groove On Fight: Gouketsuji Ichizoku 3
@@ -27,7 +32,6 @@ static GameDB GameDBList[NB_GAMES_DB] = {
    { "T-1214H", 0, CART_DRAM32MBIT, NULL }, // Marvel Super Heroes
    { "T-1521G", 0, CART_DRAM32MBIT, NULL }, // Marvel Super Heroes
    { "T-1238G", 0, CART_DRAM32MBIT, NULL }, // Marvel Super Heroes vs. Street Fighter
-   { "T-3111G", 0, CART_DRAM32MBIT, NULL }, // Metal Slug
    { "T-22205G", 0, CART_DRAM32MBIT, NULL }, // Noël 3
    { "T-20114G", 0, CART_DRAM32MBIT, NULL }, // Pia Carrot e Youkoso!! 2
    { "T-1230G", 0, CART_DRAM32MBIT, NULL }, // Pocket Fighter

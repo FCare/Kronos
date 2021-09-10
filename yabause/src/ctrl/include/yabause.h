@@ -72,6 +72,7 @@ typedef struct
    int skipframe; //This should be used for real frame skip mechanism
    int wireframe_mode;
    int stv_favorite_region;
+   int auto_cart;
 } yabauseinit_struct;
 
 #define CLKTYPE_26MHZ           0

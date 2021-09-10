@@ -1670,6 +1670,7 @@ bool retro_load_game_common()
    yinit.skipframe               = g_skipframe;
    yinit.stv_favorite_region     = stv_favorite_region;
    yinit.resolution_mode         = resolution_mode;
+   yinit.auto_cart               = 1;
 
    return true;
 }

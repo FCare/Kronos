@@ -376,7 +376,8 @@ int YabauseInit(yabauseinit_struct *init)
    }
 
    // Now that we have some informations on current game, trying to auto-detect required settings
-   DBLookup(&init->carttype, &init->cartpath, init->supportdir);
+   if (init->auto_cart != 0)
+      DBLookup(&init->carttype, &init->cartpath, init->supportdir);
 
    if (CartInit(init->cartpath, init->carttype) != 0)
    {

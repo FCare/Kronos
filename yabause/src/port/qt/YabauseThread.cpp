@@ -343,7 +343,7 @@ void YabauseThread::reloadSettings()
 	resetYabauseConf();
 
 	// read & apply settings
-   mYabauseConf.m68kcoretype = vs->value("Advanced/68kCore", mYabauseConf.m68kcoretype).toInt();
+	mYabauseConf.m68kcoretype = vs->value("Advanced/68kCore", mYabauseConf.m68kcoretype).toInt();
 	mYabauseConf.percoretype = vs->value( "Input/PerCore", mYabauseConf.percoretype ).toInt();
 	mYabauseConf.sh2coretype = vs->value( "Advanced/SH2Interpreter", mYabauseConf.sh2coretype ).toInt();
 	mYabauseConf.vidcoretype = vs->value( "Video/VideoCore", mYabauseConf.vidcoretype ).toInt();
@@ -351,7 +351,7 @@ void YabauseThread::reloadSettings()
 	mYabauseConf.sndcoretype = vs->value( "Sound/SoundCore", mYabauseConf.sndcoretype ).toInt();
 	mYabauseConf.cdcoretype = vs->value( "General/CdRom", mYabauseConf.cdcoretype ).toInt();
 	mYabauseConf.carttype = vs->value( "Cartridge/Type", mYabauseConf.carttype ).toInt();
-  mYabauseConf.stvgame = vs->value( "Cartridge/STVGame", mYabauseConf.stvgame ).toInt();
+	mYabauseConf.stvgame = vs->value( "Cartridge/STVGame", mYabauseConf.stvgame ).toInt();
 	mYabauseConf.regionid = 0;
 	const QString r = vs->value( "STV/Region", mYabauseConf.regionid ).toString();
 	if ( r.isEmpty() || r == "Auto" )
@@ -387,32 +387,35 @@ void YabauseThread::reloadSettings()
 	else
 		mYabauseConf.biospath = strdup( vs->value( "General/Bios", mYabauseConf.biospath ).toString().toLatin1().constData() );
 	mYabauseConf.cdpath = strdup( vs->value( "General/CdRomISO", mYabauseConf.cdpath ).toString().toLatin1().constData() );
-   showFPS = vs->value( "General/ShowFPS", false ).toBool();
+	showFPS = vs->value( "General/ShowFPS", false ).toBool();
 	mYabauseConf.vsyncon = vs->value("General/EnableVSync", true).toBool();
 	mYabauseConf.usethreads = (int)vs->value( "General/EnableMultiThreading", mYabauseConf.usethreads ).toBool();
 	mYabauseConf.numthreads = vs->value( "General/NumThreads", mYabauseConf.numthreads ).toInt();
 	mYabauseConf.buppath = strdup( vs->value( "Memory/Path", mYabauseConf.buppath ).toString().toLatin1().constData() );
 	mYabauseConf.mpegpath = strdup( vs->value( "MpegROM/Path", mYabauseConf.mpegpath ).toString().toLatin1().constData() );
-  if (vs->value("Memory/ExtendMemory", true).toBool()) {
-    mYabauseConf.extend_backup = 1;
-  }else {
-    mYabauseConf.extend_backup = 0;
-  }
+	if (vs->value("Memory/ExtendMemory", true).toBool()) {
+		mYabauseConf.extend_backup = 1;
+	} else {
+		mYabauseConf.extend_backup = 0;
+	}
 	mYabauseConf.cartpath = strdup( vs->value( "Cartridge/Path", mYabauseConf.cartpath ).toString().toLatin1().constData() );
 	mYabauseConf.eepromdir = strcat(strdup( mYabauseConf.cartpath ), "/");
 	mYabauseConf.modemip = strdup( vs->value( "Cartridge/ModemIP", mYabauseConf.modemip ).toString().toLatin1().constData() );
 	mYabauseConf.modemport = strdup( vs->value( "Cartridge/ModemPort", mYabauseConf.modemport ).toString().toLatin1().constData() );
 
 	mYabauseConf.video_filter_type = vs->value("Video/filter_type", mYabauseConf.video_filter_type).toInt();
-        mYabauseConf.video_upscale_type = vs->value("Video/upscale_type", mYabauseConf.video_upscale_type).toInt();
+	mYabauseConf.video_upscale_type = vs->value("Video/upscale_type", mYabauseConf.video_upscale_type).toInt();
 	mYabauseConf.polygon_generation_mode = vs->value("Video/polygon_generation_mode", mYabauseConf.polygon_generation_mode).toInt();
-  mYabauseConf.resolution_mode = vs->value("Video/resolution_mode", mYabauseConf.resolution_mode).toInt();
-  mYabauseConf.use_cs = vs->value("Video/compute_shader_mode", mYabauseConf.use_cs).toInt();
+	mYabauseConf.resolution_mode = vs->value("Video/resolution_mode", mYabauseConf.resolution_mode).toInt();
+	mYabauseConf.use_cs = vs->value("Video/compute_shader_mode", mYabauseConf.use_cs).toInt();
 	mYabauseConf.stretch = vs->value("Video/AspectRatio", mYabauseConf.stretch).toInt();
-  mYabauseConf.scanline = vs->value("Video/ScanLine", mYabauseConf.scanline).toInt();
+	mYabauseConf.scanline = vs->value("Video/ScanLine", mYabauseConf.scanline).toInt();
 	mYabauseConf.wireframe_mode = vs->value("Video/Wireframe", mYabauseConf.wireframe_mode).toInt();
 	mYabauseConf.meshmode = vs->value("Video/MeshMode", mYabauseConf.meshmode).toInt();
 	mYabauseConf.bandingmode = vs->value("Video/BandingMode", mYabauseConf.bandingmode).toInt();
+
+	// TODO : expose this in qt ui
+	mYabauseConf.auto_cart = 1;
 
 	emit requestSize( QSize( vs->value( "Video/WinWidth", 0 ).toInt(), vs->value( "Video/WinHeight", 0 ).toInt() ) );
 	emit requestFullscreen( vs->value( "Video/Fullscreen", false ).toBool() );
