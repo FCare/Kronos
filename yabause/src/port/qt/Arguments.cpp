@@ -1,4 +1,7 @@
 #include "Arguments.h"
+
+#include <filesystem>
+
 #include "VolatileSettings.h"
 #include "QtYabause.h"
 
@@ -53,9 +56,9 @@ namespace Arguments
 		{ "-c",  "--cdrom=", "<CDROM>",     "Choose the cdrom device.",                           4, cdrom },
 		{ "-f",  "--fullscreen", NULL,      "Start the emulator in fullscreen.",                  5, fullscreen },
 		{ "-h",  "--help", NULL,            "Show this help and exit.",                           0, help },
-		{ "-i",  "--iso=", "<ISO>",         "Choose a dump file.",                                4, iso },
-                { "-nb", "--no-bios", NULL,         "Use the emulated bios",                              3, nobios },
-                { "-ns", "--no-sound", NULL,        "Turns sound off.",                                   6, nosound },
+		{ "-i",  "--iso=", "<ISO>",         "Choose a dump image file. supports i.e. .cue, .iso, .zip", 4, iso },
+        { "-nb", "--no-bios", NULL,         "Use the emulated bios",                              3, nobios },
+        { "-ns", "--no-sound", NULL,        "Turns sound off.",                                   6, nosound },
 		{ "-v",  "--version", NULL,         "Show version and exit.",                             0, version },
 	};
 
@@ -69,7 +72,28 @@ namespace Arguments
 
 		while(argit.hasNext())
 		{
-			QString const argument = argit.next();
+			QString const & argument = argit.next();
+
+			//if its a file its probably a game file so if so use it as such
+			if(std::filesystem::exists(argument.toStdString()))
+			{
+				if (argument.endsWith(".cue") || argument.endsWith(".iso") 
+					|| argument.endsWith(".bin") || argument.endsWith(".zip"))
+				{
+					auto const & autoStartOption = *std::ranges::find_if(availableOptions, [](auto const & e)
+					{
+						return e.shortname && strcmp(e.shortname, "-a") == 0;
+					});
+					choosenOptions[autoStartOption.priority] = &autoStartOption;
+					auto const & imageFileOption = *std::ranges::find_if(availableOptions, [](auto const & e)
+					{
+						return e.shortname && strcmp(e.shortname, "-i") == 0;
+					});
+					choosenOptions[imageFileOption.priority] = &imageFileOption;
+					params[imageFileOption.priority] = argument;
+				}
+			}
+
 			for(Option const & option : availableOptions)
 			{
 				if (argument == option.shortname)
