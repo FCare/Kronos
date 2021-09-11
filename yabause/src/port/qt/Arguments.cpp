@@ -116,7 +116,7 @@ namespace Arguments
 			Option const * option = choosenOptions[i];
 			if (option)
 				if (option->parameter)
-					option->callback(params[i]);
+					option->callback(params[option->priority]);
 				else
 					option->callback(QString());
 		}
