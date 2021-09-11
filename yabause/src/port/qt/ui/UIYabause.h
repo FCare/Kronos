@@ -75,6 +75,8 @@ public:
 	void swapBuffers();
 	virtual bool eventFilter( QObject* o, QEvent* e );
 
+	int loadGameFromFile(QString const & fullFilePath);
+
 protected:
 	YabauseGL* mYabauseGL;
 	YabauseThread* mYabauseThread;
@@ -100,6 +102,8 @@ protected:
 	virtual void mouseReleaseEvent( QMouseEvent* event );
 	virtual void mouseMoveEvent( QMouseEvent* event );
 	virtual void resizeEvent( QResizeEvent* event );
+	virtual void dragEnterEvent(QDragEnterEvent* e) override;
+	virtual void dropEvent(QDropEvent* e) override;
 	bool mIsCdIn;
 
 public slots:

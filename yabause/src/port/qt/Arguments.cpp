@@ -1,7 +1,5 @@
 #include "Arguments.h"
 
-#include <filesystem>
-
 #include "VolatileSettings.h"
 #include "QtYabause.h"
 
@@ -14,9 +12,7 @@
 #include <QStringListIterator>
 #include <QVector>
 #include <QVectorIterator>
-
-#include <stdlib.h>
-#include <stdio.h>
+#include <QFile>
 
 namespace Arguments
 {
@@ -75,10 +71,9 @@ namespace Arguments
 			QString const & argument = argit.next();
 
 			//if its a file its probably a game file so if so use it as such
-			if(std::filesystem::exists(argument.toStdString()))
+			if(QFile::exists(argument))
 			{
-				if (argument.endsWith(".cue") || argument.endsWith(".iso") 
-					|| argument.endsWith(".bin") || argument.endsWith(".zip"))
+				if (!argument.endsWith(".exe"))
 				{
 					auto const & autoStartOption = *std::find_if(availableOptions.begin(), availableOptions.end(), [](auto const & e)
 					{

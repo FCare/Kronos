@@ -43,6 +43,7 @@
 #include <QDateTime>
 
 #include <QDebug>
+#include <QMimeData>
 
 extern "C" {
 extern VideoInterface_struct *VIDCoreList[];
@@ -82,6 +83,9 @@ UIYabause::UIYabause( QWidget* parent )
 	container->setFocusPolicy( Qt::StrongFocus );
 	setFocusPolicy( Qt::StrongFocus );
 	container->setFocusProxy( this );
+	container->setAcceptDrops(false);
+
+	this->setAcceptDrops(true);
 
 	//bind auto start to trigger when gl is initialized. before this emulation will fail due to missing GL context
 	connect(mYabauseGL, &YabauseGL::glInitialized, [&]
@@ -631,27 +635,9 @@ void UIYabause::on_aFileOpenISO_triggered()
 	}
 	else{
 		const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
-	        if ( !fn.isEmpty() )
-	        {
-		  VolatileSettings* vs = QtYabause::volatileSettings();
-		  const int currentCDCore = vs->value( "General/CdRom" ).toInt();
-		  const QString currentCdRomISO = vs->value( "General/CdRomISO" ).toString();
-
-		  QtYabause::settings()->setValue( "Recents/ISOs", fn );
-
-		  vs->setValue( "autostart", false );
-		  vs->setValue( "General/CdRom", ISOCD.id );
-		  vs->setValue( "General/CdRomISO", fn );
-
-		  if (mYabauseThread->CloseTray() != 0) {
-                    mYabauseThread->pauseEmulation( false, true );
+		loadGameFromFile(fn);
                   }
-		  mIsCdIn = true;
-
-		  refreshStatesActions();
 	        }
-	}
-}
 
 void UIYabause::on_aFileOpenCDRom_triggered()
 {
@@ -958,4 +944,47 @@ void UIYabause::reset()
 void UIYabause::toggleEmulateMouse( bool enable )
 {
 	emulateMouse = enable;
+}
+
+int UIYabause::loadGameFromFile(QString const& fileName)
+{
+	YabauseLocker locker(mYabauseThread);
+
+	VolatileSettings* vs = QtYabause::volatileSettings();
+	const int currentCDCore = vs->value("General/CdRom").toInt();
+	const QString currentCdRomISO = vs->value("General/CdRomISO").toString();
+
+	QtYabause::settings()->setValue("Recents/ISOs", fileName);
+
+	vs->setValue("autostart", false);
+	vs->setValue("General/CdRom", ISOCD.id);
+	vs->setValue("General/CdRomISO", fileName);
+
+	if (mYabauseThread->CloseTray() != 0) {
+		mYabauseThread->pauseEmulation(false, true);
+	}
+	mIsCdIn = true;
+
+	refreshStatesActions();
+	return 0;
+}
+
+void UIYabause::dragEnterEvent(QDragEnterEvent* e)
+{
+	if (e->mimeData()->hasUrls()) {
+		e->acceptProposedAction();
+	}
+}
+
+void UIYabause::dropEvent(QDropEvent* e)
+{
+	auto urls = e->mimeData()->urls();
+	const QUrl& url = urls.first();
+	QString const& fileName = url.toLocalFile();
+	qDebug() << "Dropped file:" << fileName;
+
+	if (QFile::exists(fileName))
+	{
+		loadGameFromFile(fileName);
+	}
 }
