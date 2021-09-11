@@ -80,12 +80,12 @@ namespace Arguments
 				if (argument.endsWith(".cue") || argument.endsWith(".iso") 
 					|| argument.endsWith(".bin") || argument.endsWith(".zip"))
 				{
-					auto const & autoStartOption = *std::ranges::find_if(availableOptions, [](auto const & e)
+					auto const & autoStartOption = *std::find_if(availableOptions.begin(), availableOptions.end(), [](auto const & e)
 					{
 						return e.shortname && strcmp(e.shortname, "-a") == 0;
 					});
 					choosenOptions[autoStartOption.priority] = &autoStartOption;
-					auto const & imageFileOption = *std::ranges::find_if(availableOptions, [](auto const & e)
+					auto const & imageFileOption = *std::find_if(availableOptions.begin(), availableOptions.end(), [](auto const & e)
 					{
 						return e.shortname && strcmp(e.shortname, "-i") == 0;
 					});
