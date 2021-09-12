@@ -43,6 +43,7 @@ typedef struct
    const char *biospath;
    const char *cdpath;
    const char *buppath;
+   const char *smpcpath;
    const char *mpegpath;
    const char *cartpath;
    const char *stvbiospath;

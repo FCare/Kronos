@@ -479,7 +479,7 @@ int YabauseInit(yabauseinit_struct *init)
       return -1;
    }
 
-   if (SmpcInit(init->regionid, init->clocksync, init->basetime, init->languageid) != 0)
+   if (SmpcInit(init->regionid, init->clocksync, init->basetime, init->smpcpath, init->languageid) != 0)
    {
       YabSetError(YAB_ERR_CANNOTINIT, _("SMPC"));
       return -1;

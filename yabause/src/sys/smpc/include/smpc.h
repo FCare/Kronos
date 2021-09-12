@@ -95,7 +95,7 @@ typedef struct {
 
 extern SmpcInternal * SmpcInternalVars;
 
-int SmpcInit(u8 regionid, int clocksync, u32 basetime, u8 languageid);
+int SmpcInit(u8 regionid, int clocksync, u32 basetime, const char *smpcpath, u8 languageid);
 void SmpcDeInit(void);
 void SmpcRecheckRegion(void);
 int SmpcGetLanguage(void);
