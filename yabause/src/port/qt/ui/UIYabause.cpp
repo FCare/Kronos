@@ -720,8 +720,8 @@ void UIYabause::on_aFileScreenshot_triggered()
 	// take screenshot of gl view
 	QImage const screenshot = mYabauseGL->grabFramebuffer();
 
-	auto const directory = QtYabause::volatileSettings()->value(Settings::Keys::ScreenshotsDirectory, Settings::DefaultPaths::Screenshots()).toString();
-	auto const format = QtYabause::volatileSettings()->value(Settings::Keys::ScreenshotsFormat, "png").toString();
+	auto const directory = QtYabause::volatileSettings()->value(QtYabause::SettingKeys::ScreenshotsDirectory, QtYabause::DefaultPaths::Screenshots()).toString();
+	auto const format = QtYabause::volatileSettings()->value(QtYabause::SettingKeys::ScreenshotsFormat, "png").toString();
 
 	// request a file to save to to user
 	QString s = directory + "/" + fileInfo.baseName() + QString("_%1." + format).arg(QDateTime::currentDateTime().toString("dd_MM_yyyy-hh_mm_ss"));

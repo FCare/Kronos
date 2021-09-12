@@ -25,6 +25,8 @@
 #include "../QtYabause.h"
 #include "UIYabause.h"
 
+#include <optional>
+
 QStringList getCdDriveList();
 
 class UISettings : public QDialog, public Ui::UISettings
@@ -38,10 +40,10 @@ protected:
 	QList <translation_struct> trans;
 	QList <QAction*> actionsList;
 
-	void requestFile( const QString& caption, QLineEdit* edit, const QString& filters = QString() );
-	void requestNewFile( const QString& caption, QLineEdit* edit, const QString& filters = QString() );
-	void requestFolder( const QString& caption, QLineEdit* edit );
-	void requestSTVFolder( const QString& caption, QLineEdit* edit );
+	void requestFile( const QString& caption, QLineEdit* edit, const QString& filters = QString(), std::optional<QString> proposedPath = std::optional<QString>());
+	void requestNewFile( const QString& caption, QLineEdit* edit, const QString& filters = QString(), std::optional<QString> proposedPath = std::optional<QString>());
+	void requestFolder( const QString& caption, QLineEdit* edit, std::optional<QString> proposedPath = std::optional<QString>());
+	void requestSTVFolder(const QString & caption, QLineEdit * edit, std::optional<QString> proposedPath = std::optional<QString>());
 	void setupCdDrives();
 	void loadCores();
 	void loadTranslations();
@@ -59,7 +61,7 @@ protected slots:
 	void on_cbClockSync_stateChanged( int state );
 	void on_cbCartridge_currentIndexChanged( int id );
 	void accept();
-        void changeResolution(int id);
+	void changeResolution(int id);
         void changeFilterMode(int id);
 				void changeVideoMode(int id);
         void changeUpscaleMode(int id);
@@ -70,6 +72,12 @@ protected slots:
 				void changeBandingMode(int id);
 				void changePolygonMode(int id);
 				void changeCSMode(int id);
+
+private:
+	QString getCartridgePathSettingsKey(std::optional<int> cartridgeType = std::optional<int>()) const;
+	void updateVolatileSettings() const;
+
+	int selectedCartridgeType = 0;
 };
 
 #endif // UISETTINGS_H

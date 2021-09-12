@@ -30,6 +30,9 @@
 #include <QDesktopWidget>
 #include <QImageWriter>
 #include <QStorageInfo>
+#include <QToolTip>
+
+#include "VolatileSettings.h"
 
 extern "C" {
 extern M68K_struct* M68KCoreList[];
@@ -185,41 +188,44 @@ UISettings::UISettings(QList <translation_struct> *translations, QWidget* p )
 	QtYabause::retranslateWidget( this );
 }
 
-void UISettings::requestFile( const QString& c, QLineEdit* e, const QString& filters )
+void UISettings::requestFile( const QString& c, QLineEdit* e, const QString& filters, std::optional<QString> proposedPath)
 {
-	const QString s = CommonDialogs::getOpenFileName( e->text(), c, filters );
+	auto const & path = proposedPath.has_value() ? proposedPath.value() : e->text();
+	const QString s = CommonDialogs::getOpenFileName(path, c, filters );
 	if ( !s.isNull() )
 		e->setText( s );
 }
 
-void UISettings::requestNewFile( const QString& c, QLineEdit* e, const QString& filters )
+void UISettings::requestNewFile( const QString& c, QLineEdit* e, const QString& filters, std::optional<QString> proposedPath)
 {
-	const QString s = CommonDialogs::getSaveFileName( e->text(), c, filters );
+	auto const & path = proposedPath.has_value() ? proposedPath.value() : e->text();
+	const QString s = CommonDialogs::getSaveFileName(path, c, filters );
 	if ( !s.isNull() )
 		e->setText( s );
 }
 
-void UISettings::requestFolder( const QString& c, QLineEdit* e )
+void UISettings::requestFolder( const QString& c, QLineEdit* e, std::optional<QString> proposedPath)
 {
-	const QString s = CommonDialogs::getExistingDirectory( e->text(), c );
+	auto const & path = proposedPath.has_value() ? proposedPath.value() : e->text();
+	const QString s = CommonDialogs::getExistingDirectory(path, c );
 	if ( !s.isNull() ) {
 		e->setText( s );
   }
 }
 
-void UISettings::requestSTVFolder( const QString& c, QLineEdit* e )
+void UISettings::requestSTVFolder( const QString& c, QLineEdit* e, std::optional<QString> proposedPath )
 {
-  int i;
-	const QString s = CommonDialogs::getExistingDirectory( e->text(), c );
-	if ( !s.isNull() ) {
-		e->setText( s );
-  }
-  int nbGames=STVGetRomList(s.toStdString().c_str(), 1);
-  cbSTVGame->clear();
-  for(i = 0; i< nbGames; i++){
-	  cbSTVGame->addItem(getSTVGameName(i),i);
-  }
-  cbSTVGame->model()->sort(0);
+	auto const & path = proposedPath.has_value() ? proposedPath.value() : e->text();
+	const QString existingDirectoryPath = CommonDialogs::getExistingDirectory(path, c );
+	if ( !existingDirectoryPath.isNull() ) {
+		e->setText( existingDirectoryPath );
+	}
+	int const nbGames = STVGetRomList(existingDirectoryPath.toStdString().c_str(), 1);
+	cbSTVGame->clear();
+	for(int i = 0; i< nbGames; i++){
+		cbSTVGame->addItem(getSTVGameName(i),i);
+	}
+	cbSTVGame->model()->sort(0);
 }
 
 QStringList getCdDriveList()
@@ -311,19 +317,39 @@ void UISettings::tbBrowse_clicked()
 	}
 	else if ( tb == tbCartridge )
 	{
+		auto pathProposal = leCartridge->text();
+		if (leCartridge->text().isEmpty())
+		{
+			auto path = QtYabause::DefaultPaths::Cartridge();
+			if (mCartridgeTypes[cbCartridge->currentIndex()].saveFlag)
+			{
+				auto suggestedName = mCartridgeTypes[cbCartridge->currentIndex()].Name;
+				suggestedName = suggestedName.remove(' ');
+				path = path.append("/").append(suggestedName).append(".ramfile");
+			}
+			else if (mCartridgeTypes[cbCartridge->currentIndex()].enableFlag)
+			{
+				path = path.append("/");
+			}
+			pathProposal = path;
+		}
 		if (mCartridgeTypes[cbCartridge->currentIndex()].pathFlag) {
-                  requestSTVFolder( QtYabause::translate( "Choose a cartridge folder" ), leCartridge );
-                } else {
-		  if (mCartridgeTypes[cbCartridge->currentIndex()].saveFlag)
-			requestNewFile( QtYabause::translate( "Choose a cartridge file" ), leCartridge );
-		  else
-			requestFile( QtYabause::translate( "Choose a cartridge file" ), leCartridge );
-                }
+            requestSTVFolder( QtYabause::translate( "Choose a STV cartridge folder" ), leCartridge, pathProposal);
+        } 
+		else if (mCartridgeTypes[cbCartridge->currentIndex()].saveFlag)
+		{
+			requestNewFile( QtYabause::translate( "Choose a cartridge file" ), leCartridge, QString(), pathProposal);
+		}
+		else if(mCartridgeTypes[cbCartridge->currentIndex()].enableFlag)
+		{
+			requestFile( QtYabause::translate( "Open a cartridge file" ), leCartridge, QString(), pathProposal);
+		}
+		updateVolatileSettings();
 	}
 	else if ( tb == tbMemory )
 		requestNewFile( QtYabause::translate( "Choose a memory file" ), leMemory );
 	else if ( tb == tbMpegROM )
-		requestFile( QtYabause::translate( "Choose a mpeg rom" ), leMpegROM );
+		requestFile( QtYabause::translate( "Open a mpeg rom" ), leMpegROM );
 }
 
 void UISettings::on_cbInput_currentIndexChanged( int id )
@@ -447,24 +473,51 @@ void UISettings::changeCSMode(int id)
 
 void UISettings::on_cbCartridge_currentIndexChanged( int id )
 {
+	Settings const* const s = QtYabause::settings();
+	auto const path = s->value(getCartridgePathSettingsKey(id)).toString();
+
+	if (mCartridgeTypes[id].enableFlag)
+	{
+		auto const prevSelectedCartridgeType = selectedCartridgeType;
+		if(prevSelectedCartridgeType != id || leCartridge->text().isEmpty())
+		{
+			if((mCartridgeTypes[id].pathFlag && QDir().exists(path)) || (QFile::exists(path)))
+			{
+				leCartridge->setText(path);
+			}
+			else
+			{
+				leCartridge->clear();
+				tbCartridge->click();
+			}
+		}
+	}
+	else
+	{
+		leCartridge->clear();
+	}
+
 	leCartridge->setVisible(mCartridgeTypes[id].enableFlag);
 	tbCartridge->setVisible(mCartridgeTypes[id].enableFlag);
+	lCartridgePath->setVisible(mCartridgeTypes[id].enableFlag);
 	lCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	leCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	lCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
 	leCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
-        if (mCartridgeTypes[id].pathFlag) {
-          QString str = leCartridge->text();
-          int nbGames=STVGetRomList(str.toStdString().c_str(), 0);
-          cbSTVGame->clear();
-          for(int i = 0; i< nbGames; i++){
-		cbSTVGame->addItem(getSTVGameName(i),i);
-          }
-          cbSTVGame->model()->sort(0);
+    if (mCartridgeTypes[id].pathFlag) {
+		QString const & str = leCartridge->text();
+    	int const nbGames = STVGetRomList(str.toStdString().c_str(), 0);
+        cbSTVGame->clear();
+        for(int i = 0; i < nbGames; i++){
+			cbSTVGame->addItem(getSTVGameName(i),i);
         }
-        cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
-				lRegion->setVisible(mCartridgeTypes[id].pathFlag);
-				cbRegion->setVisible(mCartridgeTypes[id].pathFlag);
+        cbSTVGame->model()->sort(0);
+    }
+    cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
+	lRegion->setVisible(mCartridgeTypes[id].pathFlag);
+	cbRegion->setVisible(mCartridgeTypes[id].pathFlag);
+	selectedCartridgeType = id;
+	updateVolatileSettings();
 }
 
 void UISettings::loadCores()
@@ -655,8 +708,8 @@ void UISettings::loadSettings()
 
 	//screenshots
 	{
-		auto const defaultScreenshotsPath = Settings::DefaultPaths::Screenshots();
-		leScreenshots->setText(s->value(Settings::Keys::ScreenshotsDirectory, defaultScreenshotsPath).toString());
+		auto const defaultScreenshotsPath = QtYabause::DefaultPaths::Screenshots();
+		leScreenshots->setText(s->value(QtYabause::SettingKeys::ScreenshotsDirectory, defaultScreenshotsPath).toString());
 		auto screenshotsDirectory = QDir(leScreenshots->text());
 		auto checkAndCreateDirectory = [&screenshotsDirectory]{
 			if(!screenshotsDirectory.exists())
@@ -672,7 +725,7 @@ void UISettings::loadSettings()
 			screenshotsDirectory = QDir(leScreenshots->text());
 			checkAndCreateDirectory(); //we could show an message box if this fails (no write access to our folder) but if so we have plenty of problems and i do not want to spam the user with the message that screenshots folder cant be created. it would be misleading in with the overall problem to not having write access in general
 		}
-		cbScreenshotImageFormat->setCurrentIndex(cbScreenshotImageFormat->findData(s->value(Settings::Keys::ScreenshotsFormat, cbScreenshotImageFormat->itemData(0))));
+		cbScreenshotImageFormat->setCurrentIndex(cbScreenshotImageFormat->findData(s->value(QtYabause::SettingKeys::ScreenshotsFormat, cbScreenshotImageFormat->itemData(0))));
 	}
 	cbSysLanguageID->setCurrentIndex( cbSysLanguageID->findData( s->value( "General/SystemLanguageID", mSysLanguageID.at( 0 ).id ).toString() ) );
 #ifdef HAVE_LIBMINI18N
@@ -723,15 +776,18 @@ void UISettings::loadSettings()
 	cbSoundCore->setCurrentIndex( cbSoundCore->findData( s->value( "Sound/SoundCore", QtYabause::defaultSNDCore().id ).toInt() ) );
 
 	// cartridge/memory
-	leCartridge->setText( s->value( "Cartridge/Path" ).toString() );
+	tbCartridge->setEnabled(false);
 	cbCartridge->setCurrentIndex( cbCartridge->findData( s->value( "Cartridge/Type", mCartridgeTypes.at( 7 ).id ).toInt() ) );
+	tbCartridge->setEnabled(true);
+	leCartridge->setText( s->value(getCartridgePathSettingsKey()).toString() );
 	leCartridgeModemIP->setText( s->value( "Cartridge/ModemIP", QString("127.0.0.1") ).toString() );
 	leCartridgeModemPort->setText( s->value( "Cartridge/ModemPort", QString("1337") ).toString() );
         cbSTVGame->setCurrentIndex( cbSTVGame->findData( s->value( "Cartridge/STVGame", -1 ).toInt() ) );
 	leMemory->setText( s->value( "Memory/Path", getDataDirPath().append( "/bkram.bin" ) ).toString() );
 	leMpegROM->setText( s->value( "MpegROM/Path" ).toString() );
-  checkBox_extended_internal_backup->setChecked(s->value("Memory/ExtendMemory").toBool());
-
+	checkBox_extended_internal_backup->setChecked(s->value("Memory/ExtendMemory").toBool());
+  	//the path needs to go into the volatile settings since we keep only one cartridge path there to keep things simple.
+	updateVolatileSettings();
 
 	// input
 	cbInput->setCurrentIndex( cbInput->findData( s->value( "Input/PerCore", QtYabause::defaultPERCore().id ).toInt() ) );
@@ -790,8 +846,8 @@ void UISettings::saveSettings()
 	else
 		s->setValue( "General/CdRomISO", leCdRom->text() );
 	s->setValue( "General/SaveStates", leSaveStates->text() );
-	s->setValue(Settings::Keys::ScreenshotsDirectory, leScreenshots->text());
-	s->setValue(Settings::Keys::ScreenshotsFormat, cbScreenshotImageFormat->itemData(cbScreenshotImageFormat->currentIndex()).toString());
+	s->setValue(QtYabause::SettingKeys::ScreenshotsDirectory, leScreenshots->text());
+	s->setValue(QtYabause::SettingKeys::ScreenshotsFormat, cbScreenshotImageFormat->itemData(cbScreenshotImageFormat->currentIndex()).toString());
 	s->setValue( "General/SystemLanguageID", cbSysLanguageID->itemData( cbSysLanguageID->currentIndex() ).toString() );
 #ifdef HAVE_LIBMINI18N
 	s->setValue( "General/Translation", cbTranslation->itemData(cbTranslation->currentIndex()).toString() );
@@ -834,7 +890,7 @@ void UISettings::saveSettings()
 
 	// cartridge/memory
 	s->setValue( "Cartridge/Type", cbCartridge->itemData( cbCartridge->currentIndex() ).toInt() );
-	s->setValue( "Cartridge/Path", leCartridge->text() );
+	s->setValue(getCartridgePathSettingsKey(), leCartridge->text() );
 	s->setValue( "Cartridge/ModemIP", leCartridgeModemIP->text() );
 	s->setValue( "Cartridge/ModemPort", leCartridgeModemPort->text() );
         s->setValue( "Cartridge/STVGame", cbSTVGame->itemData( cbSTVGame->currentIndex() ).toInt() );
@@ -873,4 +929,21 @@ void UISettings::accept()
 {
 	saveSettings();
 	QDialog::accept();
+}
+
+QString UISettings::getCartridgePathSettingsKey(std::optional<int> cartridgeType) const
+{
+	auto name = mCartridgeTypes[selectedCartridgeType].Name;
+	if (cartridgeType.has_value())
+	{
+		name = mCartridgeTypes[cartridgeType.value()].Name;
+	}
+	name = name.remove(' ');
+	return "Cartridge/Path/" + name;
+}
+
+void UISettings::updateVolatileSettings() const
+{
+	auto* const volatileSettings = QtYabause::volatileSettings();
+	volatileSettings->setValue(QtYabause::VolatileSettingKeys::CartridgePath, leCartridge->text());
 }

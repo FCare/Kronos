@@ -52,21 +52,6 @@ public:
 protected:
 	static QString mProgramName;
 	static QString mProgramVersion;
-
-public:
-
-	struct Keys
-	{
-		static constexpr char const* const ScreenshotsDirectory = "General/ScreenshotsDirectory";
-		static constexpr char const* const ScreenshotsFormat = "General/ScreenshotsFormat";
-		Keys() = delete;
-	};
-
-	struct DefaultPaths
-	{
-		inline static QString const Screenshots() { return getDataDirPath() + "/screenshots"; }
-		DefaultPaths() = delete;
-	};
 };
 
 #endif // PSETTINGS_H

@@ -401,7 +401,7 @@ void YabauseThread::reloadSettings()
 	} else {
 		mYabauseConf.extend_backup = 0;
 	}
-	mYabauseConf.cartpath = strdup( vs->value( "Cartridge/Path", mYabauseConf.cartpath ).toString().toLatin1().constData() );
+	mYabauseConf.cartpath = strdup( vs->value(QtYabause::VolatileSettingKeys::CartridgePath, mYabauseConf.cartpath ).toString().toLatin1().constData() );
 	mYabauseConf.eepromdir = strcat(strdup( mYabauseConf.cartpath ), "/");
 	mYabauseConf.modemip = strdup( vs->value( "Cartridge/ModemIP", mYabauseConf.modemip ).toString().toLatin1().constData() );
 	mYabauseConf.modemport = strdup( vs->value( "Cartridge/ModemPort", mYabauseConf.modemport ).toString().toLatin1().constData() );
