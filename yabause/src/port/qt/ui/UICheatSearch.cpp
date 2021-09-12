@@ -305,7 +305,7 @@ void UICheatSearch::on_pbAddCheat_clicked()
          int cheatsCount;
          mCheats = CheatGetList( &cheatsCount );
 
-         CheatChangeDescriptionByIndex( cheatsCount -1, d.leDescription->text().toLatin1().data() );
+         CheatChangeDescriptionByIndex( cheatsCount -1, d.teDescription->toPlainText().toLatin1().data() );
       }
    }
 }
