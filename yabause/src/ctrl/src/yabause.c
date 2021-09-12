@@ -191,8 +191,6 @@ void YabauseChangeTiming(int freqtype) {
 
 //////////////////////////////////////////////////////////////////////////////
 extern int tweak_backup_file_size;
-YabEventQueue * q_scsp_frame_start;
-YabEventQueue * q_scsp_finish;
 YabEventQueue * q_scsp_m68counterCond;
 
 static void sh2ExecuteSync( SH2_struct* sh, int req ) {
@@ -341,8 +339,6 @@ int YabauseInit(yabauseinit_struct *init)
    yabsys.isRotated = 0;
    nextFrameTime = 0;
 
-  q_scsp_frame_start = YabThreadCreateQueue(1);
-  q_scsp_finish = YabThreadCreateQueue(1);
   q_scsp_m68counterCond = YabThreadCreateQueue(1);
   setM68kCounter(0);
 
@@ -927,12 +923,13 @@ int YabauseEmulate(void) {
    return ret;
 }
 
+extern YabMutex * g_scsp_mtx;
 
 void SyncCPUtoSCSP() {
   //LOG("[SH2] WAIT SCSP");
-    YabWaitEventQueue(q_scsp_finish);
+    YabThreadLock(g_scsp_mtx);
     saved_m68k_cycles = 0;
-    YabAddEventQueue(q_scsp_frame_start, 0);
+    YabThreadUnLock(g_scsp_mtx);
   //LOG("[SH2] START SCSP");
 }
 
