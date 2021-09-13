@@ -112,6 +112,8 @@ void SmpcRecheckRegion(void) {
 
 static int SmpcSaveBiosSettings(void) {
    FILE *fp;
+   if (smpcfilename == NULL)
+      return -1;
    if ((fp = fopen(smpcfilename, "wb")) == NULL)
       return -1;
    fwrite(SmpcInternalVars->SMEM, 1, sizeof(SmpcInternalVars->SMEM), fp);
@@ -123,6 +125,8 @@ static int SmpcSaveBiosSettings(void) {
 
 static int SmpcLoadBiosSettings(void) {
    FILE *fp;
+   if (smpcfilename == NULL)
+      return -1;
    if ((fp = fopen(smpcfilename, "rb")) == NULL)
       return -1;
    fread(SmpcInternalVars->SMEM, 1, sizeof(SmpcInternalVars->SMEM), fp);
