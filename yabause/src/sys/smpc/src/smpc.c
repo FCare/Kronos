@@ -529,7 +529,7 @@ static void SmpcSETSMEM(void) {
       SmpcInternalVars->SMEM[i] = SmpcRegs->IREG[i];
 
    // language might have changed, let's store the new id
-   SmpcInternalVars->languageid = SmpcInternalVars->SMEM[3];
+   SmpcInternalVars->languageid = SmpcInternalVars->SMEM[3] & 0xF;
    SmpcSaveBiosSettings();
 
    SmpcRegs->OREG[31] = 0x17;
