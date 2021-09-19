@@ -84,6 +84,9 @@ typedef struct
   int inbreakpoint;
 } ScspInternal;
 
+extern const u16 scsp_frequency; 
+extern const u16 scsp_samplecnt; // 11289600/44100
+
 extern SoundInterface_struct SNDDummy;
 extern SoundInterface_struct SNDWave;
 extern u8 *SoundRam;
@@ -103,7 +106,8 @@ void M68KStop(void);
 void ScspReset(void);
 int ScspChangeVideoFormat(int type);
 void M68KExec(s32 cycles);
-void ScspExec(void);
+void ScspAddCycles(u64 cycles);
+void ScspRun(void);
 void ScspConvert32uto16s(s32 *srcL, s32 *srcR, s16 *dst, u32 len);
 void ScspReceiveCDDA(const u8 *sector);
 int SoundSaveState(void ** stream);
@@ -118,7 +122,6 @@ void ScspMuteAudio(int flags);
 void ScspUnMuteAudio(int flags);
 void ScspSetVolume(int volume);
 void ScspAsynMain(void * p);
-void ScspExecAsync();
 void FASTCALL scsp_w_b(SH2_struct *context, u8*, u32, u8);
 void FASTCALL scsp_w_w(SH2_struct *context, u8*, u32, u16);
 void FASTCALL scsp_w_d(SH2_struct *context, u8*, u32, u32);

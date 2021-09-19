@@ -138,6 +138,7 @@ typedef struct
    int wireframe_mode;
    int stvInputType;
    int vdp1cycles;
+   u8 fps;
 } yabsys_struct;
 
 extern yabsys_struct yabsys;
