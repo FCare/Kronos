@@ -1022,7 +1022,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
 {
   int cylesPerLine  = getVdp1CyclesPerLine();
 
-  // if (CmdListDrawn != 0) return; //The command list has already been drawn for the current frame
+  if (CmdListDrawn != 0) return; //The command list has already been drawn for the current frame
 
   if (Vdp1External.status == VDP1_STATUS_IDLE) {
     returnAddr = 0xffffffff;
