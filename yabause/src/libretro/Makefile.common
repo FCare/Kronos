@@ -195,8 +195,7 @@ else
 	SOURCES_C += $(LIBRETRO_COMM_DIR)/glsym/glsym_gl.c
 endif
 
-SOURCES_CXX := $(SOURCE_DIR)/core/video/opengl/common/src/rbg_compute.cpp \
-	$(SOURCE_DIR)/core/m68k/mk68Counter.cpp
+SOURCES_CXX := $(SOURCE_DIR)/core/video/opengl/common/src/rbg_compute.cpp
 
 SOURCES_C += $(SOURCE_DIR)/core/m68k/musashi/m68kcpu.c \
 	$(SOURCE_DIR)/core/m68k/musashi/m68kops.c \
