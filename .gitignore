@@ -24,3 +24,5 @@ yabause/src/libchdr/deps/lzma-16.04/CS/7zip/Compress/LzmaAlone/obj/Debug/LzmaAlo
 yabause/src/libchdr/deps/lzma-16.04/CS/7zip/Compress/LzmaAlone/obj/Debug/LzmaAlone.csproj.CoreCompileInputs.cache
 yabause/src/libchdr/deps/lzma-16.04/CS/7zip/Compress/LzmaAlone/obj/Release/LzmaAlone.csproj.CoreCompileInputs.cache
 *.cache
+*.o
+.vs/

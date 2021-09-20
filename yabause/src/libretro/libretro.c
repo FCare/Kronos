@@ -8,6 +8,7 @@
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
+#include "compat/msvc.h"
 #endif
 
 #include <sys/stat.h>

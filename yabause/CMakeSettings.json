@@ -4,9 +4,7 @@
       "name": "x64-Release",
       "generator": "Ninja",
       "configurationType": "Release",
-      "inheritEnvironments": [
-        "msvc_x64_x64"
-      ],
+      "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
@@ -24,14 +22,23 @@
           "type": "BOOL"
         }
       ]
+    },
+    {
+      "name": "x64-ReleaseWithDebInfo",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ]
     },
     {
       "name": "x64-Debug",
       "generator": "Ninja",
       "configurationType": "Debug",
-      "inheritEnvironments": [
-        "msvc_x64_x64"
-      ],
+      "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
@@ -51,30 +58,238 @@
       ]
     },
     {
-      "name": "x86-Release",
-      "generator": "Ninja",
-      "configurationType": "Release",
-      "inheritEnvironments": [
-        "msvc_x86"
-      ],
-      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
-      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "",
-      "buildCommandArgs": "-j 8",
-      "ctestCommandArgs": ""
-    },
-    {
-      "name": "x86-Debug",
+      "name": "x64-Debug-libretro",
       "generator": "Ninja",
       "configurationType": "Debug",
-      "inheritEnvironments": [
-        "msvc_x86"
-      ],
+      "inheritEnvironments": [ "msvc_x64_x64" ],
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-j 8",
-      "ctestCommandArgs": ""
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "KRONOS_LIBRETRO_CORE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "KRONOS_FORCE_CXX_COMPILER",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_USE_CACHE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_SH2_ASYNC",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_USE_QT5",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "x64-ReleaseWithDebInfo-libretro",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-j 8",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x64_x64" ],
+      "variables": [
+        {
+          "name": "KRONOS_LIBRETRO_CORE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "KRONOS_FORCE_CXX_COMPILER",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_USE_CACHE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_SH2_ASYNC",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_USE_QT5",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "clang_x86_x64-Debug-libretro",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x86_x64" ],
+      "variables": [
+        {
+          "name": "KRONOS_LIBRETRO_CORE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "clang_x86_x64-Release-libretro",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "clang_cl_x86_x64" ],
+      "variables": [
+        {
+          "name": "KRONOS_LIBRETRO_CORE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "linux_arm-Remote-Debug-libretro",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "cmakeExecutable": "/usr/bin/cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", ".github", "win_template", "yabauseut", "out" ],
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-j4",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_arm" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete --delete-excluded",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "addressSanitizerRuntimeFlags": "detect_leaks=0",
+      "variables": [
+        {
+          "name": "KRONOS_GL_DEBUG",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_PORTS",
+          "value": "",
+          "type": "STRING"
+        },
+        {
+          "name": "KRONOS_LIBRETRO_CORE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_ARM7",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_DYNAREC_KRONOS",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "KRONOS_SHADER_DEBUG",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_SH2_ASYNC",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_USE_CACHE",
+          "value": "True",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "name": "linux_arm-Remote-Release-libretro",
+      "generator": "Ninja",
+      "configurationType": "RelWithDebInfo",
+      "cmakeExecutable": "/usr/bin/cmake",
+      "remoteCopySourcesExclusionList": [ ".vs", ".git", ".github", "win_template", "yabauseut", "out" ],
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-j4",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "linux_arm" ],
+      "remoteMachineName": "${defaultRemoteMachineName}",
+      "remoteCMakeListsRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/src",
+      "remoteBuildRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/build/${name}",
+      "remoteInstallRoot": "$HOME/.vs/${projectDirName}/${workspaceHash}/out/install/${name}",
+      "remoteCopySources": true,
+      "rsyncCommandArgs": "-t --delete --delete-excluded",
+      "remoteCopyBuildOutput": false,
+      "remoteCopySourcesMethod": "rsync",
+      "addressSanitizerRuntimeFlags": "detect_leaks=0",
+      "variables": [
+        {
+          "name": "KRONOS_LIBRETRO_CORE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_PORTS",
+          "value": "",
+          "type": "STRING"
+        },
+        {
+          "name": "OPENGLCORE_TEST",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_USE_QT5",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_SH2_ASYNC",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_USE_CACHE",
+          "value": "True",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_SDL",
+          "value": "False",
+          "type": "BOOL"
+        },
+        {
+          "name": "YAB_WANT_SOFT_RENDERING",
+          "value": "False",
+          "type": "BOOL"
+        }
+      ]
     }
   ]
 }

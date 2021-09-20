@@ -547,7 +547,7 @@ int YabauseInit(yabauseinit_struct *init)
    GdbStubInit(MSH2, 43434);
 #endif
 
-#ifndef NO_VIDCORE_SOFT
+#if defined USE_SOFT_RENDER
    if (yabsys.UseThreads)
    {
       int num = yabsys.NumThreads < 1 ? 1 : yabsys.NumThreads;

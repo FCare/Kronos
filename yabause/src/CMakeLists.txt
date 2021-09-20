@@ -1,10 +1,18 @@
+cmake_minimum_required(VERSION 3.12)
+cmake_policy(VERSION 3.12)
+
 project(kronos)
 
 #to compile sdl port, use "cmake -DYAB_PORTS=sdl -DYAB_ASYNC_RENDERING ../kronos"
 
-include (CheckCSourceCompiles)
+include(CheckCSourceCompiles)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
+
+if(UNIX AND NOT APPLE)
+    set(LINUX TRUE)
+	add_definitions(-DARCH_IS_LINUX=1)
+endif()
 
 include_directories(sys/bios/include)
 include_directories(sys/vdp1/include)
@@ -37,13 +45,10 @@ include_directories(tools/junzip)
 include_directories(core/osd/include)
 include_directories(core/m68k)
 
-cmake_minimum_required(VERSION 3.12)
-
-cmake_policy(VERSION 3.12)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 
 option(YAB_FORCE_GLES31 "force to use OpenGLES 3.1" OFF)
-
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
+option(KRONOS_LIBRETRO_CORE "Build kronos emulator as libretro core which can be used with i.e. RetroArch or RetroPie" OFF)
 
 set(kronos_HEADERS
 	sys/bios/include/bios.h
@@ -67,8 +72,6 @@ set(kronos_HEADERS
 	core/video/opengl/core/include/vidogl.h
 	core/video/opengl/common/include/vidshared.h
 	core/video/opengl/common/include/ygl.h
-	core/video/soft/vidsoft.h
-	core/video/soft/titan/titan.h
 	core/sh2/sh2_simple/include/sh2int.h
 	core/peripheral/common/peripheral.h
 	core/net/sock.h
@@ -78,6 +81,7 @@ set(kronos_HEADERS
   ctrl/include/yui.h
 	ctrl/threads/threads.h
   utils/include/error.h
+	utils/include/debug.h
 	utils/include/cdbase.h
   utils/include/profile.h
   utils/include/netlink.h
@@ -88,7 +92,7 @@ set(kronos_HEADERS
 	tools/junzip/junzip.h
 )
 
-option(YAB_MULTIBUILD "Choose wether to build all ports or only a single one")
+option(YAB_MULTIBUILD "Choose wether to build all ports or only a single one" OFF)
 set(YAB_PORT_BUILT FALSE)
 if (WIN32)
 set(YAB_PORTS "qt" CACHE STRING "List of ports to build")
@@ -97,7 +101,7 @@ set(YAB_PORTS "qt;linux" CACHE STRING "List of ports to build")
 endif(WIN32)
 
 if (CMAKE_COMPILER_IS_GNUCC)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fomit-frame-pointer")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fomit-frame-pointer")
 endif (CMAKE_COMPILER_IS_GNUCC)
 
 set(kronos_SOURCES
@@ -125,8 +129,6 @@ set(kronos_SOURCES
 	sys/memory/src/eeprom.c
 	sys/memory/src/decrypt.c
 	core/sh2/sh2_simple/src/sh2int.c
-	core/video/soft/vidsoft.c
-	core/video/soft/titan/titan.c
 	core/video/opengl/common/src/vidshared.c
 	core/peripheral/common/peripheral.c
 	core/sound/dummy/snddummy.c
@@ -134,6 +136,7 @@ set(kronos_SOURCES
   ctrl/src/stv.c
   ctrl/src/movie.c
 	utils/src/error.c
+	utils/src/debug.c
 	utils/src/cdbase.c
 	tools/junzip/junzip.c
 	)
@@ -142,6 +145,25 @@ add_definitions(-DIMPROVED_SAVESTATES)
 add_subdirectory(tools/libchdr)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tools/libchdr/src)
 set(KRONOS_LIBRARIES ${KRONOS_LIBRARIES} chdr-static)
+
+if(KRONOS_LIBRETRO_CORE)
+	set(LIBRETRO_COMM_DIR ${CMAKE_CURRENT_SOURCE_DIR}/libretro/libretro-common)
+	include_directories(${LIBRETRO_COMM_DIR}/include)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libretro)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
+	add_definitions(
+		-D__LIBRETRO__ 
+		-DHAVE_LROUND 
+		-D_7ZIP_ST 
+		-DFLAC__HAS_OGG=0 
+		-DFLAC__NO_DLL
+		-DNO_CLI 
+		-DIMPROVED_SAVESTATES 
+		-DHAVE_GLSYM_PRIVATE
+		-DHAVE_THREADS=1 
+	)
+endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/tools/libchdr/deps/zlib-1.2.11)
 set(KRONOS_LIBRARIES ${KRONOS_LIBRARIES} zlibstatic)
@@ -166,9 +188,21 @@ include(${CMAKE_SOURCE_DIR}/l10n/CMakeLists.txt)
 
 #-------------------------------------------------------
 
-option(YAB_WANT_SH2_ASYNC "Execute slave SH2 emulation in a thread" OFF)
+option(YAB_WANT_SH2_ASYNC "Execute slave SH2 emulation in a thread. EXPERIMENTAL" OFF)
 if (YAB_WANT_SH2_ASYNC)
-  add_definitions(-DxSH2_ASYNC=1)
+	add_definitions(-DxSH2_ASYNC=1)
+	if(MSVC)
+		include_directories(utils/windows)
+		set(kronos_HEADERS
+			${kronos_HEADERS}
+			utils/windows/semaphore.h
+		)
+
+		set(kronos_SOURCES
+			${kronos_SOURCES}
+			utils/windows/semaphore.cpp
+		)
+	endif()
 endif()
 
 option(YAB_WANT_DYNAREC_KRONOS "Enable Sh2 dynarec by Kronos" ON)
@@ -205,9 +239,21 @@ if (YAB_WANT_ASYNC_VDP1_TEXTURE)
 	add_definitions(-DVDP1_TEXTURE_ASYNC=1)
 endif()
 
-option(YAB_WANT_SOFT_RENDERING "Enable software renderer support" OFF)
-if (YAB_WANT_SOFT_RENDERING)
+option(YAB_WANT_SOFT_RENDERING "Enable software renderer support." OFF)
+if (YAB_WANT_SOFT_RENDERING OR NOT KRONOS_LIBRETRO_CORE)
    add_definitions(-DUSE_SOFT_RENDER=1)
+
+	set(kronos_HEADERS
+		${kronos_HEADERS}
+		core/video/soft/vidsoft.h
+		core/video/soft/titan/titan.h
+	)
+
+	set(kronos_SOURCES
+		${kronos_SOURCES}
+		core/video/soft/vidsoft.c
+		core/video/soft/titan/titan.c
+	)
 endif()
 
 option(YAB_WANT_ASAN_DEBUG "Enable ASAN compilation sanitizer" OFF)
@@ -334,55 +380,58 @@ endif ()
 # OpenGL
 option(YAB_WANT_OPENGL "use OpenGL for video output (most ports require it)" ON)
 if (YAB_WANT_OPENGL AND (YAB_RGB STREQUAL ""))
-	if (NOT YAB_FORCE_GLES31)
-		include(FindOpenGL)
-	endif (NOT YAB_FORCE_GLES31)
-  include(FindOpenGLES)
+	include(FindOpenGL)
+	include(FindOpenGLES)
 	include(FindEGL)
 
-	if (OPENGL_FOUND)
-	  message(STATUS "OPENGL Core supported")
+	if (OPENGLES31_FOUND)
+		if (NOT EGL_FOUND)
+			message(ERROR "No EGL found")
+		endif()
+		message(STATUS "OPENGL ES 3.1 supported")
+		add_definitions(-D_OGLES31_)
+		SET( OPENGL_CURRENT_LIBRARIES ${OPENGLES_LIBRARIES} ${EGL_LIBRARIES} )
+		SET( OPENGL_SUPPORTED "YES" )
+	elseif (OPENGLES3_FOUND)
+		if (NOT EGL_FOUND)
+			message(ERROR "No EGL found")
+		endif (NOT EGL_FOUND)
+		message(STATUS "OPENGL ES 3.0 supported")
+		SET( NEED_GLEW "YES")
+		SET( OPENGL_CURRENT_LIBRARIES ${OPENGLES_LIBRARIES} ${EGL_LIBRARIES} )
+		SET( OPENGL_SUPPORTED "YES" )
+	elseif (OPENGL_FOUND)
+		message(STATUS "OPENGL Core supported")
 		add_definitions(-D_OGL3_)
 		SET( NEED_GLEW "YES")
 		SET( OPENGL_CURRENT_LIBRARIES ${OPENGL_LIBRARIES} )
 		SET( OPENGL_SUPPORTED "YES" )
-	else (OPENGL_FOUND)
-		if (OPENGLES31_FOUND)
-		  if (NOT EGL_FOUND)
-				message(ERROR "No EGL found")
-			endif (NOT EGL_FOUND)
-		  message(STATUS "OPENGL ES 3.1 supported")
-			add_definitions(-D_OGLES31_)
-			SET( OPENGL_CURRENT_LIBRARIES ${OPENGLES_LIBRARIES} ${EGL_LIBRARIES} )
-			SET( OPENGL_SUPPORTED "YES" )
-		else (OPENGLES31_FOUND)
-			if (OPENGLES3_FOUND)
-				if (NOT EGL_FOUND)
-					message(ERROR "No EGL found")
-				endif (NOT EGL_FOUND)
-		  	message(STATUS "OPENGL ES 3.0 supported")
-				SET( NEED_GLEW "YES")
-				SET( OPENGL_CURRENT_LIBRARIES ${OPENGLES_LIBRARIES} ${EGL_LIBRARIES} )
-				SET( OPENGL_SUPPORTED "YES" )
-			else (OPENGLES3_FOUND)
-				SET( OPENGL_SUPPORTED "NO" )
-			endif (OPENGLES3_FOUND)
-		endif (OPENGLES31_FOUND)
-	endif (OPENGL_FOUND)
+	else ()
+		SET( OPENGL_SUPPORTED "NO" )
+	endif ()
 
+	if(YAB_FORCE_GLES31)
+		add_definitions(-D_OGLES31_)
+	endif()
+
+	if(OPENGLES31_FOUND OR OPENGLES3_FOUND)
+		add_definitions(-D_OGLES3_ -DHAVE_OPENGLES -DHAVE_OPENGLES3)
+	endif()
 
 	if (OPENGL_SUPPORTED)
 		add_definitions(-DHAVE_LIBGL=1)
 		set(KRONOS_LIBRARIES ${KRONOS_LIBRARIES} ${OPENGL_CURRENT_LIBRARIES})
 
-		include_directories(./ ./tools/nanovg)
-		set(kronos_SOURCES ${kronos_SOURCES}
-			tools/nanovg/nanovg.c
-			tools/nanovg/nanovg_osdcore.h
-			tools/nanovg/nanovg_osdcore.c
-		)
-		add_definitions(-DYAB_PORT_OSD)
-
+		if(NOT KRONOS_LIBRETRO_CORE)
+			include_directories(./ ./tools/nanovg)
+			set(kronos_SOURCES ${kronos_SOURCES}
+				tools/nanovg/nanovg.c
+				tools/nanovg/nanovg_osdcore.h
+				tools/nanovg/nanovg_osdcore.c
+			)
+			add_definitions(-DYAB_PORT_OSD)
+		endif()
+		
 		include(FindGLUT)
 		if (GLUT_FOUND)
 			message (WARNING "Deprecated Glut found. Support will be removed in the future. ")
@@ -399,10 +448,12 @@ if (YAB_WANT_OPENGL AND (YAB_RGB STREQUAL ""))
 		endif()
 
 		if (NEED_GLEW)
-	    include(FindGLEW)
-	    add_definitions(-D_USEGLEW_)
-	    add_definitions(-DGLEW_STATIC)
-	    include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/tools/gllibs/include/ )
+			set(GLEW_USE_STATIC_LIBS ON)
+
+			find_package(GLEW)
+			add_definitions(-D_USEGLEW_)
+			add_definitions(-DGLEW_STATIC)
+			include_directories( ${CMAKE_CURRENT_SOURCE_DIR}/tools/gllibs/include/ )
 			set(kronos_SOURCES
 				${kronos_SOURCES}
 				tools/gllibs/glew/glew.c
@@ -420,6 +471,7 @@ if (YAB_WANT_OPENGL AND (YAB_RGB STREQUAL ""))
 			core/video/opengl/compute_shader/src/yglcs.c
 			core/video/opengl/compute_shader/src/vidcs.c
 			core/video/opengl/compute_shader/src/vdp1_compute.c
+			sys/vdp2/src/vdp2debug.c
 		)
 		set(kronos_HEADERS
 			${kronos_HEADERS}
@@ -528,6 +580,7 @@ endif (  )
 if (WIN32)
 	# Windows ddk
 	option(YAB_WANT_DDK "Use the real DDK instead of the built-in one")
+	mark_as_advanced(YAB_WANT_DDK)
 	if(YAB_WANT_DDK)
 		message (WARNING "Windows DDK/WDK use is deprecated. Support will be removed in the future. ")
 
@@ -544,19 +597,18 @@ if (WIN32)
 		endif (ntddcdrm_INCLUDE_DIR)
 	endif(YAB_WANT_DDK)
 
-	set(kronos_SOURCES ${kronos_SOURCES} core/cd/windows/cd-windows.c)
-
 	if (YAB_USE_SCSPMIDI)
 		set(KRONOS_LIBRARIES ${KRONOS_LIBRARIES} winmm)
 	endif()
 
+	if(NOT KRONOS_LIBRETRO_CORE)
+		set(kronos_SOURCES ${kronos_SOURCES} core/cd/windows/cd-windows.c)
+	endif()
 endif (WIN32)
 
 option(YAB_WANT_ARM7 "Build a binary with arm7 support")
 
 # SH2 dynamic recompiler
-message(STATUS "CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}")
-message(STATUS "CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
 
 #MUSASHI GENERATION
 set (MUSASHI_GENERATED_SOURCES
@@ -680,8 +732,13 @@ else ()
 endif ()
 
 if (CMAKE_COMPILER_IS_GNUCC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c11 -D_DEFAULT_SOURCE -Wno-format -mfpmath=sse -m64 -march=native -funroll-loops")
-        set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -mfpmath=sse -m64 -march=native -funroll-loops")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_DEFAULT_SOURCE -Wno-format -march=native -funroll-loops")
+    set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -march=native -funroll-loops")
+
+	if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mfpmath=sse -m64")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mfpmath=sse -m64")
+	endif()
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
@@ -690,40 +747,41 @@ if (CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 6.0)
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-PIE -no-pie" )
 endif()
 
-
-set(YAB_OPTIMIZATION "-O3 -s" CACHE STRING "Override optimization level")
 if (MSVC)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Ox")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Ox")
-endif ()
+add_compile_options(/MP)
+endif()
 
 if (MSVC)
 add_compile_options(/MP)
 endif()
 
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${YAB_OPTIMIZATION} -march=i686 -msse")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${YAB_OPTIMIZATION} -std=c++11")
-endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=i686 -msse")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${YAB_OPTIMIZATION}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${YAB_OPTIMIZATION} -std=c++11")
-endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+endif()
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv5tel")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${YAB_OPTIMIZATION}")
-endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv5tel")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
+endif()
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -mcpu=cortex-a8 -mfpu=vfp -mfloat-abi=hard")
-    set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -O3 -mcpu=cortex-a8 -mfpu=vfp -mfloat-abi=hard")
-endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -mcpu=cortex-a72 -mtune=cortex-a72 -mfpu=vfp -mfloat-abi=hard")
+    set(CMAKE_CPP_FLAGS "${CMAKE_CPP_FLAGS} -mcpu=cortex-a72 -mtune=cortex-a72 -mfpu=vfp -mfloat-abi=hard")
+endif()
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99 -march=armv7ve -mcpu=cortex-a15 -mfpu=neon -ffast-math")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7ve -std=c++11 -mcpu=cortex-a15 -mfpu=neon -ffast-math -fno-exceptions -fno-rtti")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv7ve -mcpu=cortex-a15 -mfpu=neon -ffast-math")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv7ve -mcpu=cortex-a15 -mfpu=neon -ffast-math -fno-exceptions -fno-rtti")
 endif()
 if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=armv8-a -ffast-math")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a -std=c++11  -ffast-math -fno-exceptions -fno-rtti  ")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=armv8-a -ffast-math -fno-exceptions -fno-rtti")
 endif()
+
+set(YAB_OPTIMIZATION "" CACHE STRING "Override optimization compiler flags")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${YAB_OPTIMIZATION}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${YAB_OPTIMIZATION}")
 
 # Warnings defined to know when we're breaking compilation with MSVC
 if (CMAKE_COMPILER_IS_GNUCC)
@@ -753,13 +811,17 @@ endif()
 add_definitions(-DPACKAGE=\"${YAB_PACKAGE}\")
 add_definitions(-DVERSION=\"${YAB_VERSION}\")
 
-if( IOS )
+if(IOS)
 	add_library(kronos OBJECT ${kronos_SOURCES} ${kronos_HEADERS})
 else()
 	add_library(kronos ${kronos_SOURCES} ${kronos_HEADERS})
 endif()
 
 add_dependencies(kronos m68kmake)
+
+if(KRONOS_LIBRETRO_CORE)
+	add_subdirectory(libretro)
+endif()
 
 macro(yab_port_start)
 	if (YAB_PORT_BUILT AND NOT YAB_MULTIBUILD)
@@ -806,3 +868,18 @@ option(YAB_TESTS "Build test programs for cores" OFF)
 if (YAB_TESTS)
 	add_subdirectory("tools")
 endif()
+
+message(STATUS "------ CONFIGS ------")
+message(STATUS "KRONOS_LIBRETRO_CORE ${KRONOS_LIBRETRO_CORE}")
+message(STATUS "YAB_WANT_OPENGL ${YAB_WANT_OPENGL}")
+message(STATUS "YAB_WANT_OPENAL ${YAB_WANT_OPENAL}")
+message(STATUS "YAB_WANT_OPENSL ${YAB_WANT_OPENSL}")
+if(YAB_RGB)
+	message(STATUS "YAB_RGB ${YAB_RGB}")
+endif()
+message(STATUS "------ STATUS -------")
+message(STATUS "OPENGL_SUPPORTED ${OPENGL_SUPPORTED}")
+message(STATUS "------ FLAGS  -------")
+message(STATUS "CMAKE_SYSTEM_NAME ${CMAKE_SYSTEM_NAME} defined")
+message(STATUS "CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR} defined")
+message(STATUS "---------------------")

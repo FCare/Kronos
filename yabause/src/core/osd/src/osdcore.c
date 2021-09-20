@@ -46,7 +46,7 @@ OSD_struct *OSDCoreList[] = {
 #ifdef HAVE_LIBGLUT
 &OSDGlut,
 #endif
-#if !defined(_arch_dreamcast) && !defined(NO_VIDCORE_SOFT)
+#if !defined(_arch_dreamcast) && defined(USE_SOFT_RENDER)
 &OSDSoft,
 #endif
 NULL
@@ -334,7 +334,7 @@ int OSDGlutUseBuffer(void)
 }
 #endif
 
-#if !defined(_arch_dreamcast) && !defined(NO_VIDCORE_SOFT)
+#if !defined(_arch_dreamcast) && defined(USE_SOFT_RENDER)
 
 static int OSDSoftInit(void);
 static void OSDSoftDeInit(void);

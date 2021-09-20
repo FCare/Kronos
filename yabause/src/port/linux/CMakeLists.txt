@@ -5,7 +5,28 @@ yab_port_start()
 include(FindSDL2 OPTIONAL)
 find_package(OpenGLES)
 find_package(PkgConfig REQUIRED)
-pkg_search_module(GLFW REQUIRED glfw3)
+pkg_search_module(GLFW glfw3)
+
+#download and build glfw3. no prebuild binadies atm
+macro(DO_DOWNLOAD_BUILD_GLFW)
+	set(git_lib_name glfw)
+	set(git_repo_url https://github.com/glfw/glfw.git)
+
+	configure_file(${CMAKE_SOURCE_DIR}/configre.git.dependency.linux.sh.in configre.git.dependency.linux.sh @ONLY)
+
+	#this is a workaround to support older cmake version which do not support setting file permissions directly during configure and also have no file chmod permission (prior cmake 19)
+	file(COPY ${CMAKE_CURRENT_BINARY_DIR}/configre.git.dependency.linux.sh
+		DESTINATION ${CMAKE_BINARY_DIR}
+		FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
+
+	execute_process(COMMAND ${CMAKE_BINARY_DIR}/configre.git.dependency.linux.sh COMMAND_ERROR_IS_FATAL ANY)
+
+	pkg_search_module(GLFW REQUIRED glfw3)
+endmacro()
+
+if(NOT GLFW_FOUND)
+	DO_DOWNLOAD_BUILD_GLFW()
+endif()
 
 if (NOT OPENGLES2_FOUND)
 	return()

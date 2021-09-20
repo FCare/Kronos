@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo "installing @git_lib_name@"
+
+mkdir ./@git_lib_name@ -p
+cd ./@git_lib_name@
+git clone @git_repo_url@ @git_lib_name@
+cmake -S ./@git_lib_name@ -B ./@git_lib_name@/build
+cmake --build ./@git_lib_name@/build
+sudo cmake --install ./@git_lib_name@/build
+
+echo "installed @git_lib_name@"

@@ -8,6 +8,11 @@ option(YAB_USE_QT5_SPECIFIC "Use dedicated QT setup" OFF)
 
 if(YAB_USE_QT5)
   SET(OLD_CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH})
+
+  if(MSVC)
+	SET(CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH};C:/Qt/5.14.0/msvc2017_64;$ENV{QTDIR})
+  endif()
+
   if(YAB_USE_QT5_SPECIFIC)
     SET(CMAKE_PREFIX_PATH /opt/Qt/5.11.1/gcc_64)
   endif()
@@ -26,7 +31,7 @@ if(YAB_USE_QT5)
 endif()
 
 if(Qt5_FOUND)
-    message(STATUS "Qt5 Found")
+    message(STATUS "Qt5 Found - Configuring QT frontend project")
 
     add_definitions(-DHAVE_QT_MULTIMEDIA=1)
 
@@ -39,7 +44,7 @@ if(Qt5_FOUND)
     endif()
 
 else()
-	message(STATUS "NO Qt5_FOUND")
+	message(STATUS "NO Qt5_FOUND - Not using QT frontend project")
 	return ()
 endif()
 
@@ -254,7 +259,7 @@ if (WIN32)
 		install(FILES ${QT_BINARY_DIR}/Qt5Widgets.dll DESTINATION ".")
 		install(FILES ${QT_BINARY_DIR}/Qt5Multimedia.dll DESTINATION ".")
 		install(FILES ${QT_BINARY_DIR}/Qt5Network.dll DESTINATION ".")
-		if(${CMAKE_BUILD_TYPE} STREQUAL Debug)
+		if(${CMAKE_BUILD_TYPE} AND ${CMAKE_BUILD_TYPE} STREQUAL Debug)
 		    message("Adding Qt debug libs")
 			install(FILES ${QT_BINARY_DIR}/Qt5Cored.dll DESTINATION ".")
 			install(FILES ${QT_BINARY_DIR}/Qt5Guid.dll DESTINATION ".")
