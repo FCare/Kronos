@@ -1898,6 +1898,9 @@ int YabLoadState(const char *filename)
 
    status = YabLoadStateBuffer(buffer, size);
 
+   if(buffer)
+      free(buffer);
+
    return status;
 }
 
