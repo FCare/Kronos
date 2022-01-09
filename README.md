@@ -26,7 +26,7 @@ Currently used are:
 
 ### QT Version
 
-You can set the CMake flag `YAB_USE_QT` to build a Standalone version which requires you to have QT5 installed
+You can set the CMake flag `YAB_USE_QT5` to build a Standalone version which requires you to have QT5 installed
 
 ### LibRetro - RetroArch Version
 
