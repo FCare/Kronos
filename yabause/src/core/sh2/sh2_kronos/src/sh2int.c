@@ -35,13 +35,8 @@
 
 #include "cs2.h"
 
-#ifdef xSH2_ASYNC
-#define LOCK(A) sem_wait(&A->lock)
-#define UNLOCK(A) sem_post(&A->lock)
-#else
 #define LOCK(A)
 #define UNLOCK(A)
-#endif
 
 
 extern void SH2undecoded(SH2_struct * sh);
@@ -293,17 +288,19 @@ FASTCALL void SH2KronosInterpreterExecLoop(SH2_struct *context, u32 cycles)
      inIt = context->isInIt;
     cacheCode[context->isslave][cacheId[(context->regs.PC >> 20) & 0xFFF]][(context->regs.PC >> 1) & 0x7FFFF](context);
      execInterrupt |= (context->cycles >= target_cycle);
-     execInterrupt |= (inIt != context->isInIt);
+     execInterrupt |= (context->firedUpdate && context->interruptible);
+     context->firedUpdate = 0;
+     // execInterrupt |= (inIt != context->isInIt);
    }
 }
 
 FASTCALL void SH2KronosInterpreterExec(SH2_struct *context, u32 cycles)
 {
   u32 target_cycle = context->cycles + cycles;
-  while (context->cycles < target_cycle){
+  // while (context->cycles < target_cycle){
     SH2HandleInterrupts(context);
     SH2KronosInterpreterExecLoop(context, target_cycle-context->cycles);
-  }
+  // }
 }
 
 static int enableTrace = 0;

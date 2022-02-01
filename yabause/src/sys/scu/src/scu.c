@@ -34,7 +34,7 @@
 Scu * ScuRegs;
 scudspregs_struct * ScuDsp;
 static int incFlg[4] = { 0 };
-static void ScuTestInterruptMask(void);
+static void ScuTestInterruptMask(SH2_struct *sh);
 
 void step_dsp_dma(scudspregs_struct *sc);
 
@@ -2622,7 +2622,7 @@ void FASTCALL ScuWriteByte(SH2_struct *sh, u8* mem, u32 addr, u8 val) {
       case 0xA7:
          ScuRegs->IST &= ~(val); // double check this
          ScuRegs->ITEdge &= ~(val);
-         ScuTestInterruptMask();
+         ScuTestInterruptMask(sh);
          return;
       default:
          LOG("Unhandled SCU Register byte write %08X\n", addr);
@@ -2658,6 +2658,8 @@ void FASTCALL ScuWriteLong(SH2_struct *sh, u8* mem, u32 addr, u32 val) {
       case 0x10:
       if ((val & 0x1) && ((ScuRegs->D0MD&0x7)==0x7) )
          {
+           if (sh != NULL) sh->firedUpdate = 1;
+
             if (ScuRegs->dma0.TransferNumber != 0) {
               ScuDmaProc(ScuRegs, 0x7FFFFFFF);
             }
@@ -2694,6 +2696,7 @@ void FASTCALL ScuWriteLong(SH2_struct *sh, u8* mem, u32 addr, u32 val) {
       case 0x30:
       if ((val & 0x1) && ((ScuRegs->D1MD&0x07) == 0x7))
          {
+           if (sh != NULL) sh->firedUpdate = 1;
             if (ScuRegs->dma1.TransferNumber != 0) {
               ScuDmaProc(ScuRegs, 0x7FFFFFFF);
             }
@@ -2733,7 +2736,7 @@ void FASTCALL ScuWriteLong(SH2_struct *sh, u8* mem, u32 addr, u32 val) {
       case 0x50:
       if ((val & 0x1) && ((ScuRegs->D2MD & 0x7) == 0x7))
          {
-
+           if (sh != NULL) sh->firedUpdate = 1;
             if (ScuRegs->dma2.TransferNumber != 0) {
               ScuDmaProc(ScuRegs, 0x7FFFFFFF);
             }
@@ -2765,6 +2768,7 @@ void FASTCALL ScuWriteLong(SH2_struct *sh, u8* mem, u32 addr, u32 val) {
         break;
       case 0x80: // DSP Program Control Port
          LOG("scu: wrote %08X to DSP Program Control Port", val);
+         if (sh != NULL) sh->firedUpdate = 1;
          ScuDsp->ProgControlPort.all = (ScuDsp->ProgControlPort.all & 0x00FC0000) | (val & 0x060380FF);
 
          if (ScuDsp->ProgControlPort.part.LE) {
@@ -2815,16 +2819,16 @@ void FASTCALL ScuWriteLong(SH2_struct *sh, u8* mem, u32 addr, u32 val) {
          break;
       case 0xA0:
          ScuRegs->IMS = val;
-         ScuTestInterruptMask();
+         ScuTestInterruptMask(sh);
          break;
       case 0xA4:
          ScuRegs->IST &= val;
          ScuRegs->ITEdge &= val;
-         ScuTestInterruptMask();
+         ScuTestInterruptMask(sh);
          break;
       case 0xA8:
          ScuRegs->AIACK = val;
-         ScuTestInterruptMask();
+         ScuTestInterruptMask(sh);
          break;
       case 0xB0:
          ScuRegs->ASR0 = val;
@@ -2857,7 +2861,7 @@ void sendSlave(int vector, int level) {
     }
   }
 }
-void ScuTestInterruptMask()
+void ScuTestInterruptMask(SH2_struct *sh)
 {
    int mask = 0;
    int IRLSet = 0;
@@ -2875,6 +2879,7 @@ void ScuTestInterruptMask()
              //To be checked on real HW.
 
              //A-Bus interrupt are only sent to master SH2
+             if (sh != NULL) sh->firedUpdate = 1;
              SH2SendInterrupt(MSH2, ScuInterrupt[i].vector, ScuInterrupt[i].level);
              ScuRegs->ITEdge &= ~ScuInterrupt[i].status;
            }
@@ -2882,6 +2887,7 @@ void ScuTestInterruptMask()
        }else if ((!(ScuRegs->IMS & mask)) && (IRLSet == 0)) {
            IRLSet = 1;
            ScuRegs->ITEdge &= ~ScuInterrupt[i].status;
+           if (sh != NULL) sh->firedUpdate = 1;
            SH2SendInterrupt(MSH2, ScuInterrupt[i].vector, ScuInterrupt[i].level);
            sendSlave(ScuInterrupt[i].vector, ScuInterrupt[i].level);
         }
@@ -2902,7 +2908,7 @@ static INLINE void SetInterrupt(u8 id) {
    ScuRegs->ITEdge |= statusbit;
    ScuRegs->ITEdge &= ~clearbit;
 
-   ScuTestInterruptMask();
+   ScuTestInterruptMask(NULL);
 }
 
 // 3.2 DMA control register

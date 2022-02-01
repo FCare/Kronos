@@ -32,13 +32,8 @@
 #include "bios.h"
 #include "yabause.h"
 
-#ifdef xSH2_ASYNC
-#define LOCK(A) sem_wait(&A->lock)
-#define UNLOCK(A) sem_post(&A->lock)
-#else
 #define LOCK(A)
 #define UNLOCK(A)
-#endif
 
 void SH2IOnFrame(SH2_struct *context) {
 

@@ -6228,6 +6228,7 @@ void waitVdp2DrawScreensEnd(int sync, int abort) {
         YglTmPush(YglTM_vdp2);
         if (VIDCore != NULL) {
           VIDOGLReadColorOffset();
+          //Faire le sync ici
           VIDCore->composeFB(&Vdp2Lines[0]);
         }
       }

@@ -61,6 +61,7 @@ int SH2Init(int coreid)
 
    MSH2->onchip.BCR1 = 0x0000;
    MSH2->isslave = 0;
+   MSH2->interruptible = 1;
 MSH2->trace = 0;
 
     MSH2->dma_ch0.CHCR = &MSH2->onchip.CHCR0;
@@ -226,7 +227,7 @@ void FASTCALL SH2Exec(SH2_struct *context, u32 cycles)
    SH2Core->Exec(context, cycles);
    FRTExec(context);
    WDTExec(context);
-   DMAProc(context, cycles);
+   DMAProc(context, context->cycles - startCycle);
 }
 
 void FASTCALL SH2OnFrame(SH2_struct *context) {

@@ -130,6 +130,7 @@ u8 FASTCALL Cs2ReadByte(SH2_struct *context, UNUSED u8* memory, u32 addr)
 
 void FASTCALL Cs2WriteByte(SH2_struct *context, UNUSED u8* memory, u32 addr, u8 val)
 {
+    YuiMsg("CS2 Byte Write\n");
    CartridgeArea->Cs2WriteByte(context, memory, addr, val);
 }
 
@@ -332,7 +333,7 @@ u16 FASTCALL Cs2ReadWord(SH2_struct *context, UNUSED u8* memory, u32 addr) {
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Cs2WriteWord(SH2_struct *context, UNUSED u8* memory, u32 addr, u16 val) {
-
+YuiMsg("Write CS2\n");
   addr &= 0x3F; // fix me(I should really have proper mapping)
 
   switch(addr) {
@@ -344,12 +345,14 @@ void FASTCALL Cs2WriteWord(SH2_struct *context, UNUSED u8* memory, u32 addr, u16
 				  //}
       if (Cs2Area->reg.HIRQ & Cs2Area->reg.HIRQMASK){
         ScuSendExternalInterrupt00();
+        if (context !=NULL) context->firedUpdate = 1;
       }
                   return;
     case 0x0C:
     case 0x0E: Cs2Area->reg.HIRQMASK = val;
     if (Cs2Area->reg.HIRQ & Cs2Area->reg.HIRQMASK){
       ScuSendExternalInterrupt00();
+      if (context !=NULL) context->firedUpdate = 1;
     }
                   return;
     case 0x18:
@@ -367,6 +370,7 @@ void FASTCALL Cs2WriteWord(SH2_struct *context, UNUSED u8* memory, u32 addr, u16
     case 0x24:
     case 0x26: Cs2Area->reg.CR4 = val;
                   Cs2SetCommandTiming(Cs2Area->reg.CR1 >> 8);
+                  if (context !=NULL) context->firedUpdate = 1;
                   return;
     case 0x28:
     case 0x2A: Cs2Area->reg.MPEGRGB = val;
@@ -485,6 +489,7 @@ u32 FASTCALL Cs2ReadLong(SH2_struct *context, UNUSED u8* memory, u32 addr) {
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Cs2WriteLong(SH2_struct *context, UNUSED u8* memory, UNUSED u32 addr, UNUSED u32 val) {
+  YuiMsg("Write CS2\n");
    addr &= 0x3F; // fix me(I should really have proper mapping)
 
    switch (addr)
@@ -526,6 +531,7 @@ void FASTCALL Cs2WriteLong(SH2_struct *context, UNUSED u8* memory, UNUSED u32 ad
                   Cs2Area->datanumsecttrans++;
                   if (Cs2Area->datanumsecttrans >= Cs2Area->datasectstotrans)
                       Cs2SetIRQ(CDB_HIRQ_EHST);
+                      if (context !=NULL) context->firedUpdate = 1;
                }
             }
          }

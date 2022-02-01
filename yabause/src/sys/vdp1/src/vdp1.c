@@ -36,6 +36,7 @@
 #include "sh2core.h"
 #include "ygl.h"
 #include "yui.h"
+#include "perfetto_trace.h"
 
 
 // #define DEBUG_CMD_LIST
@@ -441,21 +442,27 @@ static void Vdp1TryDraw(void) {
 }
 
 void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
+  YuiMsg("VDP1 write\n");
   u16 oldPTMR = 0;
   addr &= 0xFF;
   switch(addr) {
     case 0x0:
+    TRACE_EMULATOR_SUB_BEGIN("Vdp1WriteWord 0", 0);
       if ((Vdp1Regs->FBCR & 3) != 3) val = (val & (~0x4));
       Vdp1Regs->TVMR = val;
       updateTVMRMode();
       FRAMELOG("TVMR => Write VBE=%d FCM=%d FCT=%d line = %d\n", (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount);
+    TRACE_EMULATOR_SUB_END(0);
     break;
     case 0x2:
+    TRACE_EMULATOR_SUB_BEGIN("Vdp1WriteWord 2", 0);
       Vdp1Regs->FBCR = val;
       FRAMELOG("FBCR => Write VBE=%d FCM=%d FCT=%d line = %d\n", (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount);
       updateFBCRMode();
+      TRACE_EMULATOR_SUB_END(0);
       break;
     case 0x4:
+    TRACE_EMULATOR_SUB_BEGIN("Vdp1WriteWord 4",0);
       FRAMELOG("Write PTMR %X line = %d %d\n", val, yabsys.LineCount, yabsys.VBlankLineCount);
       if ((val & 0x3)==0x3) {
         //Skeleton warriors is writing 0xFFF to PTMR. It looks like the behavior is 0x2
@@ -466,19 +473,24 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       Vdp1External.plot_trigger_line = -1;
       Vdp1External.plot_trigger_done = 0;
       if (val == 1){
+        TRACE_EMULATOR_SUB_BEGIN("Vdp1WriteWord Plot",0);
         FRAMELOG("VDP1: VDPEV_DIRECT_DRAW\n");
         Vdp1External.plot_trigger_line = yabsys.LineCount;
         abortVdp1();
         RequestVdp1ToDraw();
         Vdp1TryDraw();
         Vdp1External.plot_trigger_done = 1;
+        TRACE_EMULATOR_SUB_END(0);
       }
       if ((val == 0x2) && (oldPTMR == 0x0)){
+        TRACE_EMULATOR_SUB_BEGIN("Vdp1WriteWord Plot imm",0);
         FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
         abortVdp1();
         RequestVdp1ToDraw();
         Vdp1TryDraw();
+        TRACE_EMULATOR_SUB_END(0);
       }
+      TRACE_EMULATOR_SUB_END(0);
       break;
       case 0x6:
          Vdp1Regs->EWDR = val;
@@ -1204,6 +1216,7 @@ static int sameCmd(vdp1cmd_struct* a, vdp1cmd_struct* b) {
 static int lastHash = -1;
 void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
 {
+  TRACE_EMULATOR("Vdp1DrawCommands");
   int cylesPerLine  = getVdp1CyclesPerLine();
 
   if (Vdp1External.status == VDP1_STATUS_IDLE) {

@@ -387,9 +387,6 @@ struct AlfoTables
 };
 
 
-#if defined(ASYNC_SCSP)
-//global variables
-#endif
 struct AlfoTables alfo;
 
 static YabSem *m68counterCond;
@@ -4710,7 +4707,7 @@ scsp_alloc_bufs (void)
 
 static u8 IsM68KRunning;
 static s32 FASTCALL (*m68kexecptr)(s32 cycles);  // M68K->Exec or M68KExecBP
-static s32 savedcycles;  // Cycles left over from the last M68KExec() call
+static s32 savedcycles;  // Cycles left over from the last MM68KExec() call
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -5061,13 +5058,11 @@ ScspDeInit (void)
   ScspUnMuteAudio(1);
   scsp_mute_flags = 0;
   thread_running = false;
-#if defined(ASYNC_SCSP)
   YabThreadCondSignal(g_scsp_set_cyc_cond);
   YabSemPost(g_cpu_ready);
   YabSemPost(g_scsp_ready);
   YabThreadWake(YAB_THREAD_SCSP);
   YabThreadWait(YAB_THREAD_SCSP);
-#endif
 
   if (scspchannel[0].data32)
     free(scspchannel[0].data32);
@@ -5155,12 +5150,7 @@ __attribute__((noinline))
 #endif
 static s32 FASTCALL M68KExecBP (s32 cycles);
 
-#if defined(ASYNC_SCSP)
-void M68KExec(s32 cycles){}
-void MM68KExec(s32 cycles)
-#else
-void M68KExec(s32 cycles)
-#endif
+static void MM68KExec(s32 cycles)
 {
   s32 newcycles = savedcycles - cycles;
   if (LIKELY(IsM68KRunning))
@@ -5263,21 +5253,6 @@ M68KStep (void)
 
 //////////////////////////////////////////////////////////////////////////////
 
-// Wait for background execution to finish (used on PSP)
-#if defined(ASYNC_SCSP)
-void M68KSync(void){}
-void MM68KSync (void)
-#else
-void M68KSync(void)
-#endif
-{
-  M68K->Sync();
-}
-
-
-
-//////////////////////////////////////////////////////////////////////////////
-
 void
 ScspConvert32uto16s (s32 *srcL, s32 *srcR, s16 *dst, u32 len)
 {
@@ -5371,15 +5346,6 @@ void ScspUnLockThread() {
 
 
 //////////////////////////////////////////////////////////////////////////////
-#if !defined(ASYNC_SCSP)
-void ScspExec(){
-  u32 audiosize;
-
-  ScspInternalVars->scsptiming2 +=
-	  ((scspsoundlen << 16) + scsplines / 2) / scsplines;
-  ScspInternalVars->scsptiming2 &= 0xFFFF; // Keep fractional part
-  ScspInternalVars->scsptiming1++;
-#else
 
 u64 newCycles = 0;
 
@@ -5439,13 +5405,11 @@ void* ScspAsynMainCpu( void * p ){
         break;
       }
     }
-    #if defined(ASYNC_SCSP)
     while (scsp_mute_flags && thread_running) {
       YabThreadUSleep((1000000 / fps));
       YabSemPost(g_scsp_ready);
       YabSemWait(g_cpu_ready);
     }
-    #endif
   }
   YabThreadWake(YAB_THREAD_SCSP);
   return NULL;
@@ -5547,8 +5511,6 @@ void ScspAddCycles(u64 cycles)
 
 void ScspExecAsync() {
   u32 audiosize;
-
-#endif
 
 
   if (ScspInternalVars->scsptiming1 >= scsplines)

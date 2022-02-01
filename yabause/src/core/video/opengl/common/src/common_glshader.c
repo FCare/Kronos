@@ -1,5 +1,6 @@
 #include "common_glshader.h"
 #include "yui.h"
+#include "perfetto_trace.h"
 
 #define LOG_SHADER
 
@@ -1988,6 +1989,7 @@ int setupVDP2Prog(Vdp2* varVdp2Regs, int nb_screen, int CS) {
   LOG_SHADER("get = %d (%d %d %d %d %d %d)\n", pgid-PG_VDP2_DRAWFRAMEBUFF_NONE, mode, colormode, spritetype, screen_nb, condition, fb_mode);
 
   if (_prgid[pgid] == 0) {
+    TRACE_EMULATOR("YglInitDrawFrameBufferShaders");
    if (YglInitDrawFrameBufferShaders(pgid, CS) != 0) {
      YuiMsg("Problem in CS YglInitDrawFrameBufferShaders\n");
      abort();

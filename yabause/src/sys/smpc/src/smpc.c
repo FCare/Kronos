@@ -218,10 +218,10 @@ void SmpcCKCHG352(void) {
    // Send NMI
    SH2NMI(MSH2);
    // Reset VDP1, VDP2, SCU, and SCSP
-   Vdp1Reset();  
-   Vdp2Reset();  
-   ScuReset();  
-   ScspReset();  
+   Vdp1Reset();
+   Vdp2Reset();
+   ScuReset();
+   ScspReset();
 
    // Clear VDP1/VDP2 ram
 
@@ -242,10 +242,10 @@ void SmpcCKCHG320(void) {
    SH2NMI(MSH2);
 
    // Reset VDP1, VDP2, SCU, and SCSP
-   Vdp1Reset();  
-   Vdp2Reset();  
-   ScuReset();  
-   ScspReset();  
+   Vdp1Reset();
+   Vdp2Reset();
+   ScuReset();
+   ScspReset();
 
    // Clear VDP1/VDP2 ram
 
@@ -281,7 +281,7 @@ static void SmpcINTBACKStatus(void) {
 
    SmpcRegs->OREG[0] = 0x80 | (SmpcInternalVars->resd << 6);   // goto normal startup
    //SmpcRegs->OREG[0] = 0x0 | (SmpcInternalVars->resd << 6);  // goto setclock/setlanguage screen
-    
+
    // write time data in OREG1-7
    if (SmpcInternalVars->clocksync) {
       tmp = SmpcInternalVars->basetime + ((u64)framecounter * 1001 / 60000);
@@ -337,7 +337,7 @@ static void SmpcINTBACKStatus(void) {
 
    // write cartidge data in OREG8
    SmpcRegs->OREG[8] = 0; // FIXME : random value
-    
+
    // write zone data in OREG9 bits 0-7
    // 1 -> japan
    // 2 -> asia/ntsc
@@ -358,10 +358,10 @@ static void SmpcINTBACKStatus(void) {
    // 4   | 1      |
    // 3   | MSHNMI |
    // 2   | 1      |
-   // 1   | SYSRES | 
+   // 1   | SYSRES |
    // 0   | SNDRES |
    SmpcRegs->OREG[10] = 0x34|(SmpcInternalVars->dotsel<<6)|(SmpcInternalVars->mshnmi<<3)|(SmpcInternalVars->sysres<<1)|SmpcInternalVars->sndres;
-    
+
    // system state, second part in OREG11, bit 6
    // bit 6 -> CDRES
    SmpcRegs->OREG[11] = SmpcInternalVars->cdres << 6; // FIXME
@@ -369,7 +369,7 @@ static void SmpcINTBACKStatus(void) {
    // SMEM
    for(i = 0;i < 4;i++)
       SmpcRegs->OREG[12+i] = SmpcInternalVars->SMEM[i];
-    
+
    SmpcRegs->OREG[31] = 0x10; // set to intback command
 }
 
@@ -788,7 +788,7 @@ static void SmpcSetTiming(void) {
          SmpcInternalVars->timing = 1;
          return;
       case 0x3:
-         SmpcInternalVars->timing = 1;                        
+         SmpcInternalVars->timing = 1;
          return;
       case 0x6:
       case 0x7:
@@ -829,11 +829,16 @@ u8 do_th_mode(u8 val)
 void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
    u8 oldVal;
    if(!(addr & 0x1)) return;
+   if (context != NULL)
+   {
+     context->firedUpdate = 1;
+     YuiMsg("SMPC Write\n");
+  }
    addr &= 0x7F;
    oldVal = SmpcRegsT[addr >> 1];
    bustmp = val;
    if (addr == 0x1F) {
-      //COMREG 
+      //COMREG
       SmpcRegsT[0xF] = val&0x1F;
    } else
      SmpcRegsT[addr >> 1] = val;
@@ -852,7 +857,7 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
                SmpcRegs->SF = 0;
                break;
             }
-            else if (SmpcRegs->IREG[0] & 0x80) {                    
+            else if (SmpcRegs->IREG[0] & 0x80) {
                // Continue
                SMPCLOG("INTBACK Continue\n");
                SmpcSetTiming();
@@ -983,13 +988,13 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
                         case PERWHEEL:
                         case PERMISSIONSTICK:
                         case PERTWINSTICKS:
-                        default: 
+                        default:
                            SMPCLOG("smpc\t: Peripheral TH Control Method not supported for peripherl id %02X\n", PORTDATA1.data[1]);
                            break;
                      }
                      break;
                   }
-                  default: 
+                  default:
                      SmpcRegs->PDR[0] = 0x71;
                      break;
                }

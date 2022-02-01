@@ -21,10 +21,6 @@
 #ifndef THREADS_H
 #define THREADS_H
 
-#ifdef xSH2_ASYNC
-#include <semaphore.h>
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif

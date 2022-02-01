@@ -207,8 +207,9 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
      Inth = 1;
    }
    Int = (Inth<Intw)?Inth:Intw;
-
+   TRACE_EMULATOR_SUB_BEGIN("YglUpdateVDP1FB", 0);
    YglUpdateVDP1FB();
+   TRACE_EMULATOR_SUB_END(0);
 
    glDepthMask(GL_FALSE);
    glDisable(GL_DEPTH_TEST);
@@ -305,7 +306,9 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
       glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->screen_fbo);
       glDrawBuffers(1, &DrawBuffers[i]);
     }
+    TRACE_EMULATOR_SUB_BEGIN("DrawVDP2Screen", 0);
     drawScreen[i] = DrawVDP2Screen(varVdp2Regs, i);
+    TRACE_EMULATOR_SUB_END(0);
   }
 
   const int vdp2screens[] = {RBG0, RBG1, NBG0, NBG1, NBG2, NBG3};
@@ -330,6 +333,7 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
 
   for (int j=0; j<6; j++) {
     if (drawScreen[vdp2screens[j]] != 0) {
+      TRACE_EMULATOR_SUB_BEGIN("Setup screen", 0);
       if (((vdp2screens[j] == RBG0) ||(vdp2screens[j] == RBG1)) && (_Ygl->rbg_use_compute_shader)) {
         if (vdp2screens[j] == RBG0)
         prioscreens[id] = _Ygl->rbg_compute_fbotex[0];
@@ -354,6 +358,7 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
       win1_mode_draw |= (_Ygl->Win1_mode[vdp2screens[j]]<<id);
       win_op_draw |= (_Ygl->Win_op[vdp2screens[j]]<<id);
       id++;
+      TRACE_EMULATOR_SUB_END(0);
     }
   }
   isBlur[6] = setupBlur(varVdp2Regs, SPRITE);
@@ -401,13 +406,17 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
   glDrawBuffers(NB_RENDER_LAYER, &DrawBuffers[0]);
   glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 0);
 
+TRACE_EMULATOR_SUB_BEGIN("YglBlitTexture", 0);
   YglBlitTexture( prioscreens, modescreens, isRGB, isBlur, isPerline, isShadow, lncl_draw, GetCSVDP1fb, winS_draw, winS_mode_draw, win0_draw, win0_mode_draw, win1_draw, win1_mode_draw, win_op_draw, useLineColorOffset, varVdp2Regs);
+  TRACE_EMULATOR_SUB_END(0);
   srcTexture = _Ygl->original_fbotex[0];
 #ifndef __LIBRETRO__
    glViewport(x, y, w, h);
    glScissor(x, y, w, h);
    glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
+   TRACE_EMULATOR_SUB_BEGIN("YglBlitFramebuffer", 0);
    YglBlitFramebuffer(srcTexture, _Ygl->width, _Ygl->height, w, h);
+   TRACE_EMULATOR_SUB_END(0);
 #endif
 
   finishCSRender();
