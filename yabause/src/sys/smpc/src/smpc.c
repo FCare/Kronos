@@ -829,12 +829,9 @@ u8 do_th_mode(u8 val)
 void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
    u8 oldVal;
    if(!(addr & 0x1)) return;
-   if (context != NULL)
-   {
-     context->firedUpdate = 1;
-     YuiMsg("SMPC Write\n");
-  }
+
    addr &= 0x7F;
+   YuiMsg("SMPC Write Byte %x\n", addr);
    oldVal = SmpcRegsT[addr >> 1];
    bustmp = val;
    if (addr == 0x1F) {
@@ -861,12 +858,14 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
                // Continue
                SMPCLOG("INTBACK Continue\n");
                SmpcSetTiming();
+               if (context != NULL) context->firedUpdate = 1;
                SmpcRegs->SF = 1;
             }
          }
          return;
       case 0x1F:
          SmpcSetTiming();
+         if (context != NULL) context->firedUpdate = 1;
          return;
       case 0x63:
          SmpcRegs->SF &= val;

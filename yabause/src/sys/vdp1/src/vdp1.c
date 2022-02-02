@@ -442,9 +442,9 @@ static void Vdp1TryDraw(void) {
 }
 
 void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
-  YuiMsg("VDP1 write\n");
   u16 oldPTMR = 0;
   addr &= 0xFF;
+  YuiMsg("VDP1 write Byte %x\n", addr);
   switch(addr) {
     case 0x0:
     TRACE_EMULATOR_SUB_BEGIN("Vdp1WriteWord 0", 0);

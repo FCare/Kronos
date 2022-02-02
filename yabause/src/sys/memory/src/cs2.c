@@ -333,7 +333,6 @@ u16 FASTCALL Cs2ReadWord(SH2_struct *context, UNUSED u8* memory, u32 addr) {
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Cs2WriteWord(SH2_struct *context, UNUSED u8* memory, u32 addr, u16 val) {
-YuiMsg("Write CS2\n");
   addr &= 0x3F; // fix me(I should really have proper mapping)
 
   switch(addr) {
@@ -345,14 +344,12 @@ YuiMsg("Write CS2\n");
 				  //}
       if (Cs2Area->reg.HIRQ & Cs2Area->reg.HIRQMASK){
         ScuSendExternalInterrupt00();
-        if (context !=NULL) context->firedUpdate = 1;
       }
                   return;
     case 0x0C:
     case 0x0E: Cs2Area->reg.HIRQMASK = val;
     if (Cs2Area->reg.HIRQ & Cs2Area->reg.HIRQMASK){
       ScuSendExternalInterrupt00();
-      if (context !=NULL) context->firedUpdate = 1;
     }
                   return;
     case 0x18:
@@ -489,8 +486,8 @@ u32 FASTCALL Cs2ReadLong(SH2_struct *context, UNUSED u8* memory, u32 addr) {
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Cs2WriteLong(SH2_struct *context, UNUSED u8* memory, UNUSED u32 addr, UNUSED u32 val) {
-  YuiMsg("Write CS2\n");
    addr &= 0x3F; // fix me(I should really have proper mapping)
+   YuiMsg("Write Word CS2 %x\n", addr);
 
    switch (addr)
    {
@@ -531,7 +528,6 @@ void FASTCALL Cs2WriteLong(SH2_struct *context, UNUSED u8* memory, UNUSED u32 ad
                   Cs2Area->datanumsecttrans++;
                   if (Cs2Area->datanumsecttrans >= Cs2Area->datasectstotrans)
                       Cs2SetIRQ(CDB_HIRQ_EHST);
-                      if (context !=NULL) context->firedUpdate = 1;
                }
             }
          }
