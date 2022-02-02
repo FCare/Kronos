@@ -2618,6 +2618,7 @@ struct intCtrl ScuInterrupt[30] = {
 
 void FASTCALL ScuWriteByte(SH2_struct *sh, u8* mem, u32 addr, u8 val) {
    addr &= 0xFF;
+   if (sh != NULL) YuiMsg("SCU write Byte %x\n", addr);
    switch(addr) {
       case 0xA7:
          ScuRegs->IST &= ~(val); // double check this
@@ -2641,6 +2642,7 @@ void FASTCALL ScuWriteWord(SH2_struct *sh, u8* mem, u32 addr, UNUSED u16 val) {
 
 void FASTCALL ScuWriteLong(SH2_struct *sh, u8* mem, u32 addr, u32 val) {
    addr &= 0xFF;
+   if (sh != NULL) YuiMsg("SCU write Long %x\n", addr);
   LOG("scu: write %08X:%08X\n", addr, val);
    switch(addr) {
       case 0:

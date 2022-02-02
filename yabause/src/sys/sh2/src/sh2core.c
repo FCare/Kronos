@@ -1971,6 +1971,7 @@ extern u8 execInterrupt;
 
 void FASTCALL MSH2InputCaptureWriteWord(SH2_struct *context, UNUSED u8* memory, UNUSED u32 addr, UNUSED u16 data)
 {
+  YuiMsg("%s\n", __FUNCTION__);
    FRTExec(MSH2);
    // Set Input Capture Flag
    MSH2->onchip.FTCSR |= 0x80;
@@ -1991,6 +1992,7 @@ void FASTCALL MSH2InputCaptureWriteWord(SH2_struct *context, UNUSED u8* memory, 
 
 void FASTCALL SSH2InputCaptureWriteWord(SH2_struct *context, UNUSED u8* memory, UNUSED u32 addr, UNUSED u16 data)
 {
+  YuiMsg("%s\n", __FUNCTION__);
    FRTExec(SSH2);
    // Set Input Capture Flag
    SSH2->onchip.FTCSR |= 0x80;

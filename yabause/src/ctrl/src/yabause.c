@@ -711,21 +711,24 @@ void ExecuteEmulationFrameOnMSH2cycles(u32 cycles,u64 m68k_cycles_per_deciline, 
   u32 nbCycles = MSH2->cycles;
   SH2Exec(MSH2, cycles);
   float nbStop = (float)(MSH2->cycles - nbCycles) / (float)(yabsys.DecilineStop >> YABSYS_TIMING_BITS);
-  if (yabsys.IsSSH2Running == 1) SH2Exec(SSH2, (MSH2->cycles - nbCycles));
+  if (yabsys.IsSSH2Running == 1) {
+    if (cycles != nbStop* (yabsys.DecilineStop >> YABSYS_TIMING_BITS)) YuiMsg("Run SSH2 %d\n", nbStop* (yabsys.DecilineStop >> YABSYS_TIMING_BITS));
+    SH2Exec(SSH2, nbStop* (yabsys.DecilineStop >> YABSYS_TIMING_BITS));
+  }
 //Pas accurate au niveau des cycles suivants
   TRACE_EMULATOR_SUB_BEGIN("Other Core", 10);
   PROFILE_START("SCU");
   ScuExec(((int)(nbStop * yabsys.DecilineStop)>>YABSYS_TIMING_BITS) / 2);
   PROFILE_STOP("SCU");
 
-  yabsys.UsecFrac += (int)(nbStop*yabsys.DecilineUsec);
+  yabsys.UsecFrac = (int)(nbStop*yabsys.DecilineUsec);
   PROFILE_START("SMPC");
   SmpcExec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
   PROFILE_STOP("SMPC");
   PROFILE_START("CDB");
   Cs2Exec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
   PROFILE_STOP("CDB");
-  yabsys.UsecFrac &= YABSYS_TIMING_MASK;
+  // yabsys.UsecFrac &= YABSYS_TIMING_MASK;
   TRACE_EMULATOR_SUB_END(10);
 
     saved_m68k_cycles  += (int)(nbStop*m68k_cycles_per_deciline);
@@ -782,12 +785,13 @@ int YabauseEmulate(void) {
 #endif
   for (int i = 0; i<yabsys.MaxLineCount; i++) {
     TRACE_EMULATOR_SUB_BEGIN("SH2", 0);
-    u32 nbCycles = MSH2->cycles;
     u32 stepCycles = yabsys.DecilineStop >> YABSYS_TIMING_BITS;
+    u32 nbCycles = MSH2->cycles;
     while(MSH2->cycles < (nbCycles + (DECILINE_STEP-2) * stepCycles)) {
       ExecuteEmulationFrameOnMSH2cycles( nbCycles + (DECILINE_STEP-2) * stepCycles - MSH2->cycles,m68k_cycles_per_deciline, scsp_cycles_per_deciline);
     }
-      TRACE_EMULATOR_SUB_END(0);
+    nbCycles = MSH2->cycles;
+    TRACE_EMULATOR_SUB_END(0);
 
       #ifdef YAB_STATICS
       cpu_emutime += (YabauseGetTicks() - current_cpu_clock) * 1000000 / yabsys.tickfreq;
@@ -801,9 +805,9 @@ int YabauseEmulate(void) {
         Vdp2HBlankIN();
         PROFILE_STOP("hblankin");
       }
-      nbCycles = MSH2->cycles;
       //Faire des phases suivant le nombre rell de cylces entre evenements
       while(MSH2->cycles < nbCycles + stepCycles) {
+        // YuiMsg("Play %d cycles on %d\n", nbCycles + stepCycles - MSH2->cycles,  stepCycles);
         ExecuteEmulationFrameOnMSH2cycles( nbCycles + stepCycles - MSH2->cycles ,m68k_cycles_per_deciline, scsp_cycles_per_deciline);
       }
       //HBlank-Out
