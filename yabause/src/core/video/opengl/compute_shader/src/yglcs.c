@@ -28,6 +28,7 @@
 #include "debug.h"
 #include "error.h"
 #include "vdp1_compute.h"
+#include "perfetto_trace.h"
 
 #define YGLDEBUG
 

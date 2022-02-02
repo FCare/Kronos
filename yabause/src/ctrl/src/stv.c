@@ -2771,14 +2771,14 @@ int STVGetRomList(const char* path, int force){
   WIN32_FIND_DATAA FindFileData;
   //Force a detection of the bios first
   unsigned int len = strlen(path) + strlen("/") + strlen("stvbios.zip") + 1;
-  unsigned char *file = malloc(len);
+  unsigned char *file = (unsigned char *)malloc(len);
   snprintf(file, len, "%s/stvbios.zip", path);
   updateGameList(file, &nbGames);
   free(file);
   if((hFind = FindFirstFileA(pathfile, &FindFileData)) != INVALID_HANDLE_VALUE){
     do{
       unsigned int len = strlen(path)+strlen("/")+strlen(FindFileData.cFileName)+1;
-      unsigned char *file = malloc(len);
+      unsigned char *file = (unsigned char *)malloc(len);
       snprintf(file, len, "%s/%s",path, FindFileData.cFileName);
       LOGSTV(file);
       updateGameList(file, &nbGames);
