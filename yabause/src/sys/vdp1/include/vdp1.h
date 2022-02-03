@@ -157,7 +157,6 @@ typedef struct
    void (*Vdp2Draw)(void);
    void (*GetGlSize)(int *width, int *height);
    void (*SetSettingValue)(int type, int value);
-   void(*Sync)();
    void (*GetNativeResolution)(int *width, int *height, int * interlace);
    void(*Vdp2DispOff)(void);
    void (*composeFB)(Vdp2 *regs);

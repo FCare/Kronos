@@ -118,7 +118,6 @@ extern void VIDOGLGetNativeResolution(int *width, int *height, int*interlace);
 extern void YglCSVdp1ReadFrameBuffer(u32 type, u32 addr, void * out);
 extern void YglCSVdp1WriteFrameBuffer(u32 type, u32 addr, u32 val);
 extern void VIDOGLSetSettingValueMode(int type, int value);
-extern void VIDOGLSync();
 extern void VIDOGLGetNativeResolution(int *width, int *height, int*interlace);
 extern void VIDOGLVdp2DispOff(void);
 extern int YglGenFrameBuffer(int force);
@@ -153,7 +152,6 @@ VIDOGLVdp2Reset,
 VIDOGLVdp2Draw,
 YglGetGlSize,
 VIDOGLSetSettingValueMode,
-VIDOGLSync,
 VIDOGLGetNativeResolution,
 VIDOGLVdp2DispOff,
 YglCSRender,

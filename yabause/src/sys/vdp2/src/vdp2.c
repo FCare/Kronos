@@ -606,7 +606,6 @@ void Vdp2VBlankIN(void) {
    }
    nextFrameTime  += yabsys.OneFrameTime;
 
-   VIDCore->Sync();
    Vdp2Regs->TVSTAT |= 0x0008;
 
    ScuSendVBlankIN();
