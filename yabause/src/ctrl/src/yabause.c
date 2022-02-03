@@ -873,8 +873,7 @@ int YabauseEmulate(void) {
             // VBlankIN
             SmpcINTBACKEnd();
             SET_EMU_CMD(VDP1_VBLANKIN);
-            SET_EMU_CMD(VDP2_VBLANKIN);
-            SyncCPUtoSCSP();
+            Vdp2VBlankIN();
             CheatDoPatches(MSH2);
          }
          else if (yabsys.LineCount == yabsys.MaxLineCount)
@@ -882,6 +881,7 @@ int YabauseEmulate(void) {
             // VBlankOUT
             SET_EMU_CMD(VDP1_VBLANKOUT);
             SET_EMU_CMD(VDP2_VBLANKOUT);
+            SyncCPUtoSCSP();
             yabsys.LineCount = 0;
             oneframeexec = 1;
          }
@@ -951,9 +951,10 @@ void * EmuFrameThread(void *arg) {
 
 void SyncCPUtoSCSP() {
   //LOG("[SH2] WAIT SCSP");
+  TRACE_EMULATOR("SyncCPUtoSCSP");
+    // YabSemWait(g_scsp_ready);
     YabSemPost(g_cpu_ready);
     YabThreadWake(YAB_THREAD_SCSP);
-    YabSemWait(g_scsp_ready);
     saved_m68k_cycles = 0;
   //LOG("[SH2] START SCSP");
 }
