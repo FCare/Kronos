@@ -101,14 +101,18 @@ PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
 static YabEventQueue *emuqueue = NULL;
 YabEventQueue *emuctrlqueue = NULL;
+YabEventQueue *emuctrlqueuesync = NULL;
 
 static int emu_proc_running = 0;
 
 extern void Vdp1TryDraw(void);
+extern void FPSDisplay(void);
 
 //#define DEBUG_ACCURACY
 
 #define THREAD_LOG //printf
+
+#define VDPCMD_LOG //YuiMsg
 
 //////////////////////////////////////////////////////////////////////////////
 yabsys_struct yabsys;
@@ -288,7 +292,7 @@ void InitializePerfetto() {
 
 std::unique_ptr<perfetto::TracingSession> StartTracing() {
   perfetto::TraceConfig cfg;
-  cfg.add_buffers()->set_size_kb(1024);
+  cfg.add_buffers()->set_size_kb(1024*1024);
   auto* ds_cfg = cfg.add_data_sources()->mutable_config();
   ds_cfg->set_name("track_event");
 
@@ -543,6 +547,7 @@ TRACE_EMULATOR("YabauseInit");
      emu_proc_running = 1;
      emuqueue = YabThreadCreateQueue(1);
      emuctrlqueue = YabThreadCreateQueue(32);
+     emuctrlqueuesync = YabThreadCreateQueue(1);
      YabThreadStart(YAB_THREAD_VDP, EmuFrameThread, NULL);
    }
 
@@ -648,65 +653,79 @@ void YabauseResetButton(void) {
 //////////////////////////////////////////////////////////////////////////////
 
 int YabauseExec(void) {
-  TRACE_EMULATOR("YabauseExec");
+  TRACE_RENDER("YabauseExec");
   int frameFinished = 0;
   VIDCore->setupFrame(0);
   YabAddEventQueue(emuqueue, NULL);
   while(frameFinished == 0) {
-    int msg = (int)YabWaitEventQueue(emuctrlqueue);
+    intptr_t msg = (intptr_t)YabWaitEventQueue(emuctrlqueue);
     switch (msg) {
       case VDP1_DRAW:
+      {
+        VDPCMD_LOG("VDP1 TryDraw\n");
         Vdp1TryDraw();
+      }
       break;
       case VDP1_HBLANKIN:
-        PROFILE_START("Vdp1 hblankin");
+      {
+        VDPCMD_LOG("VDP1 HBLankin\n");
         Vdp1HBlankIN();
-        PROFILE_STOP("Vdp1 hblankin");
+      }
       break;
       case VDP1_HBLANKOUT:
-        PROFILE_START("Vdp1 hblankout");
+      {
+        VDPCMD_LOG("VDP1 HBLankout\n");
         Vdp1HBlankOUT();
-        PROFILE_STOP("Vdp1 hblankout");
+      }
       break;
       case VDP1_VBLANKIN:
-        PROFILE_START("Vdp1 vblankin");
+      {
+        VDPCMD_LOG("VDP1 VBLankin\n");
         Vdp1VBlankIN();
-        PROFILE_STOP("Vdp1 vblankin");
+      }
       break;
       case VDP1_VBLANKOUT:
-        PROFILE_START("Vdp1 vblankout");
+      {
+        VDPCMD_LOG("VDP1 VBLankout\n");
         Vdp1VBlankOUT();
-        PROFILE_STOP("Vdp1 vblankout");
+      }
       break;
       case VDP2_HBLANKIN:
-        PROFILE_START("Vdp2 hblankin");
+      {
+        VDPCMD_LOG("VDP2 HBLankin\n");
         Vdp2HBlankIN();
-        PROFILE_STOP("Vdp2 hblankin");
+      }
       break;
       case VDP2_HBLANKOUT:
-        PROFILE_START("Vdp2 hblankout");
+      {
+        VDPCMD_LOG("VDP2 HBLankout\n");
         Vdp2HBlankOUT();
-        PROFILE_STOP("Vdp2 hblankout");
+      }
       break;
       case VDP2_VBLANKIN:
-        PROFILE_START("Vdp2 vblankin");
+      {
+        VDPCMD_LOG("VDP2 VBLankin\n");
         Vdp2VBlankIN();
-        PROFILE_STOP("Vdp2 vblankin");
+      }
       break;
       case VDP2_VBLANKOUT:
-        PROFILE_START("Vdp2 vblankout");
+      {
+        VDPCMD_LOG("Vdp2 VBLankout\n");
         Vdp2VBlankOUT();
-        PROFILE_STOP("Vdp2 vblankout");
+      }
       break;
       case FRAME_END:
+      {
+        VDPCMD_LOG("Frame finished\n");
         frameFinished = 1;
+        syncVideoMode();
+        FPSDisplay();
+        YabAddEventQueue(emuctrlqueuesync, NULL);
+      }
       break;
       default:
       break;
     }
-
-
-
   }
 	return 0;
 }
@@ -733,7 +752,7 @@ static int fpsframecount = 0;
 static int vdp1fpsframecount = 0;
 static int fps = 0;
 static int vdp1fps = 0;
-static void FPSDisplay(void)
+void FPSDisplay(void)
 {
   fpsframecount++;
   u64 now = YabauseGetTicks();
@@ -814,7 +833,7 @@ int YabauseEmulate(void) {
 //   SH2OnFrame(SSH2);
    u64 cpu_emutime = 0;
 
-   TRACE_EMULATOR("YabauseEmulate");
+   // TRACE_EMULATOR("YabauseEmulate");
 
    while (!oneframeexec)
    {
@@ -822,13 +841,13 @@ int YabauseEmulate(void) {
 #ifdef YAB_STATICS
 		 u64 current_cpu_clock = YabauseGetTicks();
 #endif
-
+    TRACE_EMULATOR_SUB_BEGIN("SH2 interpreter");
       THREAD_LOG("Unlock MSH2\n");
        sh2ExecuteSync(MSH2, yabsys.LineCycle[yabsys.DecilineCount]);
        if (yabsys.IsSSH2Running) {
          sh2ExecuteSync(SSH2, yabsys.LineCycle[yabsys.DecilineCount]);
        }
-
+    TRACE_EMULATOR_SUB_END();
 #ifdef YAB_STATICS
 		 cpu_emutime += (YabauseGetTicks() - current_cpu_clock) * 1000000 / yabsys.tickfreq;
 #endif
@@ -867,27 +886,27 @@ int YabauseEmulate(void) {
             oneframeexec = 1;
          }
       }
-
+      TRACE_EMULATOR_SUB_BEGIN("SCU");
       PROFILE_START("SCU");
       ScuExec((yabsys.DecilineStop>>YABSYS_TIMING_BITS) / 2);
       PROFILE_STOP("SCU");
-
+      TRACE_EMULATOR_SUB_END();
+      TRACE_EMULATOR_SUB_BEGIN("SMPC");
       yabsys.UsecFrac += usecinc;
       PROFILE_START("SMPC");
       SmpcExec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
       PROFILE_STOP("SMPC");
+      TRACE_EMULATOR_SUB_END();
+      TRACE_EMULATOR_SUB_BEGIN("CS2");
       PROFILE_START("CDB");
       Cs2Exec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
       PROFILE_STOP("CDB");
       yabsys.UsecFrac &= YABSYS_TIMING_MASK;
-
+      TRACE_EMULATOR_SUB_END();
       saved_m68k_cycles  += m68k_cycles_per_deciline;
       // ScspAddCycles(m68k_cycles_per_deciline);
       PROFILE_STOP("Total Emulation");
    }
-
-   syncVideoMode();
-   FPSDisplay();
 
 #ifdef YAB_STATICS
    YuiMsg("CPUTIME = %" PRId64 " @ %d \n", cpu_emutime, yabsys.frame_count );
@@ -924,7 +943,9 @@ void * EmuFrameThread(void *arg) {
     YabWaitEventQueue(emuqueue);
     YabauseEmulate();
     SET_EMU_CMD(FRAME_END);
+    YabWaitEventQueue(emuctrlqueuesync);
   }
+  return NULL;
 }
 
 

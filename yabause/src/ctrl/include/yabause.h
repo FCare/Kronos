@@ -170,7 +170,8 @@ enum {
   FRAME_END
 };
 
-#define SET_EMU_CMD(A) YabAddEventQueue(emuctrlqueue, (void *)A);
+
+#define SET_EMU_CMD(A) YabAddEventQueue(emuctrlqueue, (void *)A)
 
 #ifdef __cplusplus
 }

@@ -13,20 +13,20 @@ PERFETTO_DEFINE_CATEGORIES(
 
 #define TRACE_RENDER( A )  TRACE_EVENT("rendering", A)
 #define TRACE_RENDER_SUB_BEGIN( A ) TRACE_EVENT_BEGIN("rendering", A)
-#define TRACE_RENDER_SUB_END( A ) TRACE_EVENT_END("rendering", A)
+#define TRACE_RENDER_SUB_END( ) TRACE_EVENT_END("rendering")
 
 #define TRACE_EMULATOR( A )  TRACE_EVENT("emulator", A)
 #define TRACE_EMULATOR_SUB_BEGIN( A ) TRACE_EVENT_BEGIN("emulator", A)
-#define TRACE_EMULATOR_SUB_END( A ) TRACE_EVENT_BEGIN("emulator", A)
+#define TRACE_EMULATOR_SUB_END( ) TRACE_EVENT_END("emulator")
 
 #else
 #define TRACE_RENDER( A )
 #define TRACE_RENDER_SUB_BEGIN( A )
-#define TRACE_RENDER_SUB_END( A )
+#define TRACE_RENDER_SUB_END( )
 
 #define TRACE_EMULATOR( A )
 #define TRACE_EMULATOR_SUB_BEGIN( A )
-#define TRACE_EMULATOR_SUB_END( A )
+#define TRACE_EMULATOR_SUB_END( )
 #endif
 
 #endif

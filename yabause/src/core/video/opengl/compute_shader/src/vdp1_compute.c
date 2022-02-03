@@ -7,6 +7,8 @@
 #include "vdp1.h"
 #include "yui.h"
 
+#include "perfetto_trace.h"
+
 //#define VDP1CDEBUG
 #ifdef VDP1CDEBUG
 #define VDP1CPRINT printf
@@ -404,6 +406,7 @@ void vdp1GenerateBuffer_sync(vdp1cmd_struct* cmd, int id) {
 }
 #ifdef VDP1RAM_CS_ASYNC
 void* vdp1GenerateBuffer_async_0(void *p){
+	TRACE_RENDER("VDP1 GenBuffer 0");
 	while(vdp1_generate_run != 0){
 		vdp1cmd_struct* cmd = (vdp1cmd_struct*)YabWaitEventQueue(cmdq[0]);
 		if (cmd != NULL){
@@ -414,6 +417,7 @@ void* vdp1GenerateBuffer_async_0(void *p){
 	return NULL;
 }
 void* vdp1GenerateBuffer_async_1(void *p){
+	TRACE_RENDER("VDP1 GenBuffer 1");
 	while(vdp1_generate_run != 0){
 		vdp1cmd_struct* cmd = (vdp1cmd_struct*)YabWaitEventQueue(cmdq[1]);
 		if (cmd != NULL){

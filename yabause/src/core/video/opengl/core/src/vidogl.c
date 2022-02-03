@@ -38,6 +38,8 @@
 #include "yui.h"
 #include "vdp1_compute.h"
 
+#include "perfetto_trace.h"
+
 #define Y_MAX(a, b) ((a) > (b) ? (a) : (b))
 #define Y_MIN(a, b) ((a) < (b) ? (a) : (b))
 
@@ -437,6 +439,8 @@ u32 FASTCALL Vdp1ReadPolygonColor(vdp1cmd_struct *cmd, Vdp2* varVdp2Regs)
 
 static void FASTCALL Vdp1ReadTexture_in_sync(vdp1cmd_struct *cmd, int spritew, int spriteh, YglTexture *texture, Vdp2 *varVdp2Regs)
 {
+
+  TRACE_RENDER("Vdp1 read texture");
   int shadow = 0;
   int normalshadow = 0;
   int priority = 0;
@@ -1611,6 +1615,7 @@ static u32 getAlpha(vdp2draw_struct *info, int id) {
 static void FASTCALL Vdp2DrawCell_in_sync(vdp2draw_struct *info, YglTexture *texture, Vdp2 *varVdp2Regs)
 {
   int i, j;
+  TRACE_RENDER("Cell");
 
 
 //   if ((vdp2_interlace == 1) && (_Ygl->rheight > 448)) {
@@ -2874,6 +2879,7 @@ static void Vdp2DrawRotation_in_sync(RBGDrawInfo * rbg, Vdp2 *varVdp2Regs) {
 
   if (rbg == NULL) return;
 
+  TRACE_RENDER("RBG");
   vdp2draw_struct *info = &rbg->info;
   int rgb_type = rbg->rgb_type;
   YglTexture *texture = &rbg->texture;

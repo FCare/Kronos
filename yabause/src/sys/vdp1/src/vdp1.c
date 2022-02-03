@@ -37,8 +37,11 @@
 #include "ygl.h"
 #include "yui.h"
 
+#include "perfetto_trace.h"
+
 
 extern YabEventQueue *emuctrlqueue;
+extern YabEventQueue *emuctrlqueuesync;
 
 
 // #define DEBUG_CMD_LIST
@@ -2474,6 +2477,7 @@ static void startField(void) {
 void Vdp1HBlankIN(void)
 {
   int needToCompose = 0;
+  TRACE_RENDER("Vdp1HBlankIN");
   if (nbCmdToProcess > 0) {
     for (int i = 0; i<nbCmdToProcess; i++) {
       if (cmdBufferBeingProcessed[i].ignitionLine == (yabsys.LineCount+1)) {
@@ -2520,6 +2524,7 @@ void Vdp1HBlankIN(void)
 
 void Vdp1HBlankOUT(void)
 {
+  TRACE_RENDER("Vdp1HBlankOUT");
   vdp1_clock += getVdp1CyclesPerLine();
   Vdp1TryDraw();
 
@@ -2529,6 +2534,7 @@ void Vdp1HBlankOUT(void)
 extern void vdp1_compute();
 void Vdp1VBlankIN(void)
 {
+  TRACE_RENDER("Vdp1VBlankIN");
   // if (VIDCore != NULL) {
   //   if (VIDCore->composeVDP1 != NULL) VIDCore->composeVDP1();
   // }
@@ -2538,6 +2544,7 @@ void Vdp1VBlankIN(void)
 
 void Vdp1VBlankOUT(void)
 {
+  TRACE_RENDER("Vdp1VBlankOUT");
   //Out of VBlankOut : Break Batman
   if (needVBlankErase()) {
     int id = 0;

@@ -40,6 +40,8 @@
 #include "ygl.h"
 #include "vidsoft.h"
 
+#include "perfetto_trace.h"
+
 u8 * Vdp2Ram;
 u8 * Vdp2ColorRam;
 Vdp2 * Vdp2Regs;
@@ -588,6 +590,7 @@ void resetFrameSkip(void) {
 }
 
 void Vdp2VBlankIN(void) {
+  TRACE_RENDER("Vdp2VBlankIN");
   FRAMELOG("***** VIN *****");
 
    /* this should be done after a frame change or a plot trigger */
@@ -619,7 +622,7 @@ void Vdp2VBlankIN(void) {
 //////////////////////////////////////////////////////////////////////////////
 
 void Vdp2HBlankIN(void) {
-
+  TRACE_RENDER("Vdp2HBlankIN");
   #if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
   if (nbAddrToUpdate != 0){
     for (int i=0; i<0x1000; i++)
@@ -646,6 +649,7 @@ void Vdp2HBlankIN(void) {
 
 extern int vdp1_clock;
 void Vdp2HBlankOUT(void) {
+  TRACE_RENDER("Vdp2HBlankOUT");
   int i;
   updateVdp2ColorRam(yabsys.LineCount);
   if (yabsys.LineCount < yabsys.VBlankLineCount)
@@ -678,6 +682,7 @@ Vdp2 * Vdp2RestoreRegs(int line, Vdp2* lines) {
 
 //////////////////////////////////////////////////////////////////////////////
 void Vdp2VBlankOUT(void) {
+  TRACE_RENDER("Vdp2VBlankOUT");
   g_frame_count++;
   FRAMELOG("***** VOUT %d *****", g_frame_count);
   if (VIDCore != NULL && VIDCore->id != VIDCORE_SOFT) YglUpdateColorRam();
