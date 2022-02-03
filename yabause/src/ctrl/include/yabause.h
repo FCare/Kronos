@@ -156,6 +156,22 @@ extern u32 saved_scsp_cycles;
 u32 get_cycles_per_line_division(u32 clock, int frames, int lines, int divisions_per_line);
 u32 YabauseGetCpuTime();
 
+
+enum {
+  VDP1_DRAW = 0,
+  VDP1_HBLANKIN,
+  VDP1_HBLANKOUT,
+  VDP1_VBLANKIN,
+  VDP1_VBLANKOUT,
+  VDP2_HBLANKIN,
+  VDP2_HBLANKOUT,
+  VDP2_VBLANKIN,
+  VDP2_VBLANKOUT,
+  FRAME_END
+};
+
+#define SET_EMU_CMD(A) YabAddEventQueue(emuctrlqueue, (void *)A);
+
 #ifdef __cplusplus
 }
 #endif

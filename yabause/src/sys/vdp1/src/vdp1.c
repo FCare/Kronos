@@ -38,6 +38,9 @@
 #include "yui.h"
 
 
+extern YabEventQueue *emuctrlqueue;
+
+
 // #define DEBUG_CMD_LIST
 
 u8 * Vdp1Ram;
@@ -436,7 +439,7 @@ static void updateFBCRMode() {
   }
 }
 
-static void Vdp1TryDraw(void) {
+void Vdp1TryDraw(void) {
   if ((needVdp1draw == 1)) {
     needVdp1draw = Vdp1Draw();
   }
@@ -472,14 +475,14 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
         Vdp1External.plot_trigger_line = yabsys.LineCount;
         abortVdp1();
         RequestVdp1ToDraw();
-        Vdp1TryDraw();
+        SET_EMU_CMD(VDP1_DRAW);
         Vdp1External.plot_trigger_done = 1;
       }
       if ((val == 0x2) && (oldPTMR == 0x0)){
         FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
         abortVdp1();
         RequestVdp1ToDraw();
-        Vdp1TryDraw();
+        SET_EMU_CMD(VDP1_DRAW);
       }
       break;
       case 0x6:

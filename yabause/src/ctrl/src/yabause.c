@@ -99,6 +99,13 @@
 PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 #endif
 
+static YabEventQueue *emuqueue = NULL;
+YabEventQueue *emuctrlqueue = NULL;
+
+static int emu_proc_running = 0;
+
+extern void Vdp1TryDraw(void);
+
 //#define DEBUG_ACCURACY
 
 #define THREAD_LOG //printf
@@ -134,7 +141,7 @@ void print_usage(const char *program_name) {
 #endif
 
 //////////////////////////////////////////////////////////////////////////////
-
+void * EmuFrameThread(void *arg);
 
 static unsigned long nextFrameTime = 0;
 static int autoframeskipenab=0;
@@ -530,6 +537,15 @@ TRACE_EMULATOR("YabauseInit");
    }
 #endif
    fpsticks = YabauseGetTicks();
+
+
+   if( emu_proc_running == 0 ){
+     emu_proc_running = 1;
+     emuqueue = YabThreadCreateQueue(1);
+     emuctrlqueue = YabThreadCreateQueue(32);
+     YabThreadStart(YAB_THREAD_VDP, EmuFrameThread, NULL);
+   }
+
    return 0;
 }
 
@@ -633,34 +649,65 @@ void YabauseResetButton(void) {
 
 int YabauseExec(void) {
   TRACE_EMULATOR("YabauseExec");
-#if 0
-	//automatically advance lag frames, this should be optional later
-	if (FrameAdvanceVariable > 0 && LagFrameFlag == 1){
-		FrameAdvanceVariable = NeedAdvance; //advance a frame
-		YabauseEmulate();
-		FrameAdvanceVariable = Paused; //pause next time
-		return(0);
-	}
+  int frameFinished = 0;
+  VIDCore->setupFrame(0);
+  YabAddEventQueue(emuqueue, NULL);
+  while(frameFinished == 0) {
+    int msg = (int)YabWaitEventQueue(emuctrlqueue);
+    switch (msg) {
+      case VDP1_DRAW:
+        Vdp1TryDraw();
+      break;
+      case VDP1_HBLANKIN:
+        PROFILE_START("Vdp1 hblankin");
+        Vdp1HBlankIN();
+        PROFILE_STOP("Vdp1 hblankin");
+      break;
+      case VDP1_HBLANKOUT:
+        PROFILE_START("Vdp1 hblankout");
+        Vdp1HBlankOUT();
+        PROFILE_STOP("Vdp1 hblankout");
+      break;
+      case VDP1_VBLANKIN:
+        PROFILE_START("Vdp1 vblankin");
+        Vdp1VBlankIN();
+        PROFILE_STOP("Vdp1 vblankin");
+      break;
+      case VDP1_VBLANKOUT:
+        PROFILE_START("Vdp1 vblankout");
+        Vdp1VBlankOUT();
+        PROFILE_STOP("Vdp1 vblankout");
+      break;
+      case VDP2_HBLANKIN:
+        PROFILE_START("Vdp2 hblankin");
+        Vdp2HBlankIN();
+        PROFILE_STOP("Vdp2 hblankin");
+      break;
+      case VDP2_HBLANKOUT:
+        PROFILE_START("Vdp2 hblankout");
+        Vdp2HBlankOUT();
+        PROFILE_STOP("Vdp2 hblankout");
+      break;
+      case VDP2_VBLANKIN:
+        PROFILE_START("Vdp2 vblankin");
+        Vdp2VBlankIN();
+        PROFILE_STOP("Vdp2 vblankin");
+      break;
+      case VDP2_VBLANKOUT:
+        PROFILE_START("Vdp2 vblankout");
+        Vdp2VBlankOUT();
+        PROFILE_STOP("Vdp2 vblankout");
+      break;
+      case FRAME_END:
+        frameFinished = 1;
+      break;
+      default:
+      break;
+    }
 
-	if (FrameAdvanceVariable == Paused){
-		ScspMuteAudio(SCSP_MUTE_SYSTEM);
-		return(0);
-	}
 
-	if (FrameAdvanceVariable == NeedAdvance){  //advance a frame
-		FrameAdvanceVariable = Paused; //pause next time
-		ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
-		YabauseEmulate();
-	}
 
-	if (FrameAdvanceVariable == RunNormal ) { //run normally
-		ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
-		YabauseEmulate();
-	}
-#else
-  ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
-  YabauseEmulate();
-#endif
+  }
 	return 0;
 }
 
@@ -772,7 +819,6 @@ int YabauseEmulate(void) {
    while (!oneframeexec)
    {
       PROFILE_START("Total Emulation");
-      VIDCore->setupFrame(0);
 #ifdef YAB_STATICS
 		 u64 current_cpu_clock = YabauseGetTicks();
 #endif
@@ -791,43 +837,34 @@ int YabauseEmulate(void) {
      if(yabsys.DecilineCount == HBLANK_IN_STEP)
      {
         // HBlankIN
-        PROFILE_START("hblankin");
-        Vdp1HBlankIN();
-        Vdp2HBlankIN();
-        PROFILE_STOP("hblankin");
+        SET_EMU_CMD(VDP1_HBLANKIN);
+        SET_EMU_CMD(VDP2_HBLANKIN);
      }
 
       if (yabsys.DecilineCount == DECILINE_STEP)
       {
          // HBlankOUT
-         PROFILE_START("hblankout");
-         Vdp2HBlankOUT();
-         Vdp1HBlankOUT();
-        // SyncScsp();
-         PROFILE_STOP("hblankout");
+         SET_EMU_CMD(VDP2_HBLANKOUT);
+         SET_EMU_CMD(VDP1_HBLANKOUT);
          yabsys.DecilineCount = 0;
          yabsys.LineCount++;
          if (yabsys.LineCount == yabsys.VBlankLineCount)
          {
             ScspAddCycles((u64)(44100 * 256 / frames)<< SCSP_FRACTIONAL_BITS);
-            PROFILE_START("vblankin");
             // VBlankIN
             SmpcINTBACKEnd();
-            Vdp1VBlankIN();
-            Vdp2VBlankIN();
+            SET_EMU_CMD(VDP1_VBLANKIN);
+            SET_EMU_CMD(VDP2_VBLANKIN);
             SyncCPUtoSCSP();
-            PROFILE_STOP("vblankin");
             CheatDoPatches(MSH2);
          }
          else if (yabsys.LineCount == yabsys.MaxLineCount)
          {
             // VBlankOUT
-            PROFILE_START("VDP1/VDP2");
-            Vdp1VBlankOUT();
-            Vdp2VBlankOUT();
+            SET_EMU_CMD(VDP1_VBLANKOUT);
+            SET_EMU_CMD(VDP2_VBLANKOUT);
             yabsys.LineCount = 0;
             oneframeexec = 1;
-            PROFILE_STOP("VDP1/VDP2");
          }
       }
 
@@ -880,6 +917,14 @@ int YabauseEmulate(void) {
 #endif
 
    return ret;
+}
+
+void * EmuFrameThread(void *arg) {
+  while( emu_proc_running ){
+    YabWaitEventQueue(emuqueue);
+    YabauseEmulate();
+    SET_EMU_CMD(FRAME_END);
+  }
 }
 
 
