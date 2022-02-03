@@ -28,6 +28,8 @@
 #include "memory.h"
 #include "yabause.h"
 
+#include "yui.h"
+
 SH2_struct *SSH2=NULL;
 SH2_struct *MSH2=NULL;
 SH2Interface_struct *SH2Core=NULL;

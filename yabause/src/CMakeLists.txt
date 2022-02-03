@@ -6,7 +6,7 @@ include (CheckCSourceCompiles)
 include(CheckFunctionExists)
 include(CheckIncludeFile)
 
-option(KRONOS_LINUX_USE_PERFETTO "Trace execution with perfetto" ON)
+option(KRONOS_LINUX_USE_PERFETTO "Trace execution with perfetto" OFF)
 if (KRONOS_LINUX_USE_PERFETTO)
 find_package(Git QUIET)
 if(GIT_FOUND)

@@ -31,6 +31,8 @@
 #include "yabause.h"
 #include <inttypes.h>
 
+#include "yui.h"
+
 Scu * ScuRegs;
 scudspregs_struct * ScuDsp;
 static int incFlg[4] = { 0 };
