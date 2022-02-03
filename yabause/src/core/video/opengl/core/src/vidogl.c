@@ -4411,6 +4411,7 @@ int VIDOGLVdp2Reset(void)
 
 void VIDOGLVdp2Draw(void)
 {
+  TRACE_RENDER("VIDOGLVdp2Draw");
   YglCheckFBSwitch(1);
   //varVdp2Regs = Vdp2RestoreRegs(0, Vdp2Lines);
   //if (varVdp2Regs == NULL) varVdp2Regs = Vdp2Regs;
@@ -6137,6 +6138,7 @@ static void Vdp2DrawRBG0(Vdp2* varVdp2Regs)
 #define VDP2_DRAW_LINE 0
 static void VIDOGLVdp2DrawScreens(void)
 {
+  TRACE_RENDER("VIDOGLVdp2DrawScreens");
   u64 before;
   u64 now;
   u32 difftime;

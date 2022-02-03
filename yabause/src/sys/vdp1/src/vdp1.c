@@ -40,10 +40,6 @@
 #include "perfetto_trace.h"
 
 
-extern YabEventQueue *emuctrlqueue;
-extern YabEventQueue *emuctrlqueuesync;
-
-
 // #define DEBUG_CMD_LIST
 
 u8 * Vdp1Ram;

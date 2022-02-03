@@ -31,6 +31,8 @@
 #include "yabause.h"
 #include <inttypes.h>
 
+#include "perfetto_trace.h"
+
 Scu * ScuRegs;
 scudspregs_struct * ScuDsp;
 static int incFlg[4] = { 0 };
@@ -2892,6 +2894,7 @@ void ScuTestInterruptMask()
 //////////////////////////////////////////////////////////////////////////////
 
 static INLINE void SetInterrupt(u8 id) {
+  TRACE_EMULATOR("SCU SetInterrupt");
   int statusbit = ScuInterrupt[id].status;
   int mask = ScuInterrupt[id].mask;
   int vector = ScuInterrupt[id].vector;
@@ -2907,7 +2910,7 @@ static INLINE void SetInterrupt(u8 id) {
 
 // 3.2 DMA control register
 static INLINE void ScuChekIntrruptDMA(int id){
-
+  TRACE_EMULATOR("ScuChekIntrruptDMA");
   if ((ScuRegs->D0EN & 0x100) && (ScuRegs->D0MD & 0x07) == id){
     if (ScuRegs->dma0.TransferNumber > 0) {
       ScuDmaProc(ScuRegs, 0x7FFFFFFF);

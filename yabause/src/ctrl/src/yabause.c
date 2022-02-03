@@ -702,10 +702,10 @@ int YabauseExec(void) {
         Vdp2HBlankOUT();
       }
       break;
-      case VDP2_VBLANKIN:
+      case VDP2_DRAW:
       {
-        VDPCMD_LOG("VDP2 VBLankin\n");
-        Vdp2VBlankIN();
+        VDPCMD_LOG("VDP2 Draw\n");
+        VIDCore->Vdp2Draw();
       }
       break;
       case VDP2_VBLANKOUT:

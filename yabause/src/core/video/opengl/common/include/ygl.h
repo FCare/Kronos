@@ -945,6 +945,28 @@ INLINE u32 VDP2COLOR(int id, u32 alpha, u32 priority, u32 cc_on, u32 cramindex) 
 #define SAT2YAB2(alpha,dot1,dot2)       (alpha << 24 | ((dot1 & 0xFE) << 16) | (dot2 & 0xFF00) | (dot2 & 0xFF))
 #endif
 
+
+
+extern YabEventQueue *emuctrlqueue;
+extern YabEventQueue *emuctrlqueuesync;
+
+enum {
+  VDP1_DRAW = 0,
+  VDP1_HBLANKIN,
+  VDP1_HBLANKOUT,
+  VDP1_VBLANKIN,
+  VDP1_VBLANKOUT,
+  VDP2_HBLANKIN,
+  VDP2_HBLANKOUT,
+  VDP2_DRAW,
+  VDP2_VBLANKOUT,
+  FRAME_END
+};
+
+
+#define SET_EMU_CMD(A) YabAddEventQueue(emuctrlqueue, (void *)A)
+
+
 #endif // YGL_H
 
 #endif // defined(HAVE_LIBGL) || defined(__ANDROID__)

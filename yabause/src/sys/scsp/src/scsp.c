@@ -102,6 +102,8 @@
 #include "threads.h"
 #include "vdp2.h"
 
+#include "perfetto_trace.h"
+
 #ifndef max
 #define max(a,b) (((a) > (b)) ? (a) : (b))
 #endif
@@ -5380,9 +5382,11 @@ void* ScspAsynMainCpu( void * p ){
     // Sync 44100KHz
     while (m68k_inc >= samplecnt)
     {
+      TRACE_EMULATOR_SUB_BEGIN("SCSP exec");
       m68k_inc = m68k_inc - samplecnt;
       MM68KExec(samplecnt);
       new_scsp_exec((samplecnt << 1));
+      TRACE_EMULATOR_SUB_END();
 
       frame += samplecnt;
       if (frame >= framecnt)
@@ -5390,19 +5394,25 @@ void* ScspAsynMainCpu( void * p ){
         frame = frame - framecnt;
         ScspInternalVars->scsptiming2 = 0;
         ScspInternalVars->scsptiming1 = scsplines;
+        TRACE_EMULATOR_SUB_BEGIN("SCSP exec Async");
         ScspExecAsync();
-        YabSemPost(g_scsp_ready);
+        TRACE_EMULATOR_SUB_END();
+        TRACE_EMULATOR_SUB_BEGIN("SCSP Sleep");
+        // YabSemPost(g_scsp_ready);
         YabThreadYield();
         YabThreadSleep();
         YabSemWait(g_cpu_ready);
+        TRACE_EMULATOR_SUB_END();
         m68k_inc = 0;
         break;
       }
     }
     while (scsp_mute_flags && thread_running) {
+      TRACE_EMULATOR_SUB_BEGIN("SCSP MUTE");
       YabThreadUSleep((1000000 / fps));
       YabSemPost(g_scsp_ready);
       YabSemWait(g_cpu_ready);
+      TRACE_EMULATOR_SUB_END();
     }
   }
   YabThreadWake(YAB_THREAD_SCSP);

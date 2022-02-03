@@ -604,7 +604,7 @@ void Vdp2VBlankIN(void) {
      dropFrameDisplay();
      isSkipped = 1;
    } else {
-     VIDCore->Vdp2Draw();
+     SET_EMU_CMD(VDP2_DRAW);
      isSkipped = 0;
    }
    nextFrameTime  += yabsys.OneFrameTime;
