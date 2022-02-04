@@ -4658,7 +4658,7 @@ scsp_init (u8 *scsp_ram, void (*sint_hand)(u32), void (*mint_hand)(void))
     scsp_tl_table[i] = scsp_round(pow(10, ((double)i * -0.3762) / 20) * 1024.0);
 
   scsp_reset();
-  g_scsp_ready = YabThreadCreateSem(0);
+  g_scsp_ready = YabThreadCreateSem(1);
   g_cpu_ready = YabThreadCreateSem(0);
   g_scsp_set_cyc_mtx = YabThreadCreateMutex();
   g_scsp_set_cond_mtx = YabThreadCreateMutex();
@@ -5365,7 +5365,6 @@ void* ScspAsynMainCpu( void * p ){
     {
 	    YabThreadUSleep(1000);
     }
-
     YabThreadLock(g_scsp_set_cyc_mtx);
     cycleRequest = newCycles;
     newCycles = 0;
@@ -5382,8 +5381,8 @@ void* ScspAsynMainCpu( void * p ){
     // Sync 44100KHz
     while (m68k_inc >= samplecnt)
     {
-      TRACE_EMULATOR_SUB_BEGIN("SCSP exec");
       m68k_inc = m68k_inc - samplecnt;
+      TRACE_EMULATOR_SUB_BEGIN("SCSP Exec");
       MM68KExec(samplecnt);
       new_scsp_exec((samplecnt << 1));
       TRACE_EMULATOR_SUB_END();
@@ -5394,11 +5393,11 @@ void* ScspAsynMainCpu( void * p ){
         frame = frame - framecnt;
         ScspInternalVars->scsptiming2 = 0;
         ScspInternalVars->scsptiming1 = scsplines;
-        TRACE_EMULATOR_SUB_BEGIN("SCSP exec Async");
+        TRACE_EMULATOR_SUB_BEGIN("SCSP done");
         ScspExecAsync();
         TRACE_EMULATOR_SUB_END();
         TRACE_EMULATOR_SUB_BEGIN("SCSP Sleep");
-        // YabSemPost(g_scsp_ready);
+        YabSemPost(g_scsp_ready);
         YabThreadYield();
         YabThreadSleep();
         YabSemWait(g_cpu_ready);
@@ -5408,11 +5407,9 @@ void* ScspAsynMainCpu( void * p ){
       }
     }
     while (scsp_mute_flags && thread_running) {
-      TRACE_EMULATOR_SUB_BEGIN("SCSP MUTE");
       YabThreadUSleep((1000000 / fps));
       YabSemPost(g_scsp_ready);
       YabSemWait(g_cpu_ready);
-      TRACE_EMULATOR_SUB_END();
     }
   }
   YabThreadWake(YAB_THREAD_SCSP);

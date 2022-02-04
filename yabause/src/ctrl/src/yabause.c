@@ -952,9 +952,9 @@ void * EmuFrameThread(void *arg) {
 void SyncCPUtoSCSP() {
   //LOG("[SH2] WAIT SCSP");
   TRACE_EMULATOR("SyncCPUtoSCSP");
-    // YabSemWait(g_scsp_ready);
-    YabSemPost(g_cpu_ready);
+    YabSemWait(g_scsp_ready);
     YabThreadWake(YAB_THREAD_SCSP);
+    YabSemPost(g_cpu_ready);
     saved_m68k_cycles = 0;
   //LOG("[SH2] START SCSP");
 }
