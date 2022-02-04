@@ -609,9 +609,6 @@ void Vdp2VBlankIN(void) {
    }
    nextFrameTime  += yabsys.OneFrameTime;
 
-   Vdp2Regs->TVSTAT |= 0x0008;
-
-   ScuSendVBlankIN();
 
    //if (yabsys.IsSSH2Running)
    //   SH2SendInterrupt(SSH2, 0x43, 0x6);
@@ -634,15 +631,10 @@ void Vdp2HBlankIN(void) {
   }
   #endif
 
-  if (yabsys.LineCount < yabsys.VBlankLineCount) {
-    Vdp2Regs->TVSTAT |= 0x0004;
-    ScuSendHBlankIN();
-    //if (yabsys.IsSSH2Running)
-    //  SH2SendInterrupt(SSH2, 0x41, 0x2);
-  } else {
+  if (yabsys.LineCount >= yabsys.VBlankLineCount) {
 // Fix : Function doesn't exist without those defines
 #if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-  if(VIDCore && (VIDCore->id != VIDCORE_SOFT)) waitVdp2DrawScreensEnd(yabsys.LineCount == yabsys.VBlankLineCount, isSkipped );
+  if(VIDCore && (VIDCore->id != VIDCORE_SOFT)) waitVdp2DrawScreensEnd(yabsys.LineCount == (yabsys.MaxLineCount-1), isSkipped );
 #endif
   }
 }
@@ -697,8 +689,6 @@ void Vdp2VBlankOUT(void) {
    }
 
    Vdp2Regs->TVSTAT = ((Vdp2Regs->TVSTAT & ~0x0008) & ~0x0002) | (vdp2_is_odd_frame << 1);
-
-   ScuSendVBlankOUT();
 
    if (Vdp2Regs->EXTEN & 0x200) // Should be revised for accuracy(should occur only occur on the line it happens at, etc.)
    {

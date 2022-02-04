@@ -951,7 +951,8 @@ extern YabEventQueue *emuctrlqueue;
 extern YabEventQueue *emuctrlqueuesync;
 
 enum {
-  VDP1_DRAW = 0,
+  VDP1_DRAW_RESTART = 0,
+  VDP1_FINISH_DRAW,
   VDP1_HBLANKIN,
   VDP1_HBLANKOUT,
   VDP1_VBLANKIN,

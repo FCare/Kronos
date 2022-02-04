@@ -80,12 +80,12 @@ extern void addVdp1Framecount ();
   if (((A)) > 1023) { DEBUG_BAD_COORD("Bad(1023) %x (%d, 0x%x)\n", (A), (A), toto);}\
 }
 
-static void RequestVdp1ToDraw() {
+void RequestVdp1ToDraw() {
   needVdp1draw = 1;
 }
 
 
-static void abortVdp1() {
+void abortVdp1() {
   if (Vdp1External.status == VDP1_STATUS_RUNNING) {
     // The vdp1 is still running and a new draw command request has been received
     // Abort the current command list
@@ -154,6 +154,7 @@ void FASTCALL Vdp1RamWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 val) 
 
 u8 FASTCALL Vdp1FrameBufferReadByte(SH2_struct *context, u8* mem, u32 addr) {
    addr &= 0x3FFFF;
+   YuiMsg("Merde %d\n", __LINE__);
    if (VIDCore->Vdp1ReadFrameBuffer){
      u8 val;
      VIDCore->Vdp1ReadFrameBuffer(0, addr, &val);
@@ -166,6 +167,7 @@ u8 FASTCALL Vdp1FrameBufferReadByte(SH2_struct *context, u8* mem, u32 addr) {
 
 u16 FASTCALL Vdp1FrameBufferReadWord(SH2_struct *context, u8* mem, u32 addr) {
    addr &= 0x3FFFF;
+   YuiMsg("Merde %d\n", __LINE__);
    if (VIDCore->Vdp1ReadFrameBuffer){
      u16 val;
      VIDCore->Vdp1ReadFrameBuffer(1, addr, &val);
@@ -178,6 +180,7 @@ u16 FASTCALL Vdp1FrameBufferReadWord(SH2_struct *context, u8* mem, u32 addr) {
 
 u32 FASTCALL Vdp1FrameBufferReadLong(SH2_struct *context, u8* mem, u32 addr) {
    addr &= 0x3FFFF;
+   YuiMsg("Merde %d\n", __LINE__);
    if (VIDCore->Vdp1ReadFrameBuffer){
      u32 val;
      VIDCore->Vdp1ReadFrameBuffer(2, addr, &val);
@@ -189,6 +192,8 @@ u32 FASTCALL Vdp1FrameBufferReadLong(SH2_struct *context, u8* mem, u32 addr) {
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
+  // Arevoir
+  YuiMsg("Merde %d\n", __LINE__);
    addr &= 0x7FFFF;
 
    if (VIDCore->Vdp1WriteFrameBuffer)
@@ -202,7 +207,7 @@ void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u
 
 void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
   addr &= 0x7FFFF;
-
+YuiMsg("Merde %d\n", __LINE__);
    if (VIDCore->Vdp1WriteFrameBuffer)
    {
       if (addr < 0x40000) VIDCore->Vdp1WriteFrameBuffer(1, addr, val);
@@ -214,7 +219,7 @@ void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u
 
 void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 val) {
   addr &= 0x7FFFF;
-
+YuiMsg("Merde %d\n", __LINE__);
    if (VIDCore->Vdp1WriteFrameBuffer)
    {
      if (addr < 0x40000) VIDCore->Vdp1WriteFrameBuffer(2, addr, val);
@@ -359,8 +364,9 @@ u16 FASTCALL Vdp1ReadWord(SH2_struct *context, u8* mem, u32 addr) {
         FRAMELOG("Read EDSR %X line = %d\n", Vdp1Regs->EDSR, yabsys.LineCount);
         if (Vdp1External.checkEDSR == 0) {
           if (VIDCore != NULL)
-            if (VIDCore->FinsihDraw != NULL)
-              VIDCore->FinsihDraw();
+            if (VIDCore->FinsihDraw != NULL) {
+              SET_EMU_CMD(VDP1_FINISH_DRAW);
+            }
         }
         Vdp1External.checkEDSR = 1;
         return Vdp1Regs->EDSR;
@@ -472,16 +478,12 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       if (val == 1){
         FRAMELOG("VDP1: VDPEV_DIRECT_DRAW\n");
         Vdp1External.plot_trigger_line = yabsys.LineCount;
-        abortVdp1();
-        RequestVdp1ToDraw();
-        SET_EMU_CMD(VDP1_DRAW);
+        SET_EMU_CMD(VDP1_DRAW_RESTART);
         Vdp1External.plot_trigger_done = 1;
       }
       if ((val == 0x2) && (oldPTMR == 0x0)){
         FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
-        abortVdp1();
-        RequestVdp1ToDraw();
-        SET_EMU_CMD(VDP1_DRAW);
+        SET_EMU_CMD(VDP1_DRAW_RESTART);
       }
       break;
       case 0x6:
@@ -2450,8 +2452,8 @@ static void startField(void) {
     if ((Vdp1Regs->PTMR == 0x2)){
       FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
       abortVdp1();
-      vdp1_clock = 0;
       RequestVdp1ToDraw();
+      vdp1_clock = 0;
     }
   }
   else {
@@ -2523,7 +2525,6 @@ void Vdp1HBlankOUT(void)
   TRACE_RENDER("Vdp1HBlankOUT");
   vdp1_clock += getVdp1CyclesPerLine();
   Vdp1TryDraw();
-
 }
 
 //////////////////////////////////////////////////////////////////////////////

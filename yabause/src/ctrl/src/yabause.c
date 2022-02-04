@@ -660,10 +660,17 @@ int YabauseExec(void) {
   while(frameFinished == 0) {
     intptr_t msg = (intptr_t)YabWaitEventQueue(emuctrlqueue);
     switch (msg) {
-      case VDP1_DRAW:
+      case VDP1_DRAW_RESTART:
       {
         VDPCMD_LOG("VDP1 TryDraw\n");
+        abortVdp1();
+        RequestVdp1ToDraw();
         Vdp1TryDraw();
+      }
+      break;
+      case VDP1_FINISH_DRAW:
+      {
+        VIDCore->FinsihDraw();
       }
       break;
       case VDP1_HBLANKIN:
@@ -858,6 +865,10 @@ int YabauseEmulate(void) {
         // HBlankIN
         SET_EMU_CMD(VDP1_HBLANKIN);
         SET_EMU_CMD(VDP2_HBLANKIN);
+        if (yabsys.LineCount < yabsys.VBlankLineCount) {
+          Vdp2Regs->TVSTAT |= 0x0004;
+          ScuSendHBlankIN();
+        }
      }
 
       if (yabsys.DecilineCount == DECILINE_STEP)
@@ -874,6 +885,8 @@ int YabauseEmulate(void) {
             SmpcINTBACKEnd();
             SET_EMU_CMD(VDP1_VBLANKIN);
             Vdp2VBlankIN();
+            Vdp2Regs->TVSTAT |= 0x0008;
+            ScuSendVBlankIN();
             CheatDoPatches(MSH2);
          }
          else if (yabsys.LineCount == yabsys.MaxLineCount)
@@ -881,6 +894,7 @@ int YabauseEmulate(void) {
             // VBlankOUT
             SET_EMU_CMD(VDP1_VBLANKOUT);
             SET_EMU_CMD(VDP2_VBLANKOUT);
+            ScuSendVBlankOUT();
             SyncCPUtoSCSP();
             yabsys.LineCount = 0;
             oneframeexec = 1;
