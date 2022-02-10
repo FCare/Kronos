@@ -1,0 +1,53 @@
+name: Kronos Automatic releases on tag
+on:
+  push:
+    tags:
+      - '**_official_release'
+jobs:
+   ubuntu_release_job:
+     name: Releasing for Ubuntu
+     runs-on: ubuntu-20.04
+     steps:
+      - name: Preparing environment
+        run: |
+          echo "Installing required packages."
+          sudo apt-get update
+          sudo apt-get install -y cmake qt5-default qtmultimedia5-dev libqt5opengl5-dev libsdl2-dev
+          echo "Cloning sources"
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Compiling
+        run: |
+          echo "Preparing compilation"
+          echo "Configuring"
+          cmake yabause
+          echo "Compiling"
+          make
+          echo "Compilation done"
+      - name: Installing
+        run: |
+          echo "Installing"
+          make DESTDIR=install install
+          cd install/
+          zip -r ../kronos_ubuntu.zip .
+          cd ..
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps
+          asset_path: ./kronos_ubuntu.zip
+          asset_name: Kronos binaries for Ubuntu
+          asset_content_type: application/zip
