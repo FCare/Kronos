@@ -218,10 +218,10 @@ void SmpcCKCHG352(void) {
    // Send NMI
    SH2NMI(MSH2);
    // Reset VDP1, VDP2, SCU, and SCSP
-   Vdp1Reset();  
-   Vdp2Reset();  
-   ScuReset();  
-   ScspReset();  
+   Vdp1Reset();
+   Vdp2Reset();
+   ScuReset();
+   ScspReset();
 
    // Clear VDP1/VDP2 ram
 
@@ -242,10 +242,10 @@ void SmpcCKCHG320(void) {
    SH2NMI(MSH2);
 
    // Reset VDP1, VDP2, SCU, and SCSP
-   Vdp1Reset();  
-   Vdp2Reset();  
-   ScuReset();  
-   ScspReset();  
+   Vdp1Reset();
+   Vdp2Reset();
+   ScuReset();
+   ScspReset();
 
    // Clear VDP1/VDP2 ram
 
@@ -281,7 +281,7 @@ static void SmpcINTBACKStatus(void) {
 
    SmpcRegs->OREG[0] = 0x80 | (SmpcInternalVars->resd << 6);   // goto normal startup
    //SmpcRegs->OREG[0] = 0x0 | (SmpcInternalVars->resd << 6);  // goto setclock/setlanguage screen
-    
+
    // write time data in OREG1-7
    if (SmpcInternalVars->clocksync) {
       tmp = SmpcInternalVars->basetime + ((u64)framecounter * 1001 / 60000);
@@ -337,7 +337,7 @@ static void SmpcINTBACKStatus(void) {
 
    // write cartidge data in OREG8
    SmpcRegs->OREG[8] = 0; // FIXME : random value
-    
+
    // write zone data in OREG9 bits 0-7
    // 1 -> japan
    // 2 -> asia/ntsc
@@ -358,10 +358,10 @@ static void SmpcINTBACKStatus(void) {
    // 4   | 1      |
    // 3   | MSHNMI |
    // 2   | 1      |
-   // 1   | SYSRES | 
+   // 1   | SYSRES |
    // 0   | SNDRES |
    SmpcRegs->OREG[10] = 0x34|(SmpcInternalVars->dotsel<<6)|(SmpcInternalVars->mshnmi<<3)|(SmpcInternalVars->sysres<<1)|SmpcInternalVars->sndres;
-    
+
    // system state, second part in OREG11, bit 6
    // bit 6 -> CDRES
    SmpcRegs->OREG[11] = SmpcInternalVars->cdres << 6; // FIXME
@@ -369,7 +369,7 @@ static void SmpcINTBACKStatus(void) {
    // SMEM
    for(i = 0;i < 4;i++)
       SmpcRegs->OREG[12+i] = SmpcInternalVars->SMEM[i];
-    
+
    SmpcRegs->OREG[31] = 0x10; // set to intback command
 }
 
@@ -649,7 +649,53 @@ static void processCommand(void) {
   }
 }
 
+static u32 oldVcnt, oldHcnt = 0;
+static int triggered = 0;
+static void handleStunner() {
+  u16 stunner_x_1 = (PORTDATA1.data[3]<<8) | (PORTDATA1.data[4]);
+  u16 stunner_y_1 = (PORTDATA1.data[5]<<8) | (PORTDATA1.data[5]);
+  // YuiMsg("Port 1 read %d %d\n", stunner_x_1, stunner_y_1);
+  if (oldVcnt != yabsys.LineCount) {
+    //New line
+    oldHcnt = 0;
+    triggered = 0;
+    oldVcnt = yabsys.LineCount;
+    SmpcRegs->PDR[0] &= ~(1<<6);
+    SmpcRegs->PDR[1] &= ~(1<<6);
+  }
+  // YuiMsg("Test stunner on port1 %d %d %d %d\n", stunner_x_1, stunner_y_1, yabsys.pixelCount, yabsys.LineCount);
+  if (SmpcRegs->EXLE & 0x1) //PORT1 gun PerGunTrigger
+  {
+    u16 stunner_x = (PORTDATA1.data[3]<<8) | (PORTDATA1.data[4]);
+    u16 stunner_y = (PORTDATA1.data[5]<<8) | (PORTDATA1.data[6]);
+    // YuiMsg("Waiting stunner on port1 %d %d %d %d\n", stunner_x, stunner_y, yabsys.pixelCount, yabsys.LineCount);
+    if ((stunner_x <= yabsys.pixelCount) && (stunner_y == yabsys.LineCount) && (triggered == 0)) {
+      //Trigger the latch
+      triggered = 1;
+      SmpcRegs->PDR[0] |= 1<<6;
+      // YuiMsg("Port 1 latch %d %d\n", stunner_x, stunner_y);
+      Vdp2SendExternalLatch (stunner_x, stunner_y);
+    }
+  }
+  else if (SmpcRegs->EXLE & 0x2) //PORT2 gun PerGunTrigger
+  {
+    // YuiMsg("Waiting stunner on port2\n");
+    u16 stunner_x = (PORTDATA1.data[3]<<8) | (PORTDATA1.data[4]);
+    u16 stunner_y = (PORTDATA1.data[5]<<8) | (PORTDATA1.data[6]);
+    if ((stunner_x <= yabsys.pixelCount) && (stunner_y == yabsys.LineCount) && (triggered == 0)) {
+      //Trigger the latch
+      triggered = 1;
+      SmpcRegs->PDR[1] |= 1<<6;
+      // YuiMsg("Port 2 latch %d %d\n", stunner_x, stunner_y);
+      Vdp2SendExternalLatch (stunner_x, stunner_y);
+    }
+  }
+
+
+}
+
 void SmpcExec(s32 t) {
+   handleStunner();
    if (SmpcInternalVars->timing > 0) {
 
       if (intback_wait_for_line)
@@ -681,6 +727,8 @@ static u8 m_pdr1_readback = 0;
 
 u8 FASTCALL SmpcReadByte(SH2_struct *context, u8* mem, u32 addr) {
    addr &= 0x7F;
+
+   YuiMsg("Read SMPC %x %x\n", addr, SmpcRegs->DDR[0]);
    if (addr == 0x063) {
      bustmp = SmpcRegsT[addr >> 1] & 0xFE;
      bustmp |= SmpcRegs->SF;
@@ -714,7 +762,7 @@ u8 FASTCALL SmpcReadByte(SH2_struct *context, u8* mem, u32 addr) {
    }
 
 
-   SMPCLOG("Read SMPC[0x%x] = 0x%x\n",addr, SmpcRegsT[addr >> 1]);
+   YuiMsg("Read SMPC[0x%x] = 0x%x\n",addr, SmpcRegsT[addr >> 1]);
    return SmpcRegsT[addr >> 1];
 }
 
@@ -788,7 +836,7 @@ static void SmpcSetTiming(void) {
          SmpcInternalVars->timing = 1;
          return;
       case 0x3:
-         SmpcInternalVars->timing = 1;                        
+         SmpcInternalVars->timing = 1;
          return;
       case 0x6:
       case 0x7:
@@ -833,7 +881,7 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
    oldVal = SmpcRegsT[addr >> 1];
    bustmp = val;
    if (addr == 0x1F) {
-      //COMREG 
+      //COMREG
       SmpcRegsT[0xF] = val&0x1F;
    } else
      SmpcRegsT[addr >> 1] = val;
@@ -852,7 +900,7 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
                SmpcRegs->SF = 0;
                break;
             }
-            else if (SmpcRegs->IREG[0] & 0x80) {                    
+            else if (SmpcRegs->IREG[0] & 0x80) {
                // Continue
                SMPCLOG("INTBACK Continue\n");
                SmpcSetTiming();
@@ -868,14 +916,20 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
          return;
       case 0x75: // PDR1
          // FIX ME (should support other peripherals)
+         YuiMsg("Which mode DDR0 %x %x %x\n", SmpcRegs->DDR[0] & 0x7F, PORTDATA1.data[0], val);
          switch (SmpcRegs->DDR[0] & 0x7F) { // Which Control Method do we use?
             case 0x00:
-               if (PORTDATA1.data[1] == PERGUN && (val & 0x7F) == 0x7F)
-                  SmpcRegs->PDR[0] = PORTDATA1.data[2];
+               if ((PORTDATA1.data[1] == PERGUN )&& ((val & 0x7F) == 0x7F)) {
+                 SmpcRegs->PDR[0] = PORTDATA1.data[2];
+                 YuiMsg("On est la?\n");
+               }
                break;
             //th control mode (acquire id)
             case 0x40:
-               SmpcRegs->PDR[0] = do_th_mode(val);
+                if ((SmpcRegs->IOSEL & 0x1) == 0x0)
+                  SmpcRegs->PDR[0] = do_th_mode(val);
+                else
+                  SmpcRegs->PDR[0] = val;
                break;
             //th tr control mode
             case 0x60:
@@ -914,7 +968,7 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
 		  // FIX ME (should support other peripherals)
 		  switch (SmpcRegs->DDR[1] & 0x7F) { // Which Control Method do we use?
 		  case 0x00:
-			  if (PORTDATA2.data[1] == PERGUN && (val & 0x7F) == 0x7F)
+			  if ((PORTDATA2.data[1] == PERGUN) && ((val & 0x7F) == 0x7F))
 				  SmpcRegs->PDR[1] = PORTDATA2.data[2];
 			  break;
 		  case 0x60:
@@ -952,6 +1006,7 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
 		  }
 		  break;
 	  case 0x79: // DDR1
+    YuiMsg("Which mode DDR1 %x %x %x\n", SmpcRegs->DDR[0] & 0x7F, PORTDATA1.data[0], val);
          switch (SmpcRegs->DDR[0] & 0x7F) { // Which Control Method do we use?
             case 0x00: // Low Nibble of Peripheral ID
             case 0x40: // High Nibble of Peripheral ID
@@ -960,7 +1015,10 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
                   case 0xA0:
                   {
                      if (PORTDATA1.data[1] == PERGUN)
-                        SmpcRegs->PDR[0] = 0x7C;
+                        if ((val == 0x40) && ((SmpcRegs->IOSEL & 0x1) == 0x1)) {
+                          SmpcRegs->DDR[0] = 0x50;
+                        } else
+                        SmpcRegs->PDR[0] = 0x7F;
                            break;
                   }
                   case 0xF0:
@@ -983,13 +1041,13 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
                         case PERWHEEL:
                         case PERMISSIONSTICK:
                         case PERTWINSTICKS:
-                        default: 
+                        default:
                            SMPCLOG("smpc\t: Peripheral TH Control Method not supported for peripherl id %02X\n", PORTDATA1.data[1]);
                            break;
                      }
                      break;
                   }
-                  default: 
+                  default:
                      SmpcRegs->PDR[0] = 0x71;
                      break;
                }

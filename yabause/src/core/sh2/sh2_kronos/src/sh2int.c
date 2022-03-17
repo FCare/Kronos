@@ -275,18 +275,26 @@ static void showCPUState(SH2_struct *context)
 
 u8 execInterrupt = 0;
 
+static u32 lastCycles = 0;
+
 FASTCALL void SH2KronosInterpreterExecLoop(SH2_struct *context, u32 cycles)
 {
   u32 target_cycle = context->cycles + cycles;
    while (context->cycles < target_cycle)
    {
      cacheCode[context->isslave][cacheId[(context->regs.PC >> 20) & 0xFFF]][(context->regs.PC >> 1) & 0x7FFFF](context);
+     if ((context == MSH2) && ((context->cycles - lastCycles) >= yabsys.pixClk)) {
+       yabsys.pixelCount += (context->cycles - lastCycles)/yabsys.pixClk;
+       u32 keepCycles = (context->cycles - lastCycles) - (context->cycles - lastCycles)/yabsys.pixClk * yabsys.pixClk;
+       lastCycles = context->cycles - keepCycles;
+     }
    }
 }
 
 FASTCALL void SH2KronosInterpreterExec(SH2_struct *context, u32 cycles)
 {
   u32 target_cycle = context->cycles + cycles;
+  if (context == MSH2) lastCycles = context->cycles;
   while (context->cycles < target_cycle){
     SH2HandleInterrupts(context);
     SH2KronosInterpreterExecLoop(context, target_cycle-context->cycles);

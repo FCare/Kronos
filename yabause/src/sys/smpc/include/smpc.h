@@ -63,7 +63,7 @@ typedef struct {
 
 extern Smpc * SmpcRegs;
 
-typedef struct 
+typedef struct
 {
    int offset;
    int size;

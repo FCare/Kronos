@@ -103,6 +103,8 @@ PERFETTO_TRACK_EVENT_STATIC_STORAGE();
 
 #define THREAD_LOG //printf
 
+#define HBLANK_IN_STEP ((DECILINE_STEP * 8)/10)
+
 //////////////////////////////////////////////////////////////////////////////
 yabsys_struct yabsys;
 u64 tickfreq;
@@ -182,6 +184,8 @@ void YabauseChangeTiming(int freqtype) {
    const double line_time = yabsys.IsPal ? 1.0 /  50        / 313
                                          : 1.0 / (60/1.001) / 263;
    const double line_clk_cnt = line_time * (freq_base * freq_mult);
+   yabsys.lineClk = line_clk_cnt * HBLANK_IN_STEP / DECILINE_STEP;
+   yabsys.pixClk = yabsys.lineClk / _Ygl->rwidth;
    const double deciline_time = line_time / DECILINE_STEP;
 
    yabsys.DecilineCount = 0;
@@ -679,8 +683,6 @@ u32 YabauseGetCpuTime(){
 
 // cyclesinc
 
-#define HBLANK_IN_STEP ((DECILINE_STEP * 8)/10)
-
 //////////////////////////////////////////////////////////////////////////////
 static int fpsframecount = 0;
 static int vdp1fpsframecount = 0;
@@ -768,7 +770,7 @@ int YabauseEmulate(void) {
    u64 cpu_emutime = 0;
 
    TRACE_EMULATOR("YabauseEmulate");
-
+   yabsys.pixelCount = 0;
    while (!oneframeexec)
    {
       PROFILE_START("Total Emulation");
@@ -807,6 +809,7 @@ int YabauseEmulate(void) {
          PROFILE_STOP("hblankout");
          yabsys.DecilineCount = 0;
          yabsys.LineCount++;
+         yabsys.pixelCount = 0;
          if (yabsys.LineCount == yabsys.VBlankLineCount)
          {
             ScspAddCycles((u64)(44100 * 256 / frames)<< SCSP_FRACTIONAL_BITS);

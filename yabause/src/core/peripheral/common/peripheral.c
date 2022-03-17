@@ -1134,6 +1134,8 @@ void PerGunMove(PerGun_struct * gun, s32 dispx, s32 dispy)
    else if (y >= 224) // fix me
       y = 223;
 
+			YuiMsg("PerGun Mv %d %d\n", x, y);
+
    *(gun->gunbits+1) = x >> 8;
    *(gun->gunbits+2) = x;
    *(gun->gunbits+3) = y >> 8;
@@ -1153,7 +1155,7 @@ void * PerAddPeripheral(PortData_struct *port, int perid)
 
    if (pernum == 0xF)
      return NULL;
-   else if (perid == PERGUN && pernum == 1) // Gun doesn't work with multi-tap
+   else if (perid == PERGUN && pernum != 0) // Gun doesn't work with multi-tap
      return NULL;
 
    // if only one peripheral is connected use 0xF0(unless Gun), otherwise use 0x00 or 0x10

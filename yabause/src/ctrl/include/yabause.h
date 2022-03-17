@@ -140,6 +140,9 @@ typedef struct
    int stvInputType;
    int vdp1cycles;
    u32 LineCycle[DECILINE_STEP];
+   u32 pixClk;
+   u32 lineClk;
+   u32 pixelCount;
 } yabsys_struct;
 
 extern yabsys_struct yabsys;

@@ -3739,6 +3739,8 @@ void YglChangeResolution(int w, int h) {
      _Ygl->height = uh * scale;
      _Ygl->width = uw * scale;
 
+     yabsys.pixClk = yabsys.lineClk/_Ygl->rwidth;
+
      YGLDEBUG("YglChangeResolution %dx%d => %d => %dx%d (%.1f,%.1f) (%d %d)\n",w,h, scale, _Ygl->width, _Ygl->height,_Ygl->vdp2wdensity,_Ygl->vdp2hdensity, uw, uh);
 
   // Texture size for vdp1
