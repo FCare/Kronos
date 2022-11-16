@@ -46,7 +46,7 @@ else ifneq (,$(findstring armv,$(platform)))
 	override platform += unix
 endif
 
-CORE_DIR := .
+CORE_DIR := ./../port/libretro
 
 TARGET_NAME = kronos
 CC_AS ?= $(CC)
@@ -55,7 +55,7 @@ CC_AS ?= $(CC)
 ifneq (,$(findstring unix,$(platform)))
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += -lpthread -lGL
 	ARCH_IS_LINUX = 1
 	# ARM
@@ -89,7 +89,7 @@ else ifeq ($(platform), jetson-nano)
 	override platform += unix
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += -lpthread -lGL
 	ARCH_IS_LINUX = 1
 	HAVE_SSE = 0
@@ -100,7 +100,7 @@ else ifeq ($(platform), arm64)
 	override platform += unix
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += -lpthread -lGL
 	ARCH_IS_LINUX = 1
 	HAVE_SSE = 0
@@ -110,7 +110,7 @@ else ifneq (,$(findstring rockpro64,$(platform)))
 	override platform += unix
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += -lpthread -lGL
 	ARCH_IS_LINUX = 1
 	HAVE_SSE = 0
@@ -122,7 +122,7 @@ else ifeq ($(platform), odroid-n2)
 	override platform += unix
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += -lpthread -lGL
 	ARCH_IS_LINUX = 1
 	HAVE_SSE = 0
@@ -138,7 +138,7 @@ else ifneq (,$(findstring odroid,$(platform)))
 	override platform += unix
 	TARGET := $(TARGET_NAME)_libretro.so
 	fpic := -fPIC
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += -lpthread -lGL
 	ARCH_IS_LINUX = 1
 	BOARD := $(shell cat /proc/cpuinfo | grep -i odroid | awk '{print $$3}')
@@ -233,7 +233,7 @@ else ifeq ($(platform), gcw0)
 	CC = /opt/gcw0-toolchain/usr/bin/mipsel-linux-gcc
 	CXX = /opt/gcw0-toolchain/usr/bin/mipsel-linux-g++
 	AR = /opt/gcw0-toolchain/usr/bin/mipsel-linux-ar
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += $(PTHREAD_FLAGS) -lrt
 	FLAGS += $(PTHREAD_FLAGS) -DHAVE_MKDIR
 	FLAGS += -ffast-math -march=mips32 -mtune=mips32r2 -mhard-float
@@ -245,7 +245,7 @@ else
 	TARGET := $(TARGET_NAME)_libretro.dll
 	CC ?= gcc
 	CXX ?= g++
-	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=link.T
+	SHARED := -shared -Wl,--no-undefined -Wl,--version-script=$(CORE_DIR)/link.T
 	LDFLAGS += -static-libgcc -static-libstdc++ -lwinmm -lopengl32
 	FLAGS += -D_WINDOWS
 	HAVE_FSEEKO = 1

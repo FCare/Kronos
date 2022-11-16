@@ -116,7 +116,7 @@ int Ygl_uniformVdp1CommonParam(void * p, YglTextureManager *tm, Vdp2 *varVdp2Reg
     glUniform1i(prg->ids->fbo, 1);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _Ygl->vdp1FrameBuff[_Ygl->drawframe*2]);
-    #if defined(_OGL3_)
+    #if defined(_OGL3_) && !defined _OGLES3_
         if (glTextureBarrier) glTextureBarrier();
         else if (glTextureBarrierNV) glTextureBarrierNV();
     #else
@@ -752,7 +752,7 @@ const GLchar vdp1drawstart_no_mesh[] = {
   "void main() {\n"
   "  vec4 outColor = vec4(0.0);\n"
   "  vec4 meshColor = vec4(0.0);\n"
-  "  if (any(greaterThan(ivec2(gl_FragCoord.x, sysClip.z - gl_FragCoord.y), sysClip.xy))) discard;\n"
+  "  if (any(greaterThan(ivec2(gl_FragCoord.x, sysClip.z - int(gl_FragCoord.y)), sysClip.xy))) discard;\n"
   "  ivec2 addr = ivec2(vec2(textureSize(u_sprite, 0)) * v_texcoord.st / v_texcoord.q); \n"
   "  vec4 spriteColor = texelFetch(u_sprite,addr,0);\n"
   COLINDEX(spriteColor)
@@ -772,7 +772,7 @@ const GLchar vdp1drawstart_mesh[] = {
   "void main() {\n"
   "  vec4 outColor = vec4(0.0);\n"
   "  vec4 meshColor = vec4(0.0);\n"
-  "  if (any(greaterThan(ivec2(gl_FragCoord.x, sysClip.z - gl_FragCoord.y), sysClip.xy))) discard;\n"
+  "  if (any(greaterThan(ivec2(gl_FragCoord.x, sysClip.z - int(gl_FragCoord.y)), sysClip.xy))) discard;\n"
   "  ivec2 addr = ivec2(vec2(textureSize(u_sprite, 0)) * v_texcoord.st / v_texcoord.q); \n"
   "  vec4 spriteColor = texelFetch(u_sprite,addr,0);\n"
   COLINDEX(spriteColor)
@@ -1075,8 +1075,8 @@ uniform int win1; \n \
 uniform int win1_mode; \n \
 uniform int win_op; \n \
 uniform int nbFrame; \n \
-int PosY = int(gl_FragCoord.y)+1;\n \
-int PosX = int(gl_FragCoord.x);\n \
+int PosY() { return int(gl_FragCoord.y)+1; }\n \
+int PosX() { return int(gl_FragCoord.x); }\n \
 vec2 getFBCoord(vec2 pos) {\n \
  return pos;\n \
 "

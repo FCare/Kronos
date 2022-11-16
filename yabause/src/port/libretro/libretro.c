@@ -8,6 +8,7 @@
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
+#include "compat/msvc.h"
 #endif
 
 #include <sys/stat.h>
@@ -787,6 +788,7 @@ static void init_cheevos(void)
 
 static void context_reset(void)
 {
+    LogStart();
    glsm_ctl(GLSM_CTL_STATE_CONTEXT_RESET, NULL);
    glsm_ctl(GLSM_CTL_STATE_SETUP, NULL);
    if (first_ctx_reset == 1)
@@ -814,6 +816,7 @@ static void context_reset(void)
 
 static void context_destroy(void)
 {
+    LogStop();
    if (VIDCore) VIDCore->DeInit();
    rendering_started = false;
    glsm_ctl(GLSM_CTL_STATE_CONTEXT_DESTROY, NULL);

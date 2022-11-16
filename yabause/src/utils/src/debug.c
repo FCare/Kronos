@@ -151,7 +151,7 @@ void DebugPrintf(Debug * d, const char * file, u32 line, const char * format, ..
   case DEBUG_STREAM:
     if (d->output.stream == NULL)
       break;
-    fprintf(d->output.stream, "%s (%s:%ld): ", d->name, file, (long)line);
+    fprintf(d->output.stream, "%s (%s:%ld):\n", d->name, file, (long)line);
     vfprintf(d->output.stream, format, l);
     break;
   case DEBUG_STRING:
@@ -211,15 +211,22 @@ Debug * MainLog;
 //////////////////////////////////////////////////////////////////////////////
 
 void LogStart(void) {
-        MainLog = DebugInit("main", DEBUG_STDOUT, NULL);
-//        MainLog = DebugInit("main", DEBUG_STREAM, "stdout.txt");
+#if defined YAB_ENABLE_LOGGING
+#if defined LOG_FILE_DEBUG
+    MainLog = DebugInit("main", DEBUG_STREAM, "stdout.txt");
+#else
+    MainLog = DebugInit("main", DEBUG_STDOUT, NULL);
+#endif
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 void LogStop(void) {
-	DebugDeInit(MainLog);
+#if defined YAB_ENABLE_LOGGING
+    DebugDeInit(MainLog);
 	MainLog = NULL;
+#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////

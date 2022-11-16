@@ -1,7 +1,6 @@
 #include "common_glshader.h"
 #include "yui.h"
-
-#define LOG_SHADER
+#include "debug.h"
 
 extern int YglInitDrawFrameBufferShaders(int id, int CS);
 
@@ -537,7 +536,7 @@ static const GLchar Yglprg_vdp2_common_draw[] =
 "  if (ram_mode != 1) u_color_ram_offset = u_color_ram_offset & 0x300;\n"
 "  fbmode = 1;\n"
 "  vdp1mode = 1;\n"
-"  ivec2 fbCoord = addr + ivec2(x*vdp1Ratio.x, 0);\n"
+"  ivec2 fbCoord = addr + ivec2(float(x)*vdp1Ratio.x, 0);\n"
 "  fbCoord = ivec2(getFBCoord(vec2(fbCoord)));\n"
 "  vec4 col = texelFetch(s_vdp1FrameBuffer, fbCoord, 0);\n"
 "  vec4 meshpix = texelFetch(s_vdp1Mesh, fbCoord, 0);\n"
@@ -588,12 +587,12 @@ static const GLchar Yglprg_vdp2_common_draw[] =
 "  }else{ // direct color \n"
 "    tmpColor = ret.color;\n"
 //Support of extended gouraud mode
-"    tmpColor.r += (int(col.b*255.0)&0x7)/255.0;\n"
-"    tmpColor.g += ((int(col.b*255.0)>>4)&0x7)/255.0;\n"
-"    tmpColor.b += (int(col.a*255.0)&0x7)/255.0;\n"
+"    tmpColor.r += float(int(float(col.b)*255.0)&0x7)/255.0;\n"
+"    tmpColor.g += float((int(float(col.b)*255.0)>>4)&0x7)/255.0;\n"
+"    tmpColor.b += float(int(float(col.a)*255.0)&0x7)/255.0;\n"
 "    msb = 1;\n"
 "  } \n"
-"  ret.offset_color = texelFetch( s_perline, ivec2(int( (u_vheight-PosY) * u_emu_height), is_perline[6]), 0 ).rgb;\n"
+"  ret.offset_color = texelFetch( s_perline, ivec2(int( (u_vheight- float(PosY())) * u_emu_height), is_perline[6]), 0 ).rgb;\n"
 "  ret.offset_color = (ret.offset_color - vec3(0.5))*2.0;\n"
 "  if (fbmode != 0) {\n";
 
@@ -605,17 +604,17 @@ static const GLchar Yglprg_vdp2_common_part[] =
 "void initLineWindow() {\n"
 "  ivec2 linepos; \n "
 "  linepos.y = 0; \n "
-"  linepos.x = int( (u_vheight-PosY) * u_emu_height);\n"
+"  linepos.x = int( (u_vheight-float(PosY())) * u_emu_height);\n"
 "  vec4 lineW0 = texelFetch(s_win0,linepos,0);\n"
-"  startW0.x = int(((lineW0.r*255.0) + (int(lineW0.g*255.0)<<8))*u_emu_vdp2_width);\n"
-"  endW0.x = int(((lineW0.b*255.0) + (int(lineW0.a*255.0)<<8))*u_emu_vdp2_width);\n"
-"  startW0.y = int(((lineW0.r*255.0) + (int(lineW0.g*255.0)<<8))*u_emu_vdp2_width);\n"
-"  endW0.y = int(((lineW0.b*255.0) + (int(lineW0.a*255.0)<<8))*u_emu_vdp2_width);\n"
+"  startW0.x = int(float(int(lineW0.r*255.0) + (int(lineW0.g*255.0)<<8))*u_emu_vdp2_width);\n"
+"  endW0.x = int(float(int(lineW0.b*255.0) + (int(lineW0.a*255.0)<<8))*u_emu_vdp2_width);\n"
+"  startW0.y = int(float(int(lineW0.r*255.0) + (int(lineW0.g*255.0)<<8))*u_emu_vdp2_width);\n"
+"  endW0.y = int(float(int(lineW0.b*255.0) + (int(lineW0.a*255.0)<<8))*u_emu_vdp2_width);\n"
 "  vec4 lineW1 = texelFetch(s_win1,linepos,0);\n"
-"  startW1.x = int(((lineW1.r*255.0) + (int(lineW1.g*255.0)<<8))*u_emu_vdp2_width);\n"
-"  endW1.x = int(((lineW1.b*255.0) + (int(lineW1.a*255.0)<<8))*u_emu_vdp2_width);\n"
-"  startW1.y = int(((lineW1.r*255.0) + (int(lineW1.g*255.0)<<8))*u_emu_vdp2_width);\n"
-"  endW1.y = int(((lineW1.b*255.0) + (int(lineW1.a*255.0)<<8))*u_emu_vdp2_width);\n"
+"  startW1.x = int(float(int(lineW1.r*255.0) + (int(lineW1.g*255.0)<<8))*u_emu_vdp2_width);\n"
+"  endW1.x = int(float(int(lineW1.b*255.0) + (int(lineW1.a*255.0)<<8))*u_emu_vdp2_width);\n"
+"  startW1.y = int(float(int(lineW1.r*255.0) + (int(lineW1.g*255.0)<<8))*u_emu_vdp2_width);\n"
+"  endW1.y = int(float(int(lineW1.b*255.0) + (int(lineW1.a*255.0)<<8))*u_emu_vdp2_width);\n"
 "}\n"
 "bool inNormalWindow0(int id, int pos) {\n"
 "  bool valid = true; \n"
@@ -654,7 +653,7 @@ static const GLchar Yglprg_vdp2_common_part[] =
 
 
 "bool inWindow(int id) {\n"
-"  int pos = int(PosX);\n"
+"  int pos = int(PosX());\n"
 "  bool valid = false;\n"
 "  if (((win_op>>id)&0x1) != 0) {\n"
     //And
@@ -672,8 +671,8 @@ static const GLchar Yglprg_vdp2_common_part[] =
 "}\n"
 
 "bool inTransparentWindow(int id) {\n"
-"  return inWindow(id)\n;"
-"}\n;"
+"  return inWindow(id);"
+"}\n"
 "bool inCCWindow() {\n"
 "  if ((((win1>>7)&0x1) != 0) || (((win0>>7)&0x1) != 0) || (((win_s>>7)&0x1)!= 0)) {\n"
 "    return inWindow(7);\n"
@@ -1172,15 +1171,15 @@ bool needColorOffRBG0 = false;\n \
 bool needColorOffRBG1 = false;\n \
 vec4 cl_off_rbg0 = vec4(0.0);\n \
 vec4 cl_off_rbg1 = vec4(0.0);\n \
-ivec2 addr = ivec2(textureSize(s_back, 0) * v_texcoord.st);\n \
+ivec2 addr = ivec2(vec2(textureSize(s_back, 0)) * v_texcoord.st);\n \
 colorback = texelFetch( s_back, addr,0 );\n \
-ivec2 linepos = ivec2(int( (u_vheight-PosY) * u_emu_height), 0);\n \
+ivec2 linepos = ivec2(int( (u_vheight-float(PosY())) * u_emu_height), 0);\n \
 linepos.y = is_perline[7];\n \
-if (mod(PosY,2) == nbFrame) discard;\n \
+if ((PosY() %2) == nbFrame) discard;\n \
 offset_color = texelFetch( s_perline, linepos,0 ).rgb;\n \
 offset_color.rgb = (offset_color.rgb - vec3(0.5))*2.0;\n \
-addr = ivec2(tvSize * vdp1Ratio * v_texcoord.st);\n \
-addr.y += textureSize(s_vdp1FrameBuffer, 0).y - int(tvSize.y*vdp1Ratio.y);\n \
+addr = ivec2(vec2(tvSize) * vdp1Ratio * v_texcoord.st);\n \
+addr.y += textureSize(s_vdp1FrameBuffer, 0).y - int(float(tvSize.y)*vdp1Ratio.y);\n \
 initLineWindow();\n \
 colortop = colorback;\n \
 isRGBtop = 1;\n \
@@ -1716,7 +1715,7 @@ static const GLchar* Yglprg_vdp2_common_final[14] = {
 
 static const GLchar vdp2blit_filter_f[] =
 "vec4 getPixel(sampler2D tex, vec2 st, int deltax, int deltay) {\n"
-" ivec2 addr = ivec2(textureSize(tex, 0) * st);\n"
+" ivec2 addr = ivec2(vec2(textureSize(tex, 0)) * st);\n"
 " vec4 result = texelFetch( tex, addr+ivec2(deltax, deltay),0 );\n"
 //" result.rgb = Filter( tex, st ).rgb;\n"
 " return result;\n"
@@ -1856,10 +1855,10 @@ int YglInitShader(int id, const GLchar * vertex[], int vcount, const GLchar * fr
     GLint compiled,linked;
     GLuint vshader;
     GLuint fshader;
-  GLuint tcsHandle = 0;
-  GLuint tesHandle = 0;
-  GLuint gsHandle = 0;
-  YGLLOG( "Compile Program %d\n", id);
+    GLuint tcsHandle = 0;
+    GLuint tesHandle = 0;
+    GLuint gsHandle = 0;
+    YGLLOG( "Compile Program %d\n", id);
    _prgid[id] = glCreateProgram();
     if (_prgid[id] == 0 ) return -1;
     vshader = glCreateShader(GL_VERTEX_SHADER);

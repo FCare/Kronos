@@ -1,4 +1,4 @@
-SOURCE_DIR := $(CORE_DIR)/..
+SOURCE_DIR := $(CORE_DIR)/../..
 LIBRETRO_COMM_DIR := $(CORE_DIR)/libretro-common
 LIBCHDR_DIR := $(SOURCE_DIR)/tools/libchdr
 LZMA_DIR := $(LIBCHDR_DIR)/deps/lzma-16.04
@@ -107,6 +107,7 @@ SOURCES_C := \
 	$(SOURCE_DIR)/sys/memory/src/memory.c \
 	$(SOURCE_DIR)/ctrl/src/movie.c \
 	$(SOURCE_DIR)/utils/src/netlink.c \
+	$(SOURCE_DIR)/utils/src/debug.c \
 	$(SOURCE_DIR)/core/peripheral/common/peripheral.c \
 	$(SOURCE_DIR)/sys/scsp/src/scspdsp.c \
 	$(SOURCE_DIR)/sys/scsp/src/scsp.c \

@@ -111,6 +111,11 @@ extern "C"{
 #define YGLLOG(...)
 #endif
 
+#ifdef SHADER_DEBUG
+#define LOG_SHADER(...) DebugPrintf(MainLog, __FILE__, __LINE__, __VA_ARGS__)
+#else
+#define LOG_SHADER(...)
+#endif
 
 #ifdef FRAME_DEBUG
 #define FRAMELOG(...) DebugPrintf(MainLog, __FILE__, __LINE__, __VA_ARGS__)
