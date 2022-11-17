@@ -773,15 +773,14 @@ int YabauseEmulate(void) {
 
      yabsys.DecilineCount++;
 
-     yabsys.UsecFrac += usecinc;
-     vdp1Exec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
+
 
      if(yabsys.DecilineCount == HBLANK_IN_STEP)
      {
         // HBlankIN
         PROFILE_START("hblankin");
-        Vdp1HBlankIN();
         Vdp2HBlankIN();
+        yabsys.HBlank = 1;
         PROFILE_STOP("hblankin");
      }
 
@@ -790,8 +789,8 @@ int YabauseEmulate(void) {
          // HBlankOUT
          PROFILE_START("hblankout");
          Vdp2HBlankOUT();
-         Vdp1HBlankOUT();
          PROFILE_STOP("hblankout");
+         yabsys.HBlank = 0;
          yabsys.DecilineCount = 0;
          yabsys.LineCount++;
 #ifdef SCSP_SYNC_PER_LINE
@@ -801,8 +800,8 @@ int YabauseEmulate(void) {
          {
             PROFILE_START("vblankin");
             // VBlankIN
+            yabsys.VBlank = 1;
             SmpcINTBACKEnd();
-            Vdp1VBlankIN();
             Vdp2VBlankIN();
             PROFILE_STOP("vblankin");
             CheatDoPatches(MSH2);
@@ -811,10 +810,10 @@ int YabauseEmulate(void) {
          {
             // VBlankOUT
             PROFILE_START("VDP1/VDP2");
-            Vdp1VBlankOUT();
             Vdp2VBlankOUT();
             yabsys.LineCount = 0;
             oneframeexec = 1;
+            yabsys.VBlank = 0;
 #ifndef SCSP_SYNC_PER_LINE
             SyncCPUtoSCSP(); //Sync per frame
 #endif
@@ -822,6 +821,8 @@ int YabauseEmulate(void) {
          }
       }
 
+      yabsys.UsecFrac += usecinc;
+      vdp1Exec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
 
       PROFILE_START("SCU");
       ScuExec((yabsys.DecilineStop>>YABSYS_TIMING_BITS) / 2);

@@ -80,7 +80,8 @@ typedef struct {
    u16 userclipY1;
    u16 userclipX2;
    u16 userclipY2;
-
+   u8 VBlank;
+   u8 HBlank;
 
 } Vdp1;
 

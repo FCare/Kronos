@@ -2638,7 +2638,7 @@ void Vdp1VBlankOUT(void)
   }
 }
 
-void vdp1Exec(int us) {
+static void updateRegisters() {
     if (Vdp1Regs->dirty.TVMR) {
       updateTVMRMode();
       FRAMELOG("TVMR => Write VBE=%d FCM=%d FCT=%d line = %d\n", (Vdp1Regs->regs.TVMR >> 3) & 0x01, (Vdp1Regs->regs.FBCR & 0x02) >> 1, (Vdp1Regs->regs.FBCR & 0x01),  yabsys.LineCount);
@@ -2672,4 +2672,32 @@ void vdp1Exec(int us) {
     }
     Vdp1Regs->dirtyState = 0;
     memcpy(&latchedRegs.regs, &Vdp1Regs->regs, sizeof(Vdp1_regs));
+}
+
+void vdp1Exec(int us) {
+  updateRegisters();
+  if (yabsys.HBlank != Vdp1Regs->HBlank) {
+    //We entered/exited Horizontal blanking
+    Vdp1Regs->HBlank = yabsys.HBlank;
+    if (Vdp1Regs->HBlank) {
+      FRAMELOG("VDP1 H-Blank In\n");
+      Vdp1HBlankIN();
+    } else {
+      FRAMELOG("VDP1 H-Blank Out\n");
+      Vdp1HBlankOUT();
+    }
+
+  }
+  if (yabsys.VBlank != Vdp1Regs->VBlank) {
+    //We entered/exited Horizontal blanking
+    Vdp1Regs->VBlank = yabsys.VBlank;
+    if (Vdp1Regs->VBlank) {
+      FRAMELOG("VDP1 V-Blank In\n");
+      Vdp1VBlankIN();
+    } else {
+      FRAMELOG("VDP1 V-Blank Out\n");
+      Vdp1VBlankOUT();
+    }
+
+  }
 }
