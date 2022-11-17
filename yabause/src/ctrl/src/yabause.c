@@ -1091,7 +1091,7 @@ void YabauseSpeedySetup(void)
    SmpcInternalVars->resd = 0;
 
    // Set VDP1 registers to sane states
-   Vdp1Regs->EDSR = 3;
+   Vdp1Regs->regs.EDSR = 3;
    Vdp1Regs->localX = 160;
    Vdp1Regs->localY = 112;
    Vdp1Regs->systemclipX2 = 319;

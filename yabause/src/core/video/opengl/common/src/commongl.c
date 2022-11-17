@@ -1581,7 +1581,7 @@ static int YglQuadGrowShading_tesselation_in(YglSprite * input, YglTexture * out
 
 void YglCacheQuadGrowShading(YglSprite * input, float * colors, YglCache * cache, YglTextureManager *tm){
     _Ygl->needVdp1Render = 1;
-    if ((Vdp1Regs->TVMR & 0x1) == 1) colors = NULL;
+    if ((Vdp1Regs->regs.TVMR & 0x1) == 1) colors = NULL;
     if (_Ygl->polygonmode == GPU_TESSERATION) {
       YglQuadGrowShading_tesselation_in(input, NULL, colors, cache, 0, tm);
     }
@@ -1600,7 +1600,7 @@ void YglCacheQuadGrowShading(YglSprite * input, float * colors, YglCache * cache
 
 int YglQuadGrowShading(YglSprite * input, YglTexture * output, float * colors, YglCache * c, YglTextureManager *tm){
   _Ygl->needVdp1Render = 1;
-  if ((Vdp1Regs->TVMR & 0x1) == 1) colors = NULL;
+  if ((Vdp1Regs->regs.TVMR & 0x1) == 1) colors = NULL;
   if (_Ygl->polygonmode == GPU_TESSERATION) {
     return YglQuadGrowShading_tesselation_in(input, output, colors, c, 1, tm);
   }
@@ -2503,7 +2503,7 @@ void YglEraseWriteVDP1(int id) {
   _Ygl->vdp1levels[id].uclipcurrent = 0;
   _Ygl->vdp1levels[id].blendmode = 0;
 
-  color = Vdp1Regs->EWDR;
+  color = Vdp1Regs->regs.EWDR;
 
   _Ygl->vdp1On[id] = 0;
 
@@ -2512,7 +2512,7 @@ void YglEraseWriteVDP1(int id) {
 
   if (color != 0x0) {
     // _Ygl->vdp1On[id] = 1;
-    if (((Vdp1Regs->TVMR & 0x1) == 1) && (col[0] != col[1])){
+    if (((Vdp1Regs->regs.TVMR & 0x1) == 1) && (col[0] != col[1])){
       YuiMsg("Unsupported clear process\n\tin 8 bits upper part of EWDR is for even coordinates and lower part for odd coordinates\n");
     }
   }
@@ -2632,7 +2632,7 @@ void YglRenderVDP1(void) {
     glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
   }
 
-  YGLLOG("YglRenderVDP1 %d, PTMR = %d\n", _Ygl->drawframe, Vdp1Regs->PTMR);
+  YGLLOG("YglRenderVDP1 %d, PTMR = %d\n", _Ygl->drawframe, Vdp1Regs->regs.PTMR);
 
   level = &(_Ygl->vdp1levels[_Ygl->drawframe]);
     if( level == NULL ) {
@@ -2819,7 +2819,7 @@ void YglUpdateVdp2Reg() {
 
 SpriteMode getSpriteRenderMode(Vdp2* varVdp2Regs) {
   SpriteMode ret = NONE;
-  // if ((Vdp1Regs->TVMR & 0x1) == 1) return NONE;
+  // if ((Vdp1Regs->regs.TVMR & 0x1) == 1) return NONE;
   if (varVdp2Regs->CCCTL & (1<<6)) {
     if (((varVdp2Regs->CCCTL>>8)&0x1) == 0x1) {
       ret = AS_IS;
@@ -3040,7 +3040,7 @@ SpriteMode setupBlend(Vdp2 *varVdp2Regs, int layer) {
   SpriteMode ret = NONE;
 
   const int enableBit[7] = {0, 1, 2, 3, 4, 0, 6};
-  if ((layer == 6) && ((Vdp1Regs->TVMR & 0x1) == 1)) return NONE;
+  if ((layer == 6) && ((Vdp1Regs->regs.TVMR & 0x1) == 1)) return NONE;
   if (varVdp2Regs->CCCTL & (1<<enableBit[layer])) {
     if (((varVdp2Regs->CCCTL>>8)&0x1) == 0x1) {
       ret = AS_IS;

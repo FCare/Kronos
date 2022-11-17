@@ -755,7 +755,7 @@ void vdp1_compute() {
 	glUniform4i(9, Vdp1Regs->userclipX1, Vdp1Regs->userclipY1, Vdp1Regs->userclipX2, Vdp1Regs->userclipY2);
 	YglMatrix m, mat;
 	YglLoadIdentity(&m);
-  if (Vdp1Regs->TVMR & 0x02) {
+  if (Vdp1Regs->regs.TVMR & 0x02) {
     YglMatrix rotate, scale;
     YglLoadIdentity(&rotate);
     rotate.m[0][0] = Vdp1ParaA.deltaX;

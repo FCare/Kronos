@@ -1978,7 +1978,7 @@ int setupVDP2Prog(Vdp2* varVdp2Regs, int nb_screen, int CS) {
     //VDP2 use FB as 8 bits
     fb_mode +=2;
   }
-  if ((Vdp1Regs->TVMR & 0x1) == 1) {
+  if ((Vdp1Regs->regs.TVMR & 0x1) == 1) {
     //VDP1 use FB as 8 bits
     fb_mode +=1;
   }

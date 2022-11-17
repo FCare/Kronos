@@ -909,11 +909,11 @@ static void Vdp1SetTextureRatio(int vdp2widthratio, int vdp2heightratio)
   int vdp1h = 1;
 
   // may need some tweaking
-  if (Vdp1Regs->TVMR & 0x1) VDP1_MASK = 0xFF;
+  if (Vdp1Regs->regs.TVMR & 0x1) VDP1_MASK = 0xFF;
   else VDP1_MASK = 0xFFFF;
 
   // Figure out which vdp1 screen mode to use
-  switch (Vdp1Regs->TVMR & 7)
+  switch (Vdp1Regs->regs.TVMR & 7)
   {
   case 0:
   case 2:
@@ -930,9 +930,9 @@ static void Vdp1SetTextureRatio(int vdp2widthratio, int vdp2heightratio)
   }
 
   // Is double-interlace enabled?
-  if (Vdp1Regs->FBCR & 0x8) {
+  if (Vdp1Regs->regs.FBCR & 0x8) {
     vdp1h = 2;
-    vdp1_interlace = (Vdp1Regs->FBCR & 0x4) ? 2 : 1;
+    vdp1_interlace = (Vdp1Regs->regs.FBCR & 0x4) ? 2 : 1;
   }
   else {
     vdp1_interlace = 0;
@@ -6195,7 +6195,7 @@ LOG_ASYN("===================================\n");
 
   Vdp2GenerateWindowInfo(&Vdp2Lines[VDP2_DRAW_LINE]);
 
-  if (Vdp1Regs->TVMR & 0x02) {
+  if (Vdp1Regs->regs.TVMR & 0x02) {
     Vdp2ReadRotationTable(0, &Vdp1ParaA, &Vdp2Lines[VDP2_DRAW_LINE], Vdp2Ram);
   }
   Vdp2DrawBackScreen(&Vdp2Lines[VDP2_DRAW_LINE]);

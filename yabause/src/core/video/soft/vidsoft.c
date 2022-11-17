@@ -2356,13 +2356,13 @@ int VIDSoftGenFrameBuffer(int force)
 
 void VIDSoftVdp1DrawStartBody(Vdp1* regs, u8 * back_framebuffer)
 {
-   if (regs->FBCR & 8)
+   if (regs->regs.FBCR & 8)
       vdp1interlace = 2;
    else
       vdp1interlace = 1;
-   if (regs->TVMR & 0x1)
+   if (regs->regs.TVMR & 0x1)
    {
-      if (regs->TVMR & 0x2)
+      if (regs->regs.TVMR & 0x2)
       {
          // Rotation 8-bit
          vdp1width = 512;
@@ -2615,7 +2615,7 @@ static int gouraudAdjust( int color, int tableValue )
 
 static int CheckDil(int y, Vdp1 * regs)
 {
-   int dil = (regs->FBCR >> 2) & 1;
+   int dil = (regs->regs.FBCR >> 2) & 1;
 
    if (vdp1interlace == 2)
    {
@@ -3554,7 +3554,7 @@ void VidsoftDrawSprite(Vdp2 * vdp2_regs, u8 * spr_window_mask, u8* vdp1_front_fr
       /* color calculation window: in => no color calc, out => color calc */
       ReadWindowData(vdp2_regs->WCTLD >> 8, colorcalcwindow, vdp2_regs);
 
-      if (vdp1_regs->TVMR & 2)
+      if (vdp1_regs->regs.TVMR & 2)
          Vdp2ReadRotationTableFP(0, &p, vdp2_regs, vdp2_ram);
 
       info.titan_which_layer = TITAN_SPRITE;
@@ -3598,7 +3598,7 @@ void VidsoftDrawSprite(Vdp2 * vdp2_regs, u8 * spr_window_mask, u8* vdp1_front_fr
                }
             }
 
-            if (vdp1_regs->TVMR & 2) {
+            if (vdp1_regs->regs.TVMR & 2) {
                x = (touint(p.Xst + i * p.deltaX + i2 * p.deltaXst)) & (vdp1width - 1);
                y = (touint(p.Yst + i * p.deltaY + i2 * p.deltaYst)) & (vdp1height - 1);
             }
@@ -4091,32 +4091,32 @@ void VIDSoftVdp1EraseFrameBuffer(Vdp1* regs, u8 * back_framebuffer)
    int i,i2;
    int w,h;
 
-      h = (regs->EWRR & 0x1FF) + 1;
+      h = (regs->regs.EWRR & 0x1FF) + 1;
       if (h > vdp1height) h = vdp1height;
-      w = ((regs->EWRR >> 6) & 0x3F8) + 8;
+      w = ((regs->regs.EWRR >> 6) & 0x3F8) + 8;
       if (w > vdp1width) w = vdp1width;
 
       if (vdp1pixelsize == 2)
       {
-         for (i2 = (regs->EWLR & 0x1FF); i2 < h; i2++)
+         for (i2 = (regs->regs.EWLR & 0x1FF); i2 < h; i2++)
          {
-            for (i = ((regs->EWLR >> 6) & 0x1F8); i < w; i++)
-               ((u16 *)back_framebuffer)[(i2 * vdp1width) + i] = regs->EWDR;
+            for (i = ((regs->regs.EWLR >> 6) & 0x1F8); i < w; i++)
+               ((u16 *)back_framebuffer)[(i2 * vdp1width) + i] = regs->regs.EWDR;
          }
       }
       else
       {
-         w = regs->EWRR >> 9;
+         w = regs->regs.EWRR >> 9;
          w *= 16;
 
-         for (i2 = (regs->EWLR & 0x1FF); i2 < h; i2++)
+         for (i2 = (regs->regs.EWLR & 0x1FF); i2 < h; i2++)
          {
-            for (i = ((regs->EWLR >> 6) & 0x1F8); i < w; i++)
+            for (i = ((regs->regs.EWLR >> 6) & 0x1F8); i < w; i++)
             {
                int pos = (i2 * vdp1width) + i;
 
                if (pos < 0x3FFFF)
-                  back_framebuffer[pos] = regs->EWDR & 0xFF;
+                  back_framebuffer[pos] = regs->regs.EWDR & 0xFF;
             }
          }
       }

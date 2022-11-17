@@ -35,20 +35,21 @@ extern "C" {
 //#define YAB_ASYNC_RENDERING 1
 
 typedef struct {
-   u16 TVMR;
-   u16 FBCR;
-   u16 PTMR;
-   u16 EWDR;
-   u16 EWLR;
-   u16 EWRR;
-   u16 ENDR;
-   u16 EDSR;
-   u16 LOPR;
-   u16 COPR;
-   u16 MODR;
-
-   u16 lCOPR;
-
+  u16 TVMR;
+  u16 FBCR;
+  u16 PTMR;
+  u16 EWDR;
+  u16 EWLR;
+  u16 EWRR;
+  u16 ENDR;
+  u16 EDSR;
+  u16 LOPR;
+  u16 COPR;
+  u16 MODR;
+} Vdp1_regs;
+typedef struct {
+  Vdp1_regs regs;
+  u16 lCOPR;
    u32 addr;
 
    s16 localX;
