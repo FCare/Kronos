@@ -82,6 +82,7 @@ set(kronos_HEADERS
 	${kronos_HEADERS}
 	sys/bios/include/bios.h
 	sys/vdp1/include/vdp1.h
+	sys/vdp1/include/vdp1debug.h
 	sys/vdp2/include/vdp2.h
   sys/vdp2/include/vdp2debug.h
 	sys/sh2/include/sh2core.h
@@ -151,6 +152,7 @@ set(kronos_SOURCES
 	sys/vdp2/src/vdp2debug.c
 	sys/bios/src/bios.c
 	sys/vdp1/src/vdp1.c
+  sys/vdp1/src/vdp1debug.c
 	sys/vdp2/src/vdp2.c
 	sys/sh2/src/sh2core.c
   sys/sh2/src/sh2iasm.c

@@ -18,6 +18,7 @@
 */
 #include "UIDebugVDP1.h"
 #include "CommonDialogs.h"
+#include "vdp1debug.h"
 
 #include <QImageWriter>
 #include <QGraphicsPixmapItem>
