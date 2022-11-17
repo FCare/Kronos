@@ -5351,7 +5351,7 @@ void* ScspAsynMainCpu( void * p ){
     loop = 1;
     ScspCheckVideoFormat();
     start = YabauseGetTicks();
-    next = start + (10000*loop) / 441;
+    next = start + (loop*yabsys.tickfreq) / (44100);
 
     m68k_inc += (cycleRequest);
     int nbLine = 1;
@@ -5359,15 +5359,15 @@ void* ScspAsynMainCpu( void * p ){
     {
       now = YabauseGetTicks();
       unsigned long delay = 0;
-      if (next > now) {
-        if (doNotWait == 0) {
-          YabThreadUSleep(next - now);
+      if (now < next) {
+        if ((doNotWait == 0) && ( yabsys.tickfreq != 0)) {
+          YabThreadUSleep((u32)((next - now) * 1000000 / yabsys.tickfreq));
         }
       }
       else
         delay = now - next;
-
-      next = start + (10000*(++loop)) / 441; - delay;
+      loop++;
+      next = start - delay + (loop*yabsys.tickfreq) / (44100);
 
       m68k_inc = m68k_inc - samplecnt;
       MM68KExec(samplecnt);
@@ -5393,6 +5393,7 @@ void* ScspAsynMainCpu( void * p ){
       }
     }
     while (scsp_mute_flags && thread_running) {
+      //Pas bon sous windows
       if (doNotWait == 0) YabThreadUSleep((1000000 / (fps*scsplines)));
       SyncSCSPtoCPU(nbLine);
     }

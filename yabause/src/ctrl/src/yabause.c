@@ -136,7 +136,7 @@ void print_usage(const char *program_name) {
 static unsigned long nextFrameTime = 0;
 static int autoframeskipenab=0;
 
-static int requestedFreqCalc = 0;
+static int requestedFreqCalc = 1;
 static void YabauseCheckVideoFormat();
 
 #ifdef TIMING_SWAP
@@ -791,7 +791,7 @@ int YabauseEmulate(void) {
          yabsys.DecilineCount = 0;
          yabsys.LineCount++;
 #ifdef SCSP_SYNC_PER_LINE
-         SyncCPUtoSCSP(); Sync per line
+         SyncCPUtoSCSP(); //Sync per line
 #endif
          if (yabsys.LineCount == yabsys.VBlankLineCount)
          {
