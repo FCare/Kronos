@@ -2070,7 +2070,7 @@ void* VidsoftVdp1Thread(void* data)
       if (vidsoft_vdp1_thread_context.need_draw)
       {
          vidsoft_vdp1_thread_context.need_draw = 0;
-         Vdp1DrawCommands(vidsoft_vdp1_thread_context.ram, &vidsoft_vdp1_thread_context.regs, vidsoft_vdp1_thread_context.back_framebuffer);
+         // Vdp1DrawCommands(vidsoft_vdp1_thread_context.ram, &vidsoft_vdp1_thread_context.regs, vidsoft_vdp1_thread_context.back_framebuffer);
          memcpy(vdp1backframebuffer, vidsoft_vdp1_thread_context.back_framebuffer, 0x40000);
          vidsoft_vdp1_thread_context.draw_finished = 1;
       }
@@ -2409,12 +2409,12 @@ void VIDSoftVdp1Draw()
       vidsoft_vdp1_thread_context.need_draw = 1;
       YabThreadWake(YAB_THREAD_VIDSOFT_VDP1);
 
-      Vdp1FakeDrawCommands(Vdp1Ram, Vdp1Regs);
+      // Vdp1FakeDrawCommands(Vdp1Ram, Vdp1Regs);
    }
    else
    {
       VIDSoftVdp1DrawStartBody(Vdp1Regs, vdp1backframebuffer);
-      Vdp1DrawCommands(Vdp1Ram, Vdp1Regs, vdp1backframebuffer);
+      // Vdp1DrawCommands(Vdp1Ram, Vdp1Regs, vdp1backframebuffer);
    }
 }
 

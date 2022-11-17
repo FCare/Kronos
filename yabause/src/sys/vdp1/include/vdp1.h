@@ -226,9 +226,6 @@ void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8*, u32, u8);
 void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8*, u32, u16);
 void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8*, u32, u32);
 
-void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer);
-void Vdp1FakeDrawCommands(u8 * ram, Vdp1 * regs);
-
 extern Vdp1 * Vdp1Regs;
 
 enum VDP1STATUS {
