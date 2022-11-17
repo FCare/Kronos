@@ -46,6 +46,7 @@
 #include "ygl.h"
 #include "vidsoft.h"
 #include "vdp2.h"
+#include "video.h"
 #include "yui.h"
 #include "bios.h"
 #include "movie.h"

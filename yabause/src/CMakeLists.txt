@@ -40,6 +40,7 @@ endif(GIT_FOUND)
 endif (KRONOS_LINUX_USE_PERFETTO)
 
 include_directories(sys/bios/include)
+include_directories(sys/video/include)
 include_directories(sys/vdp1/include)
 include_directories(sys/vdp2/include)
 include_directories(sys/sh2/include)
@@ -81,6 +82,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 set(kronos_HEADERS
 	${kronos_HEADERS}
 	sys/bios/include/bios.h
+	sys/video/include/video.h
 	sys/vdp1/include/vdp1.h
 	sys/vdp1/include/vdp1debug.h
 	sys/vdp2/include/vdp2.h
@@ -151,6 +153,7 @@ set(kronos_SOURCES
 	utils/src/profile.c
 	sys/vdp2/src/vdp2debug.c
 	sys/bios/src/bios.c
+	sys/video/src/video.c
 	sys/vdp1/src/vdp1.c
   sys/vdp1/src/vdp1debug.c
 	sys/vdp2/src/vdp2.c

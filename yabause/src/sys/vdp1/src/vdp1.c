@@ -45,9 +45,6 @@ int vdp1Ram_update_start;
 int vdp1Ram_update_end;
 int VDP1_MASK = 0xFFFF;
 
-VideoInterface_struct *VIDCore=NULL;
-extern VideoInterface_struct *VIDCoreList[];
-
 Vdp1 * Vdp1Regs;
 static Vdp1 latchedRegs;
 Vdp1External_struct Vdp1External;
@@ -269,59 +266,6 @@ void Vdp1DeInit(void) {
 
 //////////////////////////////////////////////////////////////////////////////
 
-int VideoInit(int coreid) {
-   return VideoChangeCore(coreid);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-int VideoChangeCore(int coreid)
-{
-   int i;
-
-   // Make sure the old core is freed
-   VideoDeInit();
-
-   // So which core do we want?
-   if (coreid == VIDCORE_DEFAULT)
-      coreid = 0; // Assume we want the first one
-
-   // Go through core list and find the id
-   for (i = 0; VIDCoreList[i] != NULL; i++)
-   {
-      if (VIDCoreList[i]->id == coreid)
-      {
-         // Set to current core
-         VIDCore = VIDCoreList[i];
-         break;
-      }
-   }
-
-   if (VIDCore == NULL)
-      return -1;
-
-   if (VIDCore->Init() != 0)
-      return -1;
-
-   // Reset resolution/priority variables
-   if (Vdp2Regs)
-   {
-      VIDCore->Vdp1Reset();
-   }
-
-   return 0;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-void VideoDeInit(void) {
-   if (VIDCore)
-      VIDCore->DeInit();
-   VIDCore = NULL;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
 void Vdp1Reset(void) {
    Vdp1Regs->regs.PTMR = 0;
    Vdp1Regs->regs.MODR = 0x1000; // VDP1 Version 1
@@ -331,14 +275,8 @@ void Vdp1Reset(void) {
    Vdp1Regs->regs.EWRR = 0;
    Vdp1Regs->regs.ENDR = 0;
    VDP1_MASK = 0xFFFF;
-   VIDCore->Vdp1Reset();
+   VIDCore->Vdp1Reset(); //A voir
    vdp1_clock = 0;
-}
-
-int VideoSetSetting( int type, int value )
-{
-	if (VIDCore) VIDCore->SetSettingValue( type, value );
-	return 0;
 }
 
 
@@ -1636,6 +1574,7 @@ static void Vdp1EraseWrite(int id){
   lastHash = -1;
   if ((VIDCore != NULL) && (VIDCore->Vdp1EraseWrite != NULL))VIDCore->Vdp1EraseWrite(id);
 }
+
 static void startField(void) {
   int isrender = 0;
   yabsys.wait_line_count = -1;

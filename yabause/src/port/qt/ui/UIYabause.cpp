@@ -39,6 +39,7 @@
 #include "../YabauseGL.h"
 #include "../QtYabause.h"
 #include "../CommonDialogs.h"
+#include "video.h"
 
 #include <QKeyEvent>
 #include <QTextEdit>
@@ -1017,7 +1018,7 @@ void UIYabause::on_cbVideoDriver_currentIndexChanged( int id )
 	VideoInterface_struct* core = QtYabause::getVDICore( cbVideoDriver->itemData( id ).toInt() );
 	if ( core )
 	{
-		if ( VideoChangeCore( core->id ) == 0 )
+		if ( VideoInit( core->id ) == 0 )
 			mYabauseGL->updateView();
 	}
 }

@@ -238,9 +238,6 @@ enum VDP1STATUS {
 
 int Vdp1Init(void);
 void Vdp1DeInit(void);
-int VideoInit(int coreid);
-int VideoChangeCore(int coreid);
-void VideoDeInit(void);
 void Vdp1Reset(void);
 int VideoSetSetting(int type, int value);
 
