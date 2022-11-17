@@ -657,7 +657,6 @@ typedef struct {
    COMPUTESHADERMODE use_cs;
    GLsync sync;
    GLuint default_fbo;
-   int vpd1_running;
    int needVdp1Render;
    GLint m_viewport[4];
    int min_fb_x;
@@ -674,7 +673,6 @@ typedef struct {
    u32 colupd_max_addr[512];
    YabMutex * crammutex;
 
-   int msb_shadow_count_[2];
    GLuint vao;
    GLuint vertices_buf;
    GLuint texcord_buf;

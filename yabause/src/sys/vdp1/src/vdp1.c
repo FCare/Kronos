@@ -1444,6 +1444,7 @@ static int Vdp1Draw(void)
      Vdp1Regs->lCOPR = 0;
    }
      VIDCore->Vdp1Draw();
+     Vdp1DrawCommands(Vdp1Ram, Vdp1Regs, NULL);
    }
    if (Vdp1External.status == VDP1_STATUS_IDLE) {
      FRAMELOG("Vdp1Draw end at %d line\n", yabsys.LineCount);

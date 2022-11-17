@@ -460,7 +460,6 @@ static void FASTCALL Vdp1ReadTexture_in_sync(vdp1cmd_struct *cmd, int spritew, i
 
   if (/*varVdp2Regs->SDCTL != 0 &&*/ MSB != 0) {
     MSB_SHADOW = 1;
-    _Ygl->msb_shadow_count_[_Ygl->drawframe]++;
   }
 
   switch ((cmd->CMDPMOD >> 3) & 0x7)
@@ -3508,7 +3507,6 @@ void VIDOGLVdp1Draw()
   int i;
   int line = 0;
   Vdp2 *varVdp2Regs = &Vdp2Lines[yabsys.LineCount];
-  _Ygl->vpd1_running = 1;
 
 #ifdef PERFRAME_LOG
   if (ppfp == NULL) {
@@ -3524,15 +3522,6 @@ void VIDOGLVdp1Draw()
 #endif
 
   YglTmPull(YglTM_vdp1[_Ygl->drawframe], 1);
-
-  int prioChanged = 0;
-  int max = (yabsys.VBlankLineCount<270)?yabsys.VBlankLineCount:270;
-
-  _Ygl->msb_shadow_count_[_Ygl->drawframe] = 0;
-
-  Vdp1DrawCommands(Vdp1Ram, Vdp1Regs, NULL);
-
-  _Ygl->vpd1_running = 0;
 
 }
 
