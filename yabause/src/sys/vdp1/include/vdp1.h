@@ -252,11 +252,6 @@ int Vdp1LoadState(const void * stream, int version, int size);
 
 void ToggleVDP1(void);
 
-void Vdp1HBlankIN(void);
-void Vdp1HBlankOUT(void);
-void Vdp1VBlankIN(void);
-void Vdp1VBlankOUT(void);
-
 #ifdef __cplusplus
 }
 #endif

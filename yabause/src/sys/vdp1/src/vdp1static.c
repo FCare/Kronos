@@ -1219,3 +1219,68 @@ static void updateRegisters() {
     memcpy(&latchedRegs.regs, &Vdp1Regs->regs, sizeof(Vdp1_regs));
 }
 //////////////////////////////////////////////////////////////////////////////
+static void Vdp1HBlankIN(void)
+{
+  int needToCompose = 0;
+  if (nbCmdToProcess > 0) {
+    for (int i = 0; i<nbCmdToProcess; i++) {
+      if (cmdBufferBeingProcessed[i].ignitionLine == (yabsys.LineCount+1)) {
+        if (!((cmdBufferBeingProcessed[i].start_addr >= vdp1Ram_update_end) ||
+            (cmdBufferBeingProcessed[i].end_addr <= vdp1Ram_update_start))) {
+              needToCompose = 1;
+          if (Vdp1External.checkEDSR == 0) {
+            if (VIDCore->Vdp1RegenerateCmd != NULL) {
+              VIDCore->Vdp1RegenerateCmd(&cmdBufferBeingProcessed[i].cmd);
+            }
+          }
+        }
+        cmdBufferBeingProcessed[i].ignitionLine = -1;
+      }
+    }
+    nbCmdToProcess = 0;
+    if (needToCompose == 1) {
+      //We need to evaluate end line and not ignition line? It is improving doom if we better take care of the concurrency betwwen vdp1 update and command list"
+      vdp1Ram_update_start = 0x80000;
+      vdp1Ram_update_end = 0x0;
+      if (VIDCore != NULL) {
+        if (VIDCore->composeVDP1 != NULL) VIDCore->composeVDP1();
+      }
+      Vdp1Regs->regs.COPR = Vdp1Regs->lCOPR;
+    }
+  }
+  if(yabsys.LineCount == 0) {
+    startField();
+  }
+  if (Vdp1Regs->regs.PTMR == 0x1){
+    if (Vdp1External.plot_trigger_line == yabsys.LineCount){
+      if(Vdp1External.plot_trigger_done == 0) {
+        vdp1_clock = 0;
+        RequestVdp1ToDraw();
+        Vdp1External.plot_trigger_done = 1;
+      }
+    }
+  }
+  #if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
+    if (VIDCore != NULL && VIDCore->id != VIDCORE_SOFT) YglTMCheck();
+  #endif
+}
+//////////////////////////////////////////////////////////////////////////////
+static void Vdp1HBlankOUT(void)
+{
+  vdp1_clock += getVdp1CyclesPerLine();
+  Vdp1TryDraw();
+}
+//////////////////////////////////////////////////////////////////////////////
+static void Vdp1VBlankIN(void)
+{
+}
+//////////////////////////////////////////////////////////////////////////////
+static void Vdp1VBlankOUT(void)
+{
+  //Out of VBlankOut : Break Batman
+  if (needVBlankErase()) {
+    int id = 0;
+    if (_Ygl != NULL) id = _Ygl->readframe;
+    Vdp1EraseWrite(id);
+  }
+}
