@@ -49,6 +49,7 @@ VideoInterface_struct *VIDCore=NULL;
 extern VideoInterface_struct *VIDCoreList[];
 
 Vdp1 * Vdp1Regs;
+static Vdp1 latchedRegs;
 Vdp1External_struct Vdp1External;
 
 vdp1cmdctrl_struct cmdBufferBeingProcessed[CMD_QUEUE_SIZE];
@@ -443,60 +444,42 @@ static void Vdp1TryDraw(void) {
 }
 
 void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
-  u16 oldPTMR = 0;
   addr &= 0xFF;
   switch(addr) {
     case 0x0:
       if ((Vdp1Regs->regs.FBCR & 3) != 3) val = (val & (~0x4));
       Vdp1Regs->regs.TVMR = val;
-      updateTVMRMode();
-      FRAMELOG("TVMR => Write VBE=%d FCM=%d FCT=%d line = %d\n", (Vdp1Regs->regs.TVMR >> 3) & 0x01, (Vdp1Regs->regs.FBCR & 0x02) >> 1, (Vdp1Regs->regs.FBCR & 0x01),  yabsys.LineCount);
+      Vdp1Regs->dirty.TVMR = 1;
     break;
     case 0x2:
       Vdp1Regs->regs.FBCR = val;
-      FRAMELOG("FBCR => Write VBE=%d FCM=%d FCT=%d line = %d\n", (Vdp1Regs->regs.TVMR >> 3) & 0x01, (Vdp1Regs->regs.FBCR & 0x02) >> 1, (Vdp1Regs->regs.FBCR & 0x01),  yabsys.LineCount);
-      updateFBCRMode();
+      Vdp1Regs->dirty.FBCR = 1;
       break;
     case 0x4:
-      FRAMELOG("Write PTMR %X line = %d %d\n", val, yabsys.LineCount, yabsys.VBlankLineCount);
       if ((val & 0x3)==0x3) {
-        //Skeleton warriors is writing 0xFFF to PTMR. It looks like the behavior is 0x2
           val = 0x2;
       }
-      oldPTMR = Vdp1Regs->regs.PTMR;
       Vdp1Regs->regs.PTMR = val;
-      Vdp1External.plot_trigger_line = -1;
-      Vdp1External.plot_trigger_done = 0;
-      if (val == 1){
-        FRAMELOG("VDP1: VDPEV_DIRECT_DRAW\n");
-        Vdp1External.plot_trigger_line = yabsys.LineCount;
-        abortVdp1();
-        RequestVdp1ToDraw();
-        Vdp1TryDraw();
-        Vdp1External.plot_trigger_done = 1;
-      }
-      if ((val == 0x2) && (oldPTMR == 0x0)){
-        FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
-        abortVdp1();
-        RequestVdp1ToDraw();
-        Vdp1TryDraw();
-      }
+      Vdp1Regs->dirty.PTMR = 1;
       break;
-      case 0x6:
-         Vdp1Regs->regs.EWDR = val;
-         break;
-      case 0x8:
-         Vdp1Regs->regs.EWLR = val;
-         break;
-      case 0xA:
-         Vdp1Regs->regs.EWRR = val;
-         break;
-      case 0xC:
-         Vdp1Regs->regs.ENDR = val;
-         abortVdp1();
-         break;
-      default:
-         LOG("trying to write a Vdp1 read-only register - %08X\n", addr);
+    case 0x6:
+       Vdp1Regs->regs.EWDR = val;
+       Vdp1Regs->dirty.EWDR = 1;
+       break;
+    case 0x8:
+       Vdp1Regs->regs.EWLR = val;
+       Vdp1Regs->dirty.EWLR = 1;
+       break;
+    case 0xA:
+       Vdp1Regs->regs.EWRR = val;
+       Vdp1Regs->dirty.EWRR = 1;
+       break;
+    case 0xC:
+       Vdp1Regs->regs.ENDR = val;
+       Vdp1Regs->dirty.ENDR = 1;
+       break;
+    default:
+       LOG("trying to write a Vdp1 read-only register - %08X\n", addr);
    }
 }
 
@@ -2653,4 +2636,40 @@ void Vdp1VBlankOUT(void)
     if (_Ygl != NULL) id = _Ygl->readframe;
     Vdp1EraseWrite(id);
   }
+}
+
+void vdp1Exec(int us) {
+    if (Vdp1Regs->dirty.TVMR) {
+      updateTVMRMode();
+      FRAMELOG("TVMR => Write VBE=%d FCM=%d FCT=%d line = %d\n", (Vdp1Regs->regs.TVMR >> 3) & 0x01, (Vdp1Regs->regs.FBCR & 0x02) >> 1, (Vdp1Regs->regs.FBCR & 0x01),  yabsys.LineCount);
+    }
+    if (Vdp1Regs->dirty.FBCR) {
+      FRAMELOG("FBCR => Write VBE=%d FCM=%d FCT=%d line = %d\n", (Vdp1Regs->regs.TVMR >> 3) & 0x01, (Vdp1Regs->regs.FBCR & 0x02) >> 1, (Vdp1Regs->regs.FBCR & 0x01),  yabsys.LineCount);
+      updateFBCRMode();
+    }
+    if (Vdp1Regs->dirty.PTMR) {
+      u16 oldPTMR = latchedRegs.regs.PTMR;
+      latchedRegs.regs.PTMR = Vdp1Regs->regs.PTMR;
+      Vdp1External.plot_trigger_line = -1;
+      Vdp1External.plot_trigger_done = 0;
+      if (Vdp1Regs->regs.PTMR == 1){
+        FRAMELOG("VDP1: VDPEV_DIRECT_DRAW\n");
+        Vdp1External.plot_trigger_line = yabsys.LineCount;
+        abortVdp1();
+        RequestVdp1ToDraw();
+        Vdp1TryDraw();
+        Vdp1External.plot_trigger_done = 1;
+      }
+      if ((Vdp1Regs->regs.PTMR == 0x2) && (oldPTMR == 0x0)){
+        FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
+        abortVdp1();
+        RequestVdp1ToDraw();
+        Vdp1TryDraw();
+      }
+    }
+    if (Vdp1Regs->dirty.ENDR) {
+      abortVdp1();
+    }
+    Vdp1Regs->dirtyState = 0;
+    memcpy(&latchedRegs.regs, &Vdp1Regs->regs, sizeof(Vdp1_regs));
 }

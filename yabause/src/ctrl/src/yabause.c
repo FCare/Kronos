@@ -772,6 +772,10 @@ int YabauseEmulate(void) {
 #endif
 
      yabsys.DecilineCount++;
+
+     yabsys.UsecFrac += usecinc;
+     vdp1Exec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
+
      if(yabsys.DecilineCount == HBLANK_IN_STEP)
      {
         // HBlankIN
@@ -818,11 +822,11 @@ int YabauseEmulate(void) {
          }
       }
 
+
       PROFILE_START("SCU");
       ScuExec((yabsys.DecilineStop>>YABSYS_TIMING_BITS) / 2);
       PROFILE_STOP("SCU");
 
-      yabsys.UsecFrac += usecinc;
       PROFILE_START("SMPC");
       SmpcExec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
       PROFILE_STOP("SMPC");

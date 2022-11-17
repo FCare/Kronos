@@ -49,6 +49,22 @@ typedef struct {
 } Vdp1_regs;
 typedef struct {
   Vdp1_regs regs;
+  union {
+    struct{
+      u16 TVMR : 1;
+      u16 FBCR : 1;
+      u16 PTMR : 1;
+      u16 EWDR : 1;
+      u16 EWLR : 1;
+      u16 EWRR : 1;
+      u16 ENDR : 1;
+      u16 EDSR : 1;
+      u16 LOPR : 1;
+      u16 COPR : 1;
+      u16 MODR : 1;
+    } dirty;
+    u16 dirtyState;
+  };
   u16 lCOPR;
    u32 addr;
 
@@ -226,6 +242,8 @@ int VideoChangeCore(int coreid);
 void VideoDeInit(void);
 void Vdp1Reset(void);
 int VideoSetSetting(int type, int value);
+
+void vdp1Exec(int us);
 
 u8 FASTCALL	Vdp1ReadByte(SH2_struct *context, u8*, u32);
 u16 FASTCALL	Vdp1ReadWord(SH2_struct *context, u8*, u32);
