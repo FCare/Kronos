@@ -8,6 +8,9 @@ static int lastHash = -1;
 static vdp1cmd_struct * usrClipCmd = NULL;
 static vdp1cmd_struct * sysClipCmd = NULL;
 static vdp1cmd_struct * localCoordCmd = NULL;
+static vdp1cmdctrl_struct cmdBufferBeingProcessed[CMD_QUEUE_SIZE];
+static int vdp1Ram_update_start;
+static int vdp1Ram_update_end;
 
 //////////////////////////////////////////////////////////////////////////////
 static void RequestVdp1ToDraw() {

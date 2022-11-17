@@ -53,15 +53,12 @@
 extern void addVdp1Framecount ();
 
 u8 * Vdp1Ram;
-int vdp1Ram_update_start;
-int vdp1Ram_update_end;
 int VDP1_MASK = 0xFFFF;
 
 Vdp1 * Vdp1Regs;
-Vdp1External_struct Vdp1External;
-vdp1cmdctrl_struct cmdBufferBeingProcessed[CMD_QUEUE_SIZE];
+Vdp1External_struct Vdp1External; //Only VDP1External shall be exported
 
-int vdp1_clock = 0;
+int vdp1_clock = 0; //Shall be part of vdp1external
 
 #include "vdp1static.c"
 
