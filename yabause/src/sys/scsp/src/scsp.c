@@ -135,8 +135,9 @@ s32 new_scsp_outbuf_r[900] = { 0 };
 int new_scsp_cycles = 0;
 int g_scsp_lock = 0;
 
-static volatile int fps = 60;
+static int nbLine = 1;
 
+static volatile int fps = 60;
 
 #include "sh2core.h"
 
@@ -5354,9 +5355,10 @@ void* ScspAsynMainCpu( void * p ){
     next = start + (loop*yabsys.tickfreq) / (44100);
 
     m68k_inc += (cycleRequest);
-    int nbLine = 1;
+    nbLine = 1;
     while (m68k_inc >= samplecnt)
     {
+#ifdef SLEEP_ON_SCSP_LINE
       now = YabauseGetTicks();
       unsigned long delay = 0;
       if (now < next) {
@@ -5368,7 +5370,7 @@ void* ScspAsynMainCpu( void * p ){
         delay = now - next;
       loop++;
       next = start - delay + (loop*yabsys.tickfreq) / (44100);
-
+#endif
       m68k_inc = m68k_inc - samplecnt;
       MM68KExec(samplecnt);
       new_scsp_exec((samplecnt << 1));

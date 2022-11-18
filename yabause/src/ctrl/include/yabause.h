@@ -111,6 +111,9 @@ void DisableAutoFrameSkip(void);
 
 #define DECILINE_STEP (20)
 
+// #define SCSP_SYNC_PER_LINE
+// #define SLEEP_ON_SCSP_LINE
+
 typedef struct
 {
    int DecilineCount;

@@ -833,8 +833,9 @@ int YabauseEmulate(void) {
 
       PROFILE_STOP("Total Emulation");
    }
-
-   // syncVideoMode();
+#ifndef SLEEP_ON_SCSP_LINE
+   syncVideoMode();
+#endif
    FPSDisplay();
 
 #ifdef YAB_STATICS
