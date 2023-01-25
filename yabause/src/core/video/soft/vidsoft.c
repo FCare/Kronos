@@ -145,6 +145,7 @@ VIDSoftVdp2DispOff,
 NULL,
 NULL,
 VIDSoftGenFrameBuffer,
+NULL,
 NULL
 };
 

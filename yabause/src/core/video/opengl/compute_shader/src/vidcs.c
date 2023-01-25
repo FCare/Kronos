@@ -106,6 +106,7 @@ void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_
 void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
 void VIDCSVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1DrawFB(void);
 extern void YglCSRender(Vdp2 *varVdp2Regs);
 extern void YglCSRenderVDP1(void);
 extern void YglCSFinsihDraw(void);
@@ -161,7 +162,8 @@ VIDOGLVdp2DispOff,
 YglCSRender,
 YglCSRenderVDP1,
 YglGenFrameBuffer,
-YglCSFinsihDraw
+YglCSFinsihDraw,
+VIDCSVdp1DrawFB
 };
 
 void addCSCommands(vdp1cmd_struct* cmd, int type)
@@ -366,6 +368,23 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   vdp1_add(cmd,1);
   regs->systemclipX2 = cmd->CMDXC;
   regs->systemclipY2 = cmd->CMDYC;
+}
+
+void VIDCSVdp1DrawFB(void) {
+  vdp1cmd_struct cmd = {0};
+  int height = 256;
+  cmd.type = FB_WRITE;
+  cmd.CMDPMOD = 0;
+  cmd.CMDXA = 0;
+  cmd.CMDYA = 0;
+  cmd.CMDXB = 512;
+  cmd.CMDYB = 0;
+  cmd.CMDXC = 512;
+  cmd.CMDYC = height;
+  cmd.CMDXD = 0;
+  cmd.CMDYC = height;
+
+  vdp1_add(&cmd,0);
 }
 
 #endif

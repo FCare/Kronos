@@ -121,12 +121,12 @@ extern int WinS[enBGMAX+1];
 extern int WinS_mode[enBGMAX+1];
 
 static void YglSetVDP1FB(int i){
-  if (_Ygl->vdp1IsNotEmpty != 0) {
-    _Ygl->vdp1On[i] = 1;
-    // Arevoir ca risque de ne pas fonctionner
-    vdp1_set_directFB();
-    _Ygl->vdp1IsNotEmpty = 0;
-  }
+  // if (_Ygl->vdp1IsNotEmpty != 0) {
+  //   _Ygl->vdp1On[i] = 1;
+  //   // Arevoir ca risque de ne pas fonctionner
+  //   vdp1_set_directFB();
+  //   _Ygl->vdp1IsNotEmpty = 0;
+  // }
 }
 
 static void YglUpdateVDP1FB(void) {
@@ -417,55 +417,55 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
   return;
 }
 
-static u32* getVdp1DrawingFBMem() {
-	if (manualfb == NULL) {
-    YglGenFrameBuffer(0);
-		vdp1_compute();
-	  manualfb = vdp1_read();
-	}
-	return manualfb;
-}
+// static u32* getVdp1DrawingFBMem() {
+// 	if (manualfb == NULL) {
+//     YglGenFrameBuffer(0);
+// 		vdp1_compute();
+// 	  manualfb = vdp1_read();
+// 	}
+// 	return manualfb;
+// }
 
 
 void YglCSVdp1WriteFrameBuffer(u32 type, u32 addr, u32 val )
 {
-  u16 full = 0;
-  _Ygl->vdp1fb_buf =  getVdp1DrawingFBMem();
-  switch (type)
-  {
-  case 0:
-    full = T1ReadLong((u8*)_Ygl->vdp1fb_buf, (addr&(~0x1))*2);
-    if (addr & 0x1) full = (full & 0xFF00) | (val& 0xFF);
-    else full = (full & 0xFF) | ((val& 0xFF) << 8);
-    T1WriteLong((u8 *)_Ygl->vdp1fb_buf, (addr&(~0x1))*2, VDP1COLORFB(full&0xFFFF));
-    break;
-  case 1:
-    T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2, VDP1COLORFB(val&0xFFFF));
-    break;
-  case 2:
-    T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2+4, VDP1COLORFB(val&0xFFFF));
-    T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2, VDP1COLORFB((val>>16)&0xFFFF));
-    break;
-  default:
-    break;
-  }
-  _Ygl->vdp1IsNotEmpty = 1;
+  // u16 full = 0;
+  // _Ygl->vdp1fb_buf =  getVdp1DrawingFBMem();
+  // switch (type)
+  // {
+  // case 0:
+  //   full = T1ReadLong((u8*)_Ygl->vdp1fb_buf, (addr&(~0x1))*2);
+  //   if (addr & 0x1) full = (full & 0xFF00) | (val& 0xFF);
+  //   else full = (full & 0xFF) | ((val& 0xFF) << 8);
+  //   T1WriteLong((u8 *)_Ygl->vdp1fb_buf, (addr&(~0x1))*2, VDP1COLORFB(full&0xFFFF));
+  //   break;
+  // case 1:
+  //   T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2, VDP1COLORFB(val&0xFFFF));
+  //   break;
+  // case 2:
+  //   T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2+4, VDP1COLORFB(val&0xFFFF));
+  //   T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2, VDP1COLORFB((val>>16)&0xFFFF));
+  //   break;
+  // default:
+  //   break;
+  // }
+  // _Ygl->vdp1IsNotEmpty = 1;
 }
 
 void YglCSVdp1ReadFrameBuffer(u32 type, u32 addr, void * out) {
-  _Ygl->vdp1fb_buf_read =  getVdp1DrawingFBMem();
-  switch (type)
-  {
-  case 0:
-    *(u8*)out = 0x0;
-    break;
-  case 1:
-    *(u16*)out = T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2) & 0xFFFF;
-    break;
-  case 2:
-    *(u32*)out = ((T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2)&0xFFFF)<<16)|((T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2+4)&0xFFFF));
-    break;
-  default:
-    break;
-  }
+  // _Ygl->vdp1fb_buf_read =  getVdp1DrawingFBMem();
+  // switch (type)
+  // {
+  // case 0:
+  //   *(u8*)out = 0x0;
+  //   break;
+  // case 1:
+  //   *(u16*)out = T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2) & 0xFFFF;
+  //   break;
+  // case 2:
+  //   *(u32*)out = ((T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2)&0xFFFF)<<16)|((T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2+4)&0xFFFF));
+  //   break;
+  // default:
+  //   break;
+  // }
 }

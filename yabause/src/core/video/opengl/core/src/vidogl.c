@@ -129,6 +129,7 @@ void VIDOGLVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_fra
 void VIDOGLVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDOGLVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDOGLVdp1LocalCoordinate(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDOGLVdp1DrawFB(void);
 int VIDOGLVdp2Reset(void);
 void VIDOGLVdp2Draw(void);
 static void VIDOGLVdp2DrawScreens(void);
@@ -181,7 +182,8 @@ VIDOGLVdp2DispOff,
 YglRender,
 NULL, // YglComposeVdp1,
 YglGenFrameBuffer,
-NULL
+NULL,
+VIDOGLVdp1DrawFB
 };
 
 static int vdp1_interlace = 0;
@@ -4429,6 +4431,11 @@ void VIDOGLVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   regs->userclipY1 = cmd->CMDYA;
   regs->userclipX2 = cmd->CMDXC+1;
   regs->userclipY2 = cmd->CMDYC+1;
+
+}
+
+//////////////////////////////////////////////////////////////////////////////
+void VIDOGLVdp1DrawFB(void) {
 
 }
 

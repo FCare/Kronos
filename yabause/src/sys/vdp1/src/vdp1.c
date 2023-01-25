@@ -40,10 +40,14 @@
 
 // #define DEBUG_CMD_LIST
 
+#define PRINT_FB
+
 u8 * Vdp1Ram;
 int vdp1Ram_update_start;
 int vdp1Ram_update_end;
 int VDP1_MASK = 0xFFFF;
+
+extern u32* getVDP1Framebuffer();
 
 VideoInterface_struct *VIDCore=NULL;
 extern VideoInterface_struct *VIDCoreList[];
@@ -151,73 +155,69 @@ void FASTCALL Vdp1RamWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 val) 
 //////////////////////////////////////////////////////////////////////////////
 
 u8 FASTCALL Vdp1FrameBufferReadByte(SH2_struct *context, u8* mem, u32 addr) {
-   addr &= 0x3FFFF;
-   if (VIDCore->Vdp1ReadFrameBuffer){
-     u8 val;
-     VIDCore->Vdp1ReadFrameBuffer(0, addr, &val);
-     return val;
-   }
+   // addr &= 0x3FFFF;
+   // if (VIDCore->Vdp1ReadFrameBuffer){
+   //   u8 val;
+   //   VIDCore->Vdp1ReadFrameBuffer(0, addr, &val);
+   //   return val;
+   // }
    return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 u16 FASTCALL Vdp1FrameBufferReadWord(SH2_struct *context, u8* mem, u32 addr) {
-   addr &= 0x3FFFF;
-   if (VIDCore->Vdp1ReadFrameBuffer){
-     u16 val;
-     VIDCore->Vdp1ReadFrameBuffer(1, addr, &val);
-     return val;
-   }
+   // addr &= 0x3FFFF;
+   // if (VIDCore->Vdp1ReadFrameBuffer){
+   //   u16 val;
+   //   VIDCore->Vdp1ReadFrameBuffer(1, addr, &val);
+   //   return val;
+   // }
    return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 u32 FASTCALL Vdp1FrameBufferReadLong(SH2_struct *context, u8* mem, u32 addr) {
-   addr &= 0x3FFFF;
-   if (VIDCore->Vdp1ReadFrameBuffer){
-     u32 val;
-     VIDCore->Vdp1ReadFrameBuffer(2, addr, &val);
-     return val;
-   }
+   // addr &= 0x3FFFF;
+   // if (VIDCore->Vdp1ReadFrameBuffer){
+   //   u32 val;
+   //   VIDCore->Vdp1ReadFrameBuffer(2, addr, &val);
+   //   return val;
+   // }
    return 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
-   addr &= 0x7FFFF;
-
-   if (VIDCore->Vdp1WriteFrameBuffer)
-   {
-      if (addr < 0x40000) VIDCore->Vdp1WriteFrameBuffer(0, addr, val);
-      return;
-   }
+   addr &= 0x3FFFF;
+   u32* buf = getVDP1Framebuffer();
+   PRINT_FB("W B 0x%x@0x%x\n", val, addr);
+   buf[addr] = (val&0xFF)|0xFF000000;
+   // buf[(addr<<1)+1] = 0x80;
+   _Ygl->vdp1IsNotEmpty = 1;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
-  addr &= 0x7FFFF;
-
-   if (VIDCore->Vdp1WriteFrameBuffer)
-   {
-      if (addr < 0x40000) VIDCore->Vdp1WriteFrameBuffer(1, addr, val);
-      return;
-   }
+  addr &= 0x3FFFF;
+   u32* buf = getVDP1Framebuffer();
+   PRINT_FB("W W 0x%x@0x%x\n", val, addr);
+   buf[addr>>1] = (val&0xFFFF)|0xFF000000;
+   _Ygl->vdp1IsNotEmpty = 1;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 val) {
-  addr &= 0x7FFFF;
-
-   if (VIDCore->Vdp1WriteFrameBuffer)
-   {
-     if (addr < 0x40000) VIDCore->Vdp1WriteFrameBuffer(2, addr, val);
-     return;
-   }
+  addr &= 0x3FFFF;
+   u32* buf = getVDP1Framebuffer();
+   PRINT_FB("W L 0x%x@0x%x\n", val, addr);
+   buf[(addr>>2)] = (val&0xFFFF)|0xFF000000;
+   buf[(addr>>2)+2] = ((val>>16)&0xFFFF)|0xFF000000;
+   _Ygl->vdp1IsNotEmpty = 1;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -437,6 +437,7 @@ static void updateFBCRMode() {
 }
 
 static void Vdp1TryDraw(void) {
+  //|| ((yabsys.LineCount == yabsys.MaxLineCount-1) &&  (_Ygl->vdp1IsNotEmpty != 0))
   if ((needVdp1draw == 1)) {
     needVdp1draw = Vdp1Draw();
   }
@@ -569,6 +570,14 @@ static void checkClipCmd(vdp1cmd_struct **sysClipCmd, vdp1cmd_struct **usrClipCm
       *localCoordCmd = NULL;
     }
   }
+}
+
+static int Vdp1FBDraw(void) {
+  if (VIDCore->Vdp1FBDraw){
+    VIDCore->Vdp1FBDraw();
+  }
+  updateVdp1DrawingFBMem();
+  return 1;
 }
 
 static int Vdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer){
@@ -1206,6 +1215,7 @@ static int lastHash = -1;
 void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
 {
   int cylesPerLine  = getVdp1CyclesPerLine();
+ vdp1cmdctrl_struct *ctrl = NULL;
   if (Vdp1External.status == VDP1_STATUS_IDLE) {
     #if 0
     int newHash = EvaluateCmdListHash(regs);
@@ -1249,7 +1259,16 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
       return; // address error
     }
 
-   u16 command = Vdp1RamReadWord(NULL, ram, regs->addr);
+    if (_Ygl->vdp1IsNotEmpty) {
+      printf("Needs to add a FB Write Quad\n");
+      _Ygl->vdp1IsNotEmpty = 0;
+      ctrl = &cmdBufferBeingProcessed[nbCmdToProcess];
+      ctrl->dirty = 0;
+      ctrl->ignitionLine = MIN(yabsys.LineCount + yabsys.vdp1cycles/cylesPerLine,yabsys.MaxLineCount-1);
+      nbCmdToProcess += Vdp1FBDraw();
+    }
+    u16 command = Vdp1RamReadWord(NULL, ram, regs->addr);
+
 
    FRAMELOG("Command is 0x%x @ 0x%x available cycles %d\n", command, regs->addr, vdp1_clock);
 
@@ -1268,7 +1287,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
       regs->COPR = (regs->addr & 0x7FFFF) >> 3;
       // First, process the command
       if (!(command & 0x4000)) { // if (!skip)
-         vdp1cmdctrl_struct *ctrl = NULL;
+         ctrl = NULL;
          int ret;
          if (vdp1_clock <= 0) {
            //No more clock cycle, wait next line

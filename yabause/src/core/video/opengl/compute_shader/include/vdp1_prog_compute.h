@@ -21,8 +21,9 @@ extern "C" {
 #define LINE 3
 #define DISTORTED 4
 #define QUAD 5
-#define SYSTEM_CLIPPING 6
-#define USER_CLIPPING 7
+#define FB_WRITE 6
+#define SYSTEM_CLIPPING 7
+#define USER_CLIPPING 8
 
 #define NB_COARSE_RAST_X 16
 #define NB_COARSE_RAST_Y 16
@@ -223,6 +224,7 @@ SHADER_VERSION_COMPUTE
 "layout(local_size_x = "Stringify(LOCAL_SIZE_X)", local_size_y = "Stringify(LOCAL_SIZE_Y)") in;\n"
 "layout(rgba8, binding = 0) writeonly uniform image2D outSurface;\n"
 "layout(rgba8, binding = 1) writeonly uniform image2D meshSurface;\n"
+"layout(rgba8, binding = 2) readonly uniform image2D FBSurface;\n"
 "layout(std430, binding = 3) readonly buffer VDP1RAM { uint Vdp1Ram[]; };\n"
 "layout(std430, binding = 4) readonly buffer NB_CMD { uint nbCmd[]; };\n"
 "layout(std430, binding = 5) readonly buffer CMD { \n"
@@ -235,6 +237,7 @@ SHADER_VERSION_COMPUTE
 "layout(location = 8) uniform ivec2 sysClip;\n"
 "layout(location = 9) uniform ivec4 usrClip;\n"
 "layout(location = 10) uniform mat4 rot;\n"
+
 //===================================================================
 "vec3 antiAliasedPoint( vec2 P,  vec2 P0, vec2 P1 )\n"
 // dist_Point_to_Segment(): get the distance of a point to a segment
@@ -326,8 +329,16 @@ SHADER_VERSION_COMPUTE
 // "  }\n"
 // "  return 0u;\n"
 "}\n"
+"uint isFBOverwrite( vec2 P,out vec4 pixOut) {\n"
+"    vec4 pix = imageLoad(FBSurface, ivec2(vec2(P.x,P.y)));\n"
+"    if (pix.a > 0.0) { \n"
+"      pixOut = vec4(pix.rg, 0.0,0.0); \n"
+"      return 1u;\n"
+"    }\n"
+"    return 0u;\n"
+"}\n"
 
-"uint pixIsInside (vec2 Pin, uint idx, out vec2 uv){\n"
+"uint pixIsInside (vec2 Pin, uint idx, out vec2 uv, out vec4 pixOut){\n"
 "  vec2 Quad[4];\n"
 "  if (cmd[idx].type >= "Stringify(SYSTEM_CLIPPING)") return 6u;\n"
 "//Bounding box test\n"
@@ -336,7 +347,7 @@ SHADER_VERSION_COMPUTE
 "  Quad[1] = vec2(cmd[idx].CMDXB,cmd[idx].CMDYB)*upscale;\n"
 "  Quad[2] = vec2(cmd[idx].CMDXC,cmd[idx].CMDYC)*upscale;\n"
 "  Quad[3] = vec2(cmd[idx].CMDXD,cmd[idx].CMDYD)*upscale;\n"
-
+"  if (cmd[idx].type == "Stringify(FB_WRITE)") return isFBOverwrite(Pin, pixOut);\n"
 "  if ((cmd[idx].type == "Stringify(DISTORTED)") || (cmd[idx].type == "Stringify(POLYGON)")) {\n"
 "    return isOnAQuadLine(Pin, Quad[0], Quad[1], Quad[2], Quad[3], vec2(cmd[idx].uAstepx, cmd[idx].uAstepy)*upscale, vec2(cmd[idx].uBstepx, cmd[idx].uBstepy)*upscale, uint(float(cmd[idx].nbStep)), uv);\n"
 "  } else {\n"
@@ -355,11 +366,11 @@ SHADER_VERSION_COMPUTE
 "  return 0u;\n"
 "}\n"
 
-"int getCmd(vec2 P, uint id, uint start, uint end, out uint zone, bool wait_sysclip, out vec2 uv)\n"
+"int getCmd(vec2 P, uint id, uint start, uint end, out uint zone, bool wait_sysclip, out vec2 uv, out vec4 pixOut)\n"
 "{\n"
 "  for(uint i=id+start; i<id+end; i++) {\n"
 "     if (wait_sysclip && (cmd[cmdNb[i]].type != "Stringify(SYSTEM_CLIPPING)")) continue;"
-"     zone = pixIsInside(P, cmdNb[i], uv);\n"
+"     zone = pixIsInside(P, cmdNb[i], uv, pixOut);\n"
 "     if (zone != 0u) {\n"
 "       return int(i);\n"
 "     }\n"
@@ -518,6 +529,7 @@ SHADER_VERSION_COMPUTE
 "  vec4 meshColor = vec4(0.0);\n"
 "  vec4 newColor = vec4(0.0);\n"
 "  vec4 outColor = vec4(0.0);\n"
+"  vec4 pixFB = vec4(0.0);\n"
 "  vec3 tag = vec3(0.0);\n"
 "  cmdparameter_struct pixcmd;\n"
 "  bool discarded = false;\n"
@@ -548,7 +560,7 @@ SHADER_VERSION_COMPUTE
 "    newColor = vec4(0.0);\n"
 "    outColor = vec4(0.0);\n"
 "    texel = OriginTexel;\n"
-"    cmdindex = getCmd(texel, cmdIndex, idCmd, nbCmd[lindex], zone, waitSysClip, uv);\n"
+"    cmdindex = getCmd(texel, cmdIndex, idCmd, nbCmd[lindex], zone, waitSysClip, uv, pixFB);\n"
 "    if (cmdindex == -1) continue;\n"
 "    idCmd = cmdindex + 1 - cmdIndex;\n"
 "    pixcmd = cmd[cmdNb[cmdindex]];\n"
@@ -577,10 +589,14 @@ SHADER_VERSION_COMPUTE
 "    gouraudcoord = texcoord;\n"
 "    if ((pixcmd.flip & 0x1u) == 0x1u) texcoord.x = 1.0 - texcoord.x;\n" //invert horizontally
 "    if ((pixcmd.flip & 0x2u) == 0x2u) texcoord.y = 1.0 - texcoord.y - 1.0f/float(pixcmd.h);\n" //invert vertically
-"    if (pixcmd.type <= "Stringify(LINE)") {\n"
-"      newColor = extractPolygonColor(pixcmd);\n"
-"    } else if (pixcmd.type <= "Stringify(QUAD)") {\n"
-"      newColor = ReadSpriteColor(pixcmd, texcoord, texel, discarded);\n"
+"    if (pixcmd.type == "Stringify(FB_WRITE)") {\n"
+"       newColor = pixFB;\n"
+"    } else {\n"
+"     if (pixcmd.type <= "Stringify(LINE)") {\n"
+"       newColor = extractPolygonColor(pixcmd);\n"
+"     } else if (pixcmd.type <= "Stringify(QUAD)") {\n"
+"       newColor = ReadSpriteColor(pixcmd, texcoord, texel, discarded);\n"
+"     }\n"
 "    }\n"
 "    if (discarded) continue;\n"
 "    else drawn = true;\n"
