@@ -588,11 +588,14 @@ void vdp1_write() {
   glUseProgram(prg_vdp1[progId]);
 
 	glBindImageTexture(0, get_vdp1_tex(_Ygl->drawframe), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_vdp1access_);
+	glBindImageTexture(1, _Ygl->vdp1AccessTex, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 	glUniform2f(2, wratio, hratio);
 
 	glDispatchCompute(work_groups_x, work_groups_y, 1); //might be better to launch only the right number of workgroup
 	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+  nbCmd[0] = 1;
+	hasDrawingCmd[0] = 1;
 }
 
 u32* vdp1_read() {
@@ -746,7 +749,6 @@ void vdp1_compute() {
 
 	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glBindImageTexture(1, mesh_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-
 	glBindImageTexture(2, _Ygl->vdp1AccessTex, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_vdp1ram_[_Ygl->drawframe]);
@@ -789,6 +791,7 @@ void vdp1_compute() {
 
 	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+	glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
   memset(nbCmd, 0, NB_COARSE_RAST*sizeof(int));
 	nbCmdToProcess = 0;
 	memset(hasDrawingCmd, 0, NB_COARSE_RAST*sizeof(int));

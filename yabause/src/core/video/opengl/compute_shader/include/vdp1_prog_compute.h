@@ -42,7 +42,7 @@ SHADER_VERSION_COMPUTE
 "#endif\n"
 "layout(local_size_x = "Stringify(LOCAL_SIZE_X)", local_size_y = "Stringify(LOCAL_SIZE_Y)") in;\n"
 "layout(rgba8, binding = 0) writeonly uniform image2D outSurface;\n"
-"layout(std430, binding = 1) readonly buffer VDP1FB { uint Vdp1FB[]; };\n"
+"layout(rgba8, binding = 1) readonly uniform image2D fbSurface;\n"
 "layout(location = 2) uniform vec2 upscale;\n"
 "void main()\n"
 "{\n"
@@ -51,10 +51,8 @@ SHADER_VERSION_COMPUTE
 "  int x = int(texel.x * upscale.x);\n"
 "  int y = int(texel.y * upscale.y);\n"
 "  if (x >= 512 || y >= 256 ) return;\n"
-"  int idx = int(x) + int(255 - y)*512;\n"
-"  float g = float((Vdp1FB[idx] >> 24) & 0xFFu)/255.0;\n"
-"  float r = float((Vdp1FB[idx] >> 16) & 0xFFu)/255.0;\n"
-"  imageStore(outSurface,texel,vec4(g, r, 0.0, 0.0));\n"
+"  vec4 pix = imageLoad(fbSurface, ivec2(vec2(x,255-y)));\n"
+"  if (pix.a != 0.0) imageStore(outSurface,texel,vec4(pix.r, pix.g, 0.0, 0.0));\n"
 "}\n";
 
 static const char vdp1_read_f[] =
@@ -330,7 +328,7 @@ SHADER_VERSION_COMPUTE
 // "  return 0u;\n"
 "}\n"
 "uint isFBOverwrite( vec2 P,out vec4 pixOut) {\n"
-"    vec4 pix = imageLoad(FBSurface, ivec2(vec2(P.x,P.y)));\n"
+"    vec4 pix = imageLoad(FBSurface, ivec2(vec2(P.x,P.y)/upscale));\n"
 "    if (pix.a > 0.0) { \n"
 "      pixOut = vec4(pix.rg, 0.0,0.0); \n"
 "      return 1u;\n"

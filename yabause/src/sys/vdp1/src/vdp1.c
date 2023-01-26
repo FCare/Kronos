@@ -214,9 +214,9 @@ void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u
 void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 val) {
   addr &= 0x3FFFF;
    u32* buf = getVDP1Framebuffer();
-   PRINT_FB("W L 0x%x@0x%x\n", val, addr);
-   buf[(addr>>2)] = (val&0xFFFF)|0xFF000000;
-   buf[(addr>>2)+2] = ((val>>16)&0xFFFF)|0xFF000000;
+   PRINT_FB("W L 0x%x@0x%x %d\n", val, addr, Vdp1Regs->TVMR & 0x1);
+   buf[(addr>>1)] = ((val>>16)&0xFFFF)|0xFF000000;
+   buf[(addr>>1)+1] = (val&0xFFFF)|0xFF000000;
    _Ygl->vdp1IsNotEmpty = 1;
 }
 
