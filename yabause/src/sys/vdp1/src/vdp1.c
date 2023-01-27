@@ -2656,7 +2656,12 @@ void Vdp1StartVisibleLine(void)
         nbCmdToProcess += Vdp1FBDraw();
         needClearFB = 1;
       } else {
-        vdp1_write(); //A faire par core video
+        //Pas bien ca
+        //A faire par core video
+        if (VIDCore->id == 2)
+          vdp1_write();
+        else
+          vdp1_write_gl();
       }
       _Ygl->vdp1On[_Ygl->drawframe] = 1;
       _Ygl->vdp1IsNotEmpty = -1;

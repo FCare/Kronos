@@ -2108,9 +2108,9 @@ SHADER_VERSION
 "  addr.x = int( v_texcoord.x);          \n"
 "  addr.y = int(v_texcoord.y);          \n"
 "  vec4 tex = texelFetch( s_texture, addr,0 );         \n"
-"  if (all(equal(tex.rg,vec2(0.0)))) discard;   \n"
-"  fragColor.r = tex.a;         \n"
-"  fragColor.g = tex.b;         \n"
+"  if (tex.a == 0.0) discard;   \n"
+"  fragColor.r = tex.r;         \n"
+"  fragColor.g = tex.g;         \n"
 "  fragColor.b = 0.0;         \n"
 "  fragColor.a = 0.0;         \n"
 "}  \n";
@@ -2295,6 +2295,19 @@ int YglBlitVDP1(u32 srcTexture, float w, float h, int write) {
   glDisableVertexAttribArray(1);
 
   return 0;
+}
+
+void vdp1_write_gl() {
+  GLenum DrawBuffers[2]= {GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT2};
+  _Ygl->vdp1On[_Ygl->drawframe] = 1;
+  YglGenFrameBuffer(0);
+  glBindTexture(GL_TEXTURE_2D, _Ygl->vdp1AccessTex);
+  glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1fbo);
+  glDrawBuffers(1, (const GLenum*)&DrawBuffers[_Ygl->drawframe]);
+  glViewport(0,0, _Ygl->vdp1width, _Ygl->vdp1height);
+  YglBlitVDP1(_Ygl->vdp1AccessTex, 512, 256, 1);
+  // clean up
+  glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
 }
 
 //----------------------------------------------------------------------------------------
