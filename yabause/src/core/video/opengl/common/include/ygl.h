@@ -571,8 +571,8 @@ typedef struct {
    GLuint vdp1AccessTex;
    GLuint vdp1_pbo;
    GLuint vdp1IsNotEmpty;
-   u32* vdp1fb_buf;
-   u32* vdp1fb_buf_read;
+   u32* vdp1fb_write_buf;
+   u32* vdp1fb_read_buf;
    GLuint original_fbo;
    GLuint original_fbotex[NB_RENDER_LAYER];
 

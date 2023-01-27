@@ -28,7 +28,6 @@ extern int get_vdp1_mesh(int);
 extern int vdp1_add(vdp1cmd_struct* cmd, int clipcmd);
 extern void vdp1_clear(int id, float *col);
 extern u32* vdp1_get_directFB();
-extern void vdp1_set_directFB();
 extern void vdp1_setup(void);
 
 #ifdef __cplusplus

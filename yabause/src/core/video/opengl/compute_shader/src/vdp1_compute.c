@@ -481,7 +481,9 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	}
 	if (clipcmd == 0) {
 		if (cmd->type != FB_WRITE) vdp1GenerateBuffer(cmd);
-		else requireCompute = 1;
+		else {
+			requireCompute = 1;
+		}
 		if (_Ygl->meshmode != ORIGINAL_MESH) {
 			//Hack for Improved MESH
 			//Games like J.League Go Go Goal or Sailor Moon are using MSB shadow with VDP2 in RGB/Palette mode
@@ -665,16 +667,6 @@ void vdp1_compute_init(int width, int height, float ratiow, float ratioh)
 	return;
 }
 
-void vdp1_set_directFB() {
-	// if (_Ygl->vdp1IsNotEmpty == 1) {
-	// 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_vdp1access_);
-	// 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0x0, 512*256*4, (void*)(_Ygl->vdp1fb_buf));
-	// 	vdp1_write();
-	// 	_Ygl->vdp1On[_Ygl->drawframe] = 1;
-	// 	//vdp1_fb_map = NULL;
-	// 	_Ygl->vdp1IsNotEmpty = 0;
-	// }
-}
 void vdp1_wait_regenerate(void) {
 	#ifdef VDP1RAM_CS_ASYNC
 	while (YaGetQueueSize(cmdq[_Ygl->drawframe])!=0)
@@ -707,8 +699,7 @@ static int oldProg = -1;
 void vdp1_compute() {
   GLuint error;
 	int progId = getProgramId();
-	int needRender = 0;//_Ygl->vdp1IsNotEmpty;
-
+	int needRender = 0;
   for (int i = 0; i < NB_COARSE_RAST; i++) {
     if (hasDrawingCmd[i] == 0) nbCmd[i] = 0;
     if (nbCmd[i] != 0) {
@@ -719,6 +710,7 @@ void vdp1_compute() {
 		nbCmdToProcess = 0;
 		return;
 	}
+	invalidateVDP1ReadFramebuffer();
 
 	if (prg_vdp1[progId] == 0)
 	prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
@@ -782,7 +774,6 @@ void vdp1_compute() {
   }
   glUniformMatrix4fv(10, 1, 0, (GLfloat*)m.m);
 
-	vdp1_set_directFB();
 	vdp1_setup();
 
   glDispatchCompute(work_groups_x, work_groups_y, 1); //might be better to launch only the right number of workgroup

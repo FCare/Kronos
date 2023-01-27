@@ -50,7 +50,6 @@ extern int YglDrawBackScreen();
 
 extern u32* vdp1_read();
 extern void vdp1_write();
-extern u32* manualfb;
 
 //////////////////////////////////////////////////////////////////////////////
 void YglEraseWriteCSVDP1(int id) {
@@ -61,7 +60,6 @@ void YglEraseWriteCSVDP1(int id) {
   u32 alpha = 0;
   int status = 0;
   if (_Ygl->vdp1_pbo == 0) return;
-  manualfb = NULL;
 
   _Ygl->vdp1On[id] = 0;
   _Ygl->vdp1_stencil_mode = 0;
@@ -108,34 +106,16 @@ void YglCSRenderVDP1(void) {
 
 void YglFrameChangeCSVDP1(){
   u32 current_drawframe = 0;
-  YglCSRenderVDP1();
   current_drawframe = _Ygl->drawframe;
   _Ygl->drawframe = _Ygl->readframe;
   _Ygl->readframe = current_drawframe;
-  manualfb = NULL;
+  YglCSRenderVDP1();
 
-  FRAMELOG("YglFrameChangeVDP1: swap drawframe =%d readframe = %d\n", _Ygl->drawframe, _Ygl->readframe);
+  FRAMELOG("YglFrameChangeVDP1: swap drawframe =%d readframe = %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
 }
 
 extern int WinS[enBGMAX+1];
 extern int WinS_mode[enBGMAX+1];
-
-static void YglSetVDP1FB(int i){
-  if (_Ygl->vdp1IsNotEmpty != 0) {
-  //   _Ygl->vdp1On[i] = 1;
-  //   // Arevoir ca risque de ne pas fonctionner
-  //   vdp1_set_directFB();
-  //   _Ygl->vdp1IsNotEmpty = 0;
-  updateVdp1DrawingFBMem();
-  vdp1_write();
-  _Ygl->vdp1IsNotEmpty = 0;
-  }
-}
-
-static void YglUpdateVDP1FB(void) {
-  //Le directFB utilise drawframe
-  YglSetVDP1FB(_Ygl->readframe);
-}
 
 static int warning = 0;
 
@@ -213,8 +193,6 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
      Inth = 1;
    }
    Int = (Inth<Intw)?Inth:Intw;
-
-   YglUpdateVDP1FB();
 
    glDepthMask(GL_FALSE);
    glDisable(GL_DEPTH_TEST);
@@ -420,55 +398,3 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
   return;
 }
 
-// static u32* getVdp1DrawingFBMem() {
-// 	if (manualfb == NULL) {
-//     YglGenFrameBuffer(0);
-// 		vdp1_compute();
-// 	  manualfb = vdp1_read();
-// 	}
-// 	return manualfb;
-// }
-
-
-void YglCSVdp1WriteFrameBuffer(u32 type, u32 addr, u32 val )
-{
-  // u16 full = 0;
-  // _Ygl->vdp1fb_buf =  getVdp1DrawingFBMem();
-  // switch (type)
-  // {
-  // case 0:
-  //   full = T1ReadLong((u8*)_Ygl->vdp1fb_buf, (addr&(~0x1))*2);
-  //   if (addr & 0x1) full = (full & 0xFF00) | (val& 0xFF);
-  //   else full = (full & 0xFF) | ((val& 0xFF) << 8);
-  //   T1WriteLong((u8 *)_Ygl->vdp1fb_buf, (addr&(~0x1))*2, VDP1COLORFB(full&0xFFFF));
-  //   break;
-  // case 1:
-  //   T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2, VDP1COLORFB(val&0xFFFF));
-  //   break;
-  // case 2:
-  //   T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2+4, VDP1COLORFB(val&0xFFFF));
-  //   T1WriteLong((u8*)_Ygl->vdp1fb_buf, addr*2, VDP1COLORFB((val>>16)&0xFFFF));
-  //   break;
-  // default:
-  //   break;
-  // }
-  // _Ygl->vdp1IsNotEmpty = 1;
-}
-
-void YglCSVdp1ReadFrameBuffer(u32 type, u32 addr, void * out) {
-  // _Ygl->vdp1fb_buf_read =  getVdp1DrawingFBMem();
-  // switch (type)
-  // {
-  // case 0:
-  //   *(u8*)out = 0x0;
-  //   break;
-  // case 1:
-  //   *(u16*)out = T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2) & 0xFFFF;
-  //   break;
-  // case 2:
-  //   *(u32*)out = ((T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2)&0xFFFF)<<16)|((T1ReadLong((u8*)_Ygl->vdp1fb_buf_read, addr*2+4)&0xFFFF));
-  //   break;
-  // default:
-  //   break;
-  // }
-}
