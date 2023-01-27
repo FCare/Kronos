@@ -4432,55 +4432,9 @@ void VIDOGLVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 
 //////////////////////////////////////////////////////////////////////////////
 void VIDOGLVdp1DrawFB(void) {
-  YglSprite sprite;
-  YglTexture texture;
-  YglCache cash;
-  u64 tmp;
-  s16 x, y;
-  Vdp2 *varVdp2Regs = &Vdp2Lines[0];
-
-  sprite.dst = 0;
-  sprite.blendmode = 0;
-
-  sprite.w = 512;
-  sprite.h = 256;
-  sprite.flip = 0;
-  sprite.priority = 0;
-
-  x = 0.0f;
-  y = 0.0f;
-
-  sprite.vertices[0] = (int)((float)x * _Ygl->vdp1wratio);
-  sprite.vertices[1] = (int)((float)y * _Ygl->vdp1hratio);
-  sprite.vertices[2] = (int)((float)(x + sprite.w) * _Ygl->vdp1wratio);
-  sprite.vertices[3] = (int)((float)y * _Ygl->vdp1hratio);
-  sprite.vertices[4] = (int)((float)(x + sprite.w) * _Ygl->vdp1wratio);
-  sprite.vertices[5] = (int)((float)(y + sprite.h) * _Ygl->vdp1hratio);
-  sprite.vertices[6] = (int)((float)x * _Ygl->vdp1wratio);
-  sprite.vertices[7] = (int)((float)(y + sprite.h) * _Ygl->vdp1hratio);
-
-  sprite.uclipmode = 0;
-
-  sprite.blendmode = 0;
-
-  sprite.blendmode = getCCProgramId(0x0);
-
-  printf("Add FB as (%f,%f) (%f,%f) %d\n",sprite.vertices[0],sprite.vertices[1],sprite.vertices[4],sprite.vertices[5],_Ygl->vdp1IsNotEmpty);
-
-  if (sprite.blendmode == -1) return; //Invalid color mode
-
-  YglQuadGrowShading(&sprite, &texture, NULL, &cash, YglTM_vdp1[_Ygl->drawframe]);
-  YglCacheAdd(YglTM_vdp1[_Ygl->drawframe], tmp, &cash);
-  int w = ((Vdp1Regs->TVMR & 0x1) == 1)?512:256;
-  for (int i=0; i<_Ygl->rheight; i++) {
-    //memcpy ligne par ligne
-    for (int j=0; j<w; j++) {
-      if (_Ygl->vdp1fb_write_buf[i*w+j] & 0xFF000000)
-        texture.textdata[i*texture.w+j] = VDP1COLOR(0, _Ygl->vdp1fb_write_buf[i*w+j]&0xFFFF);
-      else
-        texture.textdata[i*texture.w+j] = VDP1COLOR(0, 0x00);
-    }
-  }
+  //Force flush of drawing
+  YglComposeVdp1();
+  vdp1_write_gl();
   return;
 }
 

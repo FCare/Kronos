@@ -2534,10 +2534,10 @@ void YglComposeVdp1(void) {
 //////////////////////////////////////////////////////////////////////////////
 void YglFrameChangeVDP1(){
   u32 current_drawframe = 0;
-  executeTMVDP1(_Ygl->drawframe, _Ygl->readframe);
   current_drawframe = _Ygl->drawframe;
   _Ygl->drawframe = _Ygl->readframe;
   _Ygl->readframe = current_drawframe;
+  executeTMVDP1(_Ygl->readframe, _Ygl->drawframe);
 
   FRAMELOG("YglFrameChangeVDP1: swap drawframe =%d readframe = %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
 }
