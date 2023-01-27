@@ -61,6 +61,8 @@ static int YglDestroyScreenBuffer();
 static int YglGenerateOriginalBuffer();
 static int YglDestroyOriginalBuffer();
 
+static void executeTMVDP1(int in, int out);
+
 int YglGenFrameBuffer(int force);
 
 extern int WinS[enBGMAX+1];
@@ -737,7 +739,6 @@ static void YglTMAllocate_in(YglTextureManager * tm, YglTexture * output, unsign
      tm->currentY = tm->yMax;
      YglTMAllocate_in(tm, output, w, h, x, y);
    }
-
 }
 
 void getCurrentOpenGLContext() {
@@ -748,6 +749,10 @@ void getCurrentOpenGLContext() {
 void releaseCurrentOpenGLContext() {
   YuiRevokeOGLOnThisThread();
   YabThreadUnLock(_Ygl->mutex);
+}
+
+void YglComposeVdp1(void) {
+  executeTMVDP1(_Ygl->drawframe, _Ygl->drawframe);
 }
 
 void YglTMAllocate(YglTextureManager * tm, YglTexture * output, unsigned int w, unsigned int h, unsigned int * x, unsigned int * y) {
@@ -765,8 +770,16 @@ void invalidateVDP1ReadFramebuffer() {
 u32* getVDP1ReadFramebuffer() {
   //Verifier si le fb est dirty. Arrive apres un write ou un compute fait ou prgrammé
   if (_Ygl->vdp1fb_read_buf == NULL) {
-    vdp1_compute();
-    _Ygl->vdp1fb_read_buf = vdp1_read();
+    //Pas bien ca
+    //A faire par core video
+    if (VIDCore->id == 2) {
+      vdp1_compute();
+      _Ygl->vdp1fb_read_buf = vdp1_read();
+    }
+    else {
+      YglComposeVdp1();
+      _Ygl->vdp1fb_read_buf = vdp1_read_gl();
+    }
   }
   return _Ygl->vdp1fb_read_buf;
 }
@@ -2510,9 +2523,10 @@ void YglEraseWriteVDP1(int id) {
 
 }
 
-void executeTMVDP1(int in, int out) {
+static void executeTMVDP1(int in, int out) {
   int switchTM = 0;
   if (_Ygl->needVdp1Render != 0){
+    invalidateVDP1ReadFramebuffer();
     switchTM = 1;
     YglTmPush(YglTM_vdp1[in]);
     _Ygl->needVdp1Render = 0;
@@ -2528,9 +2542,6 @@ void executeTMVDP1(int in, int out) {
   }
 }
 
-void YglComposeVdp1(void) {
-  executeTMVDP1(_Ygl->drawframe, _Ygl->drawframe);
-}
 //////////////////////////////////////////////////////////////////////////////
 void YglFrameChangeVDP1(){
   u32 current_drawframe = 0;
