@@ -163,7 +163,7 @@ u8 FASTCALL Vdp1FrameBufferReadByte(SH2_struct *context, u8* mem, u32 addr) {
    addr &= 0x3FFFF;
    PRINT_FB("R B 0x%x\n", addr);
    u32* buf = getVDP1ReadFramebuffer();
-   return buf[addr]&0xFF;
+   return buf[addr*2]&0xFF;
 }
 
 //////////////////////////////////////////////////////////////////////////////
