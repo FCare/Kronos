@@ -566,14 +566,20 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
   return 0;
 }
 
-void vdp1_clear(int id, float *col) {
+void vdp1_clear(int id, float *col, int* limits) {
 	int progId = CLEAR;
 	if (prg_vdp1[progId] == 0)
     prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
+	printf("%d\n", _Ygl->vdp1height);
+	limits[0] = limits[0]*_Ygl->vdp1width/512;
+	limits[1] = _Ygl->vdp1height - (limits[1]*_Ygl->vdp1height/256) - 1 ;
+	limits[2] = limits[2]*_Ygl->vdp1width/512;
+	limits[3] = _Ygl->vdp1height - (limits[3]*_Ygl->vdp1height/256) - 1;
   glUseProgram(prg_vdp1[progId]);
 	glBindImageTexture(0, get_vdp1_tex(id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glBindImageTexture(1, get_vdp1_mesh(id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glUniform4fv(2, 1, col);
+	glUniform4iv(3, 1, limits);
 	glDispatchCompute(work_groups_x, work_groups_y, 1); //might be better to launch only the right number of workgroup
 	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);

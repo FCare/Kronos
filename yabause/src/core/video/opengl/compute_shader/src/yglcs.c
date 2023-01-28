@@ -73,6 +73,22 @@ void YglEraseWriteCSVDP1(int id) {
 
   color = Vdp1Regs->EWDR;
 
+  int shift = ((Vdp1Regs->TVMR & 0x1) == 1)?4:3;
+  int limits[4] = {0};
+  limits[0] = ((Vdp1Regs->EWLR>>9)&0x3F)<<shift;
+  limits[1] = ((Vdp1Regs->EWLR)&0x1FF); //TODO: manage double interlace
+
+  limits[2] = (((Vdp1Regs->EWRR>>9)&0x7F)<<shift) - 1;
+  limits[3] = ((Vdp1Regs->EWRR)&0x1FF); //TODO: manage double interlace
+
+  if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
+
+//Can be usefull for next steps to evaluate effective possible pixels which can be deleted during VBLANK
+//see p49 of vdp1 doc. A raster is the number of maxLinecount
+/*
+  int nbPixels = (x3-x1+1)*(y3-y1+1) x 8;
+  int nbRaster =
+*/
   col[0] = (color & 0xFF) / 255.0f;
   col[1] = ((color >> 8) & 0xFF) / 255.0f;
 
@@ -83,9 +99,8 @@ void YglEraseWriteCSVDP1(int id) {
     }
   }
 
-
-  FRAMELOG("YglEraseWriteVDP1xx: clear %d\n", id);
-  vdp1_clear(id, col);
+  FRAMELOG("YglEraseWriteVDP1xx: clear %d (%d,%d)(%d,%d)\n", id, limits[0], limits[1], limits[2], limits[3]);
+  vdp1_clear(id, col, limits);
 
   //Get back to drawframe
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
