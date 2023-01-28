@@ -786,6 +786,7 @@ u32* getVDP1ReadFramebuffer() {
 
 u32* getVDP1WriteFramebuffer() {
   if (_Ygl->vdp1fb_write_buf == NULL) {
+    if (_Ygl->vdp1_pbo == 0) YglGenerate();
     glBindTexture(GL_TEXTURE_2D, _Ygl->vdp1AccessTex);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _Ygl->vdp1_pbo);
     _Ygl->vdp1fb_write_buf = (u32 *)glMapBufferRange(GL_PIXEL_UNPACK_BUFFER, 0, 512 * 256 * 4, GL_MAP_WRITE_BIT );
