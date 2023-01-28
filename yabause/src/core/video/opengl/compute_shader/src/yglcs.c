@@ -61,7 +61,6 @@ void YglEraseWriteCSVDP1(int id) {
   int status = 0;
   if (_Ygl->vdp1_pbo == 0) return;
 
-  _Ygl->vdp1On[id] = 0;
   _Ygl->vdp1_stencil_mode = 0;
 
   _Ygl->vdp1levels[id].ux1 = 0;
@@ -83,6 +82,8 @@ void YglEraseWriteCSVDP1(int id) {
 
   if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
 
+  if ((limits[0] == 0) && (limits[1]==0) && (limits[2] == (_Ygl->rwidth-1)) && (limits[3] == (_Ygl->rheight-1)))
+    _Ygl->vdp1On[id] = 0;
 //Can be usefull for next steps to evaluate effective possible pixels which can be deleted during VBLANK
 //see p49 of vdp1 doc. A raster is the number of maxLinecount
 /*
