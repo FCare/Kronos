@@ -101,6 +101,8 @@ static void MessageCallback( GLenum source,
 }
 #endif
 
+void YglGenerate();
+
 static int GLCapabilities = -1;
 int getCSUsage() {
   if (GLCapabilities == -1) {
