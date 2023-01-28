@@ -800,6 +800,13 @@ void YglRenderVDP1(void);
 u32 * YglGetLineColorScreenPointer();
 void YglSetLineColorScreen(u32 * pbuf, int size);
 
+//To be removed
+void vdp1_write_gl();
+u32* vdp1_read_gl();
+void vdp1_write();
+u32* vdp1_read();
+//End of remove
+
 u32 * YglGetLineColorOffsetPointer(int id, int start, int size);
 void YglSetLineColorOffset(u32 * pbuf, int start, int size, int id);
 

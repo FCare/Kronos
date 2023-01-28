@@ -17,6 +17,7 @@
 #define NB_COARSE_RAST (NB_COARSE_RAST_X * NB_COARSE_RAST_Y)
 
 extern vdp2rotationparameter_struct  Vdp1ParaA;
+extern void invalidateVDP1ReadFramebuffer();
 
 static int local_size_x = LOCAL_SIZE_X;
 static int local_size_y = LOCAL_SIZE_Y;

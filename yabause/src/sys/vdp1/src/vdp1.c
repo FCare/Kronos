@@ -49,6 +49,10 @@ int VDP1_MASK = 0xFFFF;
 
 extern u32* getVDP1WriteFramebuffer();
 extern u32* getVDP1ReadFramebuffer();
+extern void updateVdp1DrawingFBMem();
+extern void clearVDP1Framebuffer();
+extern void YglGenerate();
+extern void syncVdp1FBBuffer(u32 addr);
 
 VideoInterface_struct *VIDCore=NULL;
 extern VideoInterface_struct *VIDCoreList[];
