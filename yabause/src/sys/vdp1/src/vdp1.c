@@ -2556,9 +2556,9 @@ static void startField(void) {
       Vdp1EraseWrite(id);
       Vdp1External.manualerase = 0;
     }
-
+    FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     VIDCore->Vdp1FrameChange();
-    FRAMELOG("Change readframe %d to %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
+    FRAMELOG("Change frames now draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     Vdp1External.current_frame = !Vdp1External.current_frame;
     Vdp1Regs->LOPR = Vdp1Regs->COPR;
     Vdp1Regs->COPR = 0;

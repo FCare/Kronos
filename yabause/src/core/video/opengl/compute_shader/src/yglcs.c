@@ -122,10 +122,10 @@ void YglCSRenderVDP1(void) {
 
 void YglFrameChangeCSVDP1(){
   u32 current_drawframe = 0;
+  YglCSRenderVDP1();
   current_drawframe = _Ygl->drawframe;
   _Ygl->drawframe = _Ygl->readframe;
   _Ygl->readframe = current_drawframe;
-  YglCSRenderVDP1();
 
   FRAMELOG("YglFrameChangeVDP1: swap drawframe =%d readframe = %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
 }
