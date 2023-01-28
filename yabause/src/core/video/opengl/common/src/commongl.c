@@ -785,7 +785,6 @@ u32* getVDP1ReadFramebuffer() {
 }
 
 u32* getVDP1WriteFramebuffer() {
-  invalidateVDP1ReadFramebuffer();
   if (_Ygl->vdp1fb_write_buf == NULL) {
     glBindTexture(GL_TEXTURE_2D, _Ygl->vdp1AccessTex);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, _Ygl->vdp1_pbo);
@@ -794,6 +793,14 @@ u32* getVDP1WriteFramebuffer() {
     glBindTexture(GL_TEXTURE_2D, 0);
   }
   return _Ygl->vdp1fb_write_buf;
+}
+
+void syncVdp1FBBuffer(u32 addr) {
+  if (_Ygl->vdp1fb_read_buf != NULL) {
+    if (_Ygl->vdp1fb_write_buf != NULL) {
+      _Ygl->vdp1fb_read_buf[addr] = _Ygl->vdp1fb_write_buf[addr];
+    }
+  }
 }
 
 void updateVdp1DrawingFBMem() {

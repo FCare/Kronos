@@ -187,6 +187,7 @@ void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u
    u32* buf = getVDP1WriteFramebuffer();
    PRINT_FB("W B 0x%x@0x%x\n", val, addr);
    buf[addr] = (val&0xFF)|0xFF000000;
+   syncVdp1FBBuffer(addr);
    // buf[(addr<<1)+1] = 0x80;
    _Ygl->vdp1IsNotEmpty = yabsys.LineCount;
 }
@@ -198,6 +199,7 @@ void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u
   u32* buf = getVDP1WriteFramebuffer();
   PRINT_FB("W W 0x%x@0x%x\n", val, addr);
   buf[addr>>1] = (val&0xFFFF)|0xFF000000;
+  syncVdp1FBBuffer(addr>>1);
   _Ygl->vdp1IsNotEmpty = yabsys.LineCount;
 }
 
@@ -209,6 +211,8 @@ void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u
   PRINT_FB("W L 0x%x@0x%x %d\n", val, addr, yabsys.LineCount);
   buf[(addr>>1)] = ((val>>16)&0xFFFF)|0xFF000000;
   buf[(addr>>1)+1] = (val&0xFFFF)|0xFF000000;
+  syncVdp1FBBuffer(addr>>1);
+  syncVdp1FBBuffer((addr>>1)+1);
   _Ygl->vdp1IsNotEmpty = yabsys.LineCount;
 }
 
