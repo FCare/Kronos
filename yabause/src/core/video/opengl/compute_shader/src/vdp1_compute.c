@@ -570,7 +570,6 @@ void vdp1_clear(int id, float *col, int* limits) {
 	int progId = CLEAR;
 	if (prg_vdp1[progId] == 0)
     prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
-	printf("%d\n", _Ygl->vdp1height);
 	limits[0] = limits[0]*_Ygl->vdp1width/512;
 	limits[1] = _Ygl->vdp1height - (limits[1]*_Ygl->vdp1height/256) - 1 ;
 	limits[2] = limits[2]*_Ygl->vdp1width/512;

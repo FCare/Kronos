@@ -2486,7 +2486,19 @@ void YglEraseWriteVDP1(int id) {
   int status = 0;
   GLenum DrawBuffers[4]= {GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3};
   if (_Ygl->vdp1FrameBuff[0] == 0) return;
-  _Ygl->vdp1On[id] = 0;
+
+  int shift = ((Vdp1Regs->TVMR & 0x1) == 1)?4:3;
+  int limits[4] = {0};
+  limits[0] = ((Vdp1Regs->EWLR>>9)&0x3F)<<shift;
+  limits[1] = ((Vdp1Regs->EWLR)&0x1FF); //TODO: manage double interlace
+
+  limits[2] = (((Vdp1Regs->EWRR>>9)&0x7F)<<shift) - 1;
+  limits[3] = ((Vdp1Regs->EWRR)&0x1FF); //TODO: manage double interlace
+
+  if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
+
+  if ((limits[0] == 0) && (limits[1]==0) && (limits[2] == (_Ygl->rwidth-1)) && (limits[3] == (_Ygl->rheight-1)))
+    _Ygl->vdp1On[id] = 0;
 
   YglGenFrameBuffer(0);
 
@@ -2519,9 +2531,19 @@ void YglEraseWriteVDP1(int id) {
     }
   }
 
+  limits[0] = limits[0]*_Ygl->vdp1width/512;
+	limits[1] = _Ygl->vdp1height - (limits[1]*_Ygl->vdp1height/256) - 1 ;
+	limits[2] = limits[2]*_Ygl->vdp1width/512;
+	limits[3] = _Ygl->vdp1height - (limits[3]*_Ygl->vdp1height/256) - 1;
+
+  FRAMELOG("Clear %d %d %d %d\n", limits[0],limits[3], limits[2]-limits[0]+1, limits[1]-limits[3]+1);
+
+  glEnable(GL_SCISSOR_TEST);
+  glScissor(limits[0],limits[3], limits[2]-limits[0]+1, limits[1]-limits[3]+1);
   glClearBufferfv(GL_COLOR, 0, col);
   glClearBufferfv(GL_COLOR, 1, meshcol);
   glClearBufferfi(GL_DEPTH_STENCIL, 0, 0, 0);
+  glDisable(GL_SCISSOR_TEST);
   FRAMELOG("YglEraseWriteVDP1xx: clear %d\n", id);
   //Get back to drawframe
   glDrawBuffers(2, (const GLenum*)&drawBuf[0]);
