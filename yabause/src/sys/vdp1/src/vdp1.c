@@ -190,8 +190,8 @@ void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u
    addr &= 0x3FFFF;
    u32* buf = getVDP1WriteFramebuffer();
    PRINT_FB("W B 0x%x@0x%x\n", val, addr);
-   buf[addr] = (val&0xFF)|0xFF000000;
-   syncVdp1FBBuffer(addr);
+   buf[addr>>1] = (val&0xFF)|0xFF000000;
+   syncVdp1FBBuffer(addr>>1);
    // buf[(addr<<1)+1] = 0x80;
    _Ygl->vdp1IsNotEmpty = yabsys.LineCount;
 }
