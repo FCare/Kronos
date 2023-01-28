@@ -776,6 +776,7 @@ u32* getVDP1ReadFramebuffer() {
     //A faire par core video
     if (VIDCore->id == 2) {
       vdp1_compute();
+      glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT|GL_TEXTURE_UPDATE_BARRIER_BIT);
       _Ygl->vdp1fb_read_buf = vdp1_read();
     }
     else {
@@ -813,6 +814,7 @@ void updateVdp1DrawingFBMem() {
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 512, 256, GL_RGBA, GL_UNSIGNED_BYTE, 0);
     glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
     glBindTexture(GL_TEXTURE_2D, 0 );
+    glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT|GL_SHADER_IMAGE_ACCESS_BARRIER_BIT|GL_PIXEL_BUFFER_BARRIER_BIT|GL_FRAMEBUFFER_BARRIER_BIT);
     _Ygl->vdp1fb_write_buf = NULL;
 }
 
