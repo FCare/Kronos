@@ -865,7 +865,8 @@ static int Vdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u
     default:
       break;
   }
-  yabsys.vdp1cycles+= MIN(1000, 70 + (area*3));
+  //mission 1 of burning rangers is loading a lot the vdp1.
+  yabsys.vdp1cycles+= MIN(1000, 70 + (area*3/2));
 
   memset(cmd->G, 0, sizeof(float)*16);
   if ((cmd->CMDPMOD & 4))
