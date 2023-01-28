@@ -1640,6 +1640,8 @@ int Vdp1LoadState(const void * stream, UNUSED int version, int size)
 #ifdef IMPROVED_SAVESTATES
    MemStateRead((void *)back_framebuffer, 0x40000, 1, stream);
 
+   YglGenerate();
+
    for (i = 0; i < 0x40000; i++)
       Vdp1FrameBufferWriteByte(NULL, NULL, i, back_framebuffer[i]);
 #endif
