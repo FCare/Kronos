@@ -5041,9 +5041,6 @@ static int isEnabled(int id, Vdp2* varVdp2Regs) {
     case RBG1:
       display = ((varVdp2Regs->BGON & 0x20)!=0);
       break;
-    case SPRITE:
-      display = (_Ygl->vdp1On[_Ygl->readframe] != 0);
-      break;
     default:
       display = 1;
   }

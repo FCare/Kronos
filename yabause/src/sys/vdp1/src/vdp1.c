@@ -1568,7 +1568,6 @@ static int Vdp1Draw(void)
 
 static void Vdp1NoDraw(void) {
    Vdp1Regs->lCOPR = 0;
-   _Ygl->vdp1On[_Ygl->drawframe] = 0;
    Vdp1External.status = VDP1_STATUS_IDLE;
    Vdp1FakeDrawCommands(Vdp1Ram, Vdp1Regs);
 }
@@ -2673,7 +2672,6 @@ void Vdp1StartVisibleLine(void)
         else
           vdp1_write_gl();
       }
-      _Ygl->vdp1On[_Ygl->drawframe] = 1;
       _Ygl->vdp1IsNotEmpty = -1;
     }
   }

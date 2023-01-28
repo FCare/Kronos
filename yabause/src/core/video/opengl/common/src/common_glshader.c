@@ -1970,9 +1970,7 @@ int setupVDP2Prog(Vdp2* varVdp2Regs, int nb_screen, int CS) {
   int spritetype =  (varVdp2Regs->SPCTL & 0xF); // 16x
 
   int screen_nb = nb_screen; //14x
-  if (_Ygl->vdp1On[_Ygl->readframe] != 0) {
-    screen_nb += 7;
-  }
+  screen_nb += 7;
 
   if (spritetype > 0x7) {
     //VDP2 use FB as 8 bits

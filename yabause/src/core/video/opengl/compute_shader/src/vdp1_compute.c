@@ -740,7 +740,6 @@ void vdp1_compute() {
 	}
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_list_);
 	glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbCmdToProcess*sizeof(vdp1cmd_struct), (void*)&cmdVdp1List[0]);
-	_Ygl->vdp1On[_Ygl->drawframe] = 1;
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_nbcmd_);
   glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, sizeof(int)*NB_COARSE_RAST, (void*)nbCmd);

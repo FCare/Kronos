@@ -2500,9 +2500,6 @@ void YglEraseWriteVDP1(int id) {
 
   if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
 
-  if ((limits[0] == 0) && (limits[1]==0) && (limits[2] == (_Ygl->rwidth-1)) && (limits[3] == (_Ygl->rheight-1)))
-    _Ygl->vdp1On[id] = 0;
-
   YglGenFrameBuffer(0);
 
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1fbo);
@@ -2522,13 +2519,10 @@ void YglEraseWriteVDP1(int id) {
 
   color = Vdp1Regs->EWDR;
 
-  _Ygl->vdp1On[id] = 0;
-
   col[0] = (color & 0xFF) / 255.0f;
   col[1] = ((color >> 8) & 0xFF) / 255.0f;
 
   if (color != 0x0) {
-    // _Ygl->vdp1On[id] = 1;
     if (((Vdp1Regs->TVMR & 0x1) == 1) && (col[0] != col[1])){
       YuiMsg("Unsupported clear process\n\tin 8 bits upper part of EWDR is for even coordinates and lower part for odd coordinates\n");
     }
@@ -2701,7 +2695,7 @@ void YglRenderVDP1(void) {
     glDisable(GL_STENCIL_TEST);
 
   for( j=0;j<(level->prgcurrent+1); j++ ) {
-    _Ygl->vdp1On[_Ygl->drawframe] |= renderVDP1Level(level, j, (int*)&cprg, mat, varVdp2Regs);
+    renderVDP1Level(level, j, (int*)&cprg, mat, varVdp2Regs);
     level->prg[j].currentQuad = 0;
   }
 

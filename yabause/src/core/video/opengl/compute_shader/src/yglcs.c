@@ -82,8 +82,6 @@ void YglEraseWriteCSVDP1(int id) {
 
   if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
 
-  if ((limits[0] == 0) && (limits[1]==0) && (limits[2] == (_Ygl->rwidth-1)) && (limits[3] == (_Ygl->rheight-1)))
-    _Ygl->vdp1On[id] = 0;
 //Can be usefull for next steps to evaluate effective possible pixels which can be deleted during VBLANK
 //see p49 of vdp1 doc. A raster is the number of maxLinecount
 /*
@@ -94,7 +92,6 @@ void YglEraseWriteCSVDP1(int id) {
   col[1] = ((color >> 8) & 0xFF) / 255.0f;
 
   if (color != 0x0) {
-    _Ygl->vdp1On[id] = 1;
     if (((Vdp1Regs->TVMR & 0x1) == 1) && (col[0] != col[1])){
       YuiMsg("Unsupported clear process\n\tin 8 bits upper part of EWDR is for even coordinates and lower part for odd coordinates\n");
     }

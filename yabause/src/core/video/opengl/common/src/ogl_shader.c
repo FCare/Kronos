@@ -1925,7 +1925,7 @@ int YglBlitTexture(int* prioscreens, int* modescreens, int* isRGB, int * isBlur,
     else glBindTexture(GL_TEXTURE_2D, _Ygl->linecolorcoef_tex[1]);
   }
 
-  if ((vdp1fb != NULL) && (_Ygl->vdp1On[_Ygl->readframe] != 0)) {
+  if (vdp1fb != NULL) {
     glActiveTexture(GL_TEXTURE9);
     glBindTexture(GL_TEXTURE_2D, vdp1fb(0));
     glActiveTexture(GL_TEXTURE19);
@@ -2299,7 +2299,6 @@ int YglBlitVDP1(u32 srcTexture, float w, float h, int write) {
 static u32 write_fb[512*256];
 void vdp1_write_gl() {
   GLenum DrawBuffers[2]= {GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT2};
-  _Ygl->vdp1On[_Ygl->drawframe] = 1;
   YglGenFrameBuffer(0);
   glBindTexture(GL_TEXTURE_2D, _Ygl->vdp1AccessTex);
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1fbo);
