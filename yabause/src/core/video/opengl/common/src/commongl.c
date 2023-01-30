@@ -819,6 +819,7 @@ void updateVdp1DrawingFBMem() {
 }
 
 void clearVDP1Framebuffer() {
+    invalidateVDP1ReadFramebuffer();
     u32* buf = getVDP1WriteFramebuffer();
     memset(buf, 0, 512*256*4);
     updateVdp1DrawingFBMem();
@@ -2554,7 +2555,6 @@ void YglEraseWriteVDP1(int id) {
 static void executeTMVDP1(int in, int out) {
   int switchTM = 0;
   if (_Ygl->needVdp1Render != 0){
-    invalidateVDP1ReadFramebuffer();
     switchTM = 1;
     YglTmPush(YglTM_vdp1[in]);
     _Ygl->needVdp1Render = 0;
