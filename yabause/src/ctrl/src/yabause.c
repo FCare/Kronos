@@ -822,7 +822,7 @@ int YabauseEmulate(void) {
      }
 
       PROFILE_START("SCU");
-      ScuExec((yabsys.DecilineStop>>YABSYS_TIMING_BITS) / 2);
+      ScuExec(yabsys.DecilineStop>>YABSYS_TIMING_BITS);
       PROFILE_STOP("SCU");
 
       yabsys.UsecFrac += usecinc;

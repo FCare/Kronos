@@ -785,9 +785,9 @@ void step_dsp_dma(scudspregs_struct *sc) {
 
 
 INLINE void ScuTimer1Exec( u32 timing ) {
-  if (ScuRegs->timer1_counter > 0) {
-    ScuRegs->timer1_counter = (ScuRegs->timer1_counter - (timing >> 1));
-    if (ScuRegs->timer1_counter <= 0) {
+  if ((ScuRegs->timer1_counter>>2) > 0) {
+    ScuRegs->timer1_counter = (ScuRegs->timer1_counter - timing);
+    if ((ScuRegs->timer1_counter>>2) <= 0) {
       // ScuRegs->timer1_set = 1;
       if (((ScuRegs->T1MD & 0x100) == 0) ||  (ScuRegs->timer0_set == 1)){
         ScuSendTimer1();
@@ -1735,7 +1735,7 @@ void ScuExec(u32 timing) {
 
    // is dsp executing?
    if (ScuDsp->ProgControlPort.part.EX) {
-     ScuDspExec(timing);
+     ScuDspExec(timing>>1);
    }
 
    if ( ScuRegs->T1MD & 0x1 ){
@@ -2970,7 +2970,7 @@ void ScuSendHBlankIN(void) {
 
      // if (ScuRegs->timer1_set == 1) {
         // ScuRegs->timer1_set = 0;
-        ScuRegs->timer1_counter = ScuRegs->timer1_preset;
+        ScuRegs->timer1_counter = ScuRegs->timer1_preset<<2;
       // }
    }
    ScuChekIntrruptDMA(2);
