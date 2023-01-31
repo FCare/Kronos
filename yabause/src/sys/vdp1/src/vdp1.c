@@ -2670,24 +2670,22 @@ void Vdp1StartVisibleLine(void)
 
   if (_Ygl->vdp1IsNotEmpty != -1) {
     //FB has been accessed
-    if (((yabsys.LineCount - _Ygl->vdp1IsNotEmpty + yabsys.MaxLineCount)%yabsys.MaxLineCount) > 1) {
-      updateVdp1DrawingFBMem();
-      if (Vdp1External.status != VDP1_STATUS_IDLE) {
-        vdp1cmdctrl_struct *ctrl = &cmdBufferBeingProcessed[nbCmdToProcess];
-        ctrl->dirty = 0;
-        ctrl->ignitionLine = MIN(yabsys.LineCount + yabsys.vdp1cycles/cyclesPerLine,yabsys.MaxLineCount-1);
-        nbCmdToProcess += Vdp1FBDraw();
-        needClearFB = 1;
-      } else {
-        //Pas bien ca
-        //A faire par core video
-        if (VIDCore->id == 2)
-          vdp1_write();
-        else
-          vdp1_write_gl();
-      }
-      _Ygl->vdp1IsNotEmpty = -1;
+    updateVdp1DrawingFBMem();
+    if (Vdp1External.status != VDP1_STATUS_IDLE) {
+      vdp1cmdctrl_struct *ctrl = &cmdBufferBeingProcessed[nbCmdToProcess];
+      ctrl->dirty = 0;
+      ctrl->ignitionLine = MIN(yabsys.LineCount + yabsys.vdp1cycles/cyclesPerLine,yabsys.MaxLineCount-1);
+      nbCmdToProcess += Vdp1FBDraw();
+      needClearFB = 1;
+    } else {
+      //Pas bien ca
+      //A faire par core video
+      if (VIDCore->id == 2)
+        vdp1_write();
+      else
+        vdp1_write_gl();
     }
+    _Ygl->vdp1IsNotEmpty = -1;
   }
 
   if (((yabsys.LineCount == 1) && ((Vdp1Regs->FBCR&0x3) != 0x0)) || //Manual change

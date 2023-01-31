@@ -1329,6 +1329,8 @@ int YglInit(int width, int height, unsigned int depth) {
   _Ygl->resolution_mode = RES_ORIGINAL;
   _Ygl->rbg_use_compute_shader = 0;
 
+  _Ygl->vdp1IsNotEmpty = -1;
+
   initLevels(&_Ygl->vdp2levels, SPRITE);
   initLevels(&_Ygl->vdp1levels, 2);
 
