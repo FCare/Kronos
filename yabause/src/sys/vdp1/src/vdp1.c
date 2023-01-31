@@ -2579,7 +2579,6 @@ static void startField(void) {
     }
     FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     VIDCore->Vdp1FrameChange();
-    clearVDP1Framebuffer(_Ygl->readframe);
     FRAMELOG("Change frames now draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     Vdp1External.current_frame = !Vdp1External.current_frame;
     Vdp1Regs->LOPR = Vdp1Regs->COPR;
