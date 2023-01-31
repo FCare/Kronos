@@ -140,7 +140,6 @@ void VIDOGLSetSettingValueMode(int type, int value);
 void VIDOGLSync();
 void VIDOGLGetNativeResolution(int *width, int *height, int*interlace);
 void VIDOGLVdp2DispOff(void);
-void waitVdp2DrawScreensEnd(int sync, int abort);
 static int isEnabled(int id, Vdp2* varVdp2Regs);
 extern int YglGenFrameBuffer(int force);
 extern void YglComposeVdp1(void);
@@ -6248,47 +6247,39 @@ LOG_ASYN("*********************************\n");
   B1_Updated = 0;
 }
 
-int WaitVdp2Async(int sync) {
-  int empty = 0;
+int WaitVdp2Async() {
   if (vdp2busy == 1) {
 #ifdef RGB_ASYNC
     if (rotq_end != NULL) {
-      empty = 1;
-      while (((empty = YaGetQueueSize(rotq_end))!=0) && (sync == 1))
+      while (((YaGetQueueSize(rotq_end))!=0))
       {
         YabThreadYield();
       }
       finishRbgQueue();
-      if (empty != 0) return empty;
     }
 #endif
 #ifdef CELL_ASYNC
     if (cellq_end != NULL) {
-      empty = 1;
-      while (((empty = YaGetQueueSize(cellq_end))!=0) && (sync == 1))
+      while (((YaGetQueueSize(cellq_end))!=0))
       {
         YabThreadYield();
       }
     }
 #endif
     RBGGenerator_onFinish();
-    if (empty == 0) vdp2busy = 0;
+    vdp2busy = 0;
   }
-  return empty;
+  return 0;
 }
 
-void waitVdp2DrawScreensEnd(int sync, int abort) {
-  if (abort == 0){
-    YglCheckFBSwitch(0);
-    if (vdp2busy == 1) {
-      int empty = WaitVdp2Async(sync);
-      if (empty == 0) {
-        YglTmPush(YglTM_vdp2);
-        if (VIDCore != NULL) {
-          VIDOGLReadColorOffset();
-          VIDCore->composeFB(&Vdp2Lines[0]);
-        }
-      }
+void waitVdp2DrawScreensEnd() {
+  YglCheckFBSwitch(0);
+  if (vdp2busy == 1) {
+    WaitVdp2Async();
+    YglTmPush(YglTM_vdp2);
+    if (VIDCore != NULL) {
+      VIDOGLReadColorOffset();
+      VIDCore->composeFB(&Vdp2Lines[0]);
     }
   }
 }
