@@ -47,13 +47,12 @@ int vdp1Ram_update_start;
 int vdp1Ram_update_end;
 int VDP1_MASK = 0xFFFF;
 
-extern u32* getVDP1WriteFramebuffer();
+extern u32* getVDP1WriteFramebuffer(int frame);
 extern u32* getVDP1ReadFramebuffer();
-extern void updateVdp1DrawingFBMem();
+extern void updateVdp1DrawingFBMem(int frame);
 extern void clearVDP1Framebuffer();
 extern void YglGenerate();
 extern void syncVdp1FBBuffer(u32 addr);
-extern void invalidateVDP1ReadFramebuffer();
 
 VideoInterface_struct *VIDCore=NULL;
 extern VideoInterface_struct *VIDCoreList[];
@@ -195,33 +194,33 @@ u32 FASTCALL Vdp1FrameBufferReadLong(SH2_struct *context, u8* mem, u32 addr) {
 
 void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
    addr &= 0x3FFFF;
-   u32* buf = getVDP1WriteFramebuffer();
+   u32* buf = getVDP1WriteFramebuffer(_Ygl->drawframe);
    PRINT_FB("W B 0x%x@0x%x\n", val, addr);
    buf[addr>>1] = (val&0xFF)|0xFF000000;
    syncVdp1FBBuffer(addr>>1);
    vdp1_clock -= 2;
    if (context != NULL) context->cycles += 2;
-   _Ygl->vdp1IsNotEmpty = yabsys.LineCount;
+   _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = yabsys.LineCount;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
   addr &= 0x3FFFF;
-  u32* buf = getVDP1WriteFramebuffer();
+  u32* buf = getVDP1WriteFramebuffer(_Ygl->drawframe);
   PRINT_FB("W W 0x%x@0x%x\n", val, addr);
   buf[addr>>1] = (val&0xFFFF)|0xFF000000;
   syncVdp1FBBuffer(addr>>1);
   vdp1_clock -= 2;
   if (context != NULL) context->cycles += 2;
-  _Ygl->vdp1IsNotEmpty = yabsys.LineCount;
+  _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = yabsys.LineCount;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 val) {
   addr &= 0x3FFFF;
-  u32* buf = getVDP1WriteFramebuffer();
+  u32* buf = getVDP1WriteFramebuffer(_Ygl->drawframe);
   PRINT_FB("W L 0x%x@0x%x %d\n", val, addr, yabsys.LineCount);
   buf[(addr>>1)] = ((val>>16)&0xFFFF)|0xFF000000;
   buf[(addr>>1)+1] = (val&0xFFFF)|0xFF000000;
@@ -229,7 +228,7 @@ void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u
   syncVdp1FBBuffer((addr>>1)+1);
   vdp1_clock -= 4;
   if (context != NULL) context->cycles += 4;
-  _Ygl->vdp1IsNotEmpty = yabsys.LineCount;
+  _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = yabsys.LineCount;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2545,7 +2544,7 @@ static void Vdp1EraseWrite(int id){
   lastHash = -1;
   FRAMELOG("Erase fb\n");
   if ((VIDCore != NULL) && (VIDCore->Vdp1EraseWrite != NULL))VIDCore->Vdp1EraseWrite(id);
-  clearVDP1Framebuffer();
+  clearVDP1Framebuffer(_Ygl->drawframe);
 }
 static void startField(void) {
   int isrender = 0;
@@ -2571,6 +2570,7 @@ static void startField(void) {
     }
     FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     VIDCore->Vdp1FrameChange();
+    clearVDP1Framebuffer(_Ygl->readframe);
     FRAMELOG("Change frames now draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     Vdp1External.current_frame = !Vdp1External.current_frame;
     Vdp1Regs->LOPR = Vdp1Regs->COPR;
@@ -2668,9 +2668,9 @@ void Vdp1StartVisibleLine(void)
   int cyclesPerLine  = getVdp1CyclesPerLine();
   int needClearFB = 0;
 
-  if (_Ygl->vdp1IsNotEmpty != -1) {
+  if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
     //FB has been accessed
-    updateVdp1DrawingFBMem();
+    updateVdp1DrawingFBMem(_Ygl->drawframe);
     if (Vdp1External.status != VDP1_STATUS_IDLE) {
       vdp1cmdctrl_struct *ctrl = &cmdBufferBeingProcessed[nbCmdToProcess];
       ctrl->dirty = 0;
@@ -2685,7 +2685,7 @@ void Vdp1StartVisibleLine(void)
       else
         vdp1_write_gl();
     }
-    _Ygl->vdp1IsNotEmpty = -1;
+    _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = -1;
   }
 
   if (((yabsys.LineCount == 1) && ((Vdp1Regs->FBCR&0x3) != 0x0)) || //Manual change
@@ -2696,7 +2696,7 @@ void Vdp1StartVisibleLine(void)
   if (vdp1_clock > 0) vdp1_clock = 0;
   vdp1_clock += cyclesPerLine;
   Vdp1TryDraw();
-  if (needClearFB != 0) clearVDP1Framebuffer();
+  if (needClearFB != 0) clearVDP1Framebuffer(_Ygl->drawframe);
 }
 
 //////////////////////////////////////////////////////////////////////////////

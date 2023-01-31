@@ -59,7 +59,7 @@ void YglEraseWriteCSVDP1(int id) {
   int priority;
   u32 alpha = 0;
   int status = 0;
-  if (_Ygl->vdp1_pbo == 0) return;
+  if (_Ygl->vdp1_pbo[0] == 0) return;
 
   _Ygl->vdp1_stencil_mode = 0;
 
@@ -142,6 +142,7 @@ void finishCSRender() {
   for (int i=0; i<SPRITE; i++)
     YglReset(_Ygl->vdp2levels[i]);
   glViewport(_Ygl->originx, _Ygl->originy, GlWidth, GlHeight);
+  glScissor(0, 0, _Ygl->width, _Ygl->height);
   glUseProgram(0);
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER,0);
