@@ -704,50 +704,59 @@ static int Vdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* 
   case 0x5: // Upper-left
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0x6: // Upper-Center
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     x = x - rw / 2;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0x7: // Upper-Right
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     x = x - rw;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0x9: // Center-left
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     y = y - rh / 2;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0xA: // Center-center
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     x = x - rw / 2;
     y = y - rh / 2;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0xB: // Center-right
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     x = x - rw;
     y = y - rh / 2;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0xD: // Lower-left
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     y = y - rh;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0xE: // Lower-center
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     x = x - rw / 2;
     y = y - rh;
+    if ((rw < 0)||(rh <0)) return;
     break;
   case 0xF: // Lower-right
     rw = cmd->CMDXB;
     rh = cmd->CMDYB;
     x = x - rw;
     y = y - rh;
+    if ((rw < 0)||(rh <0)) return;
     break;
   default: break;
   }
