@@ -367,20 +367,8 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 }
 
 void VIDCSVdp1DrawFB(void) {
-  vdp1cmd_struct cmd = {0};
-  int height = 256;
-  cmd.type = FB_WRITE;
-  cmd.CMDPMOD = 0;
-  cmd.CMDXA = 0;
-  cmd.CMDYA = 0;
-  cmd.CMDXB = 512;
-  cmd.CMDYB = 0;
-  cmd.CMDXC = 512;
-  cmd.CMDYC = height;
-  cmd.CMDXD = 0;
-  cmd.CMDYC = height;
-
-  vdp1_add(&cmd,0);
+  YglCSRenderVDP1();
+  vdp1_write();
 }
 
 #endif

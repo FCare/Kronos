@@ -601,8 +601,6 @@ void vdp1_write() {
 	glDispatchCompute(work_groups_x, work_groups_y, 1); //might be better to launch only the right number of workgroup
 	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
-  nbCmd[0] = 1;
-	hasDrawingCmd[0] = 1;
 }
 
 u32* vdp1_read() {

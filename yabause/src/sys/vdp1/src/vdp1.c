@@ -453,6 +453,25 @@ static void Vdp1TryDraw(void) {
   }
 }
 
+static int Vdp1FBDraw(void) {
+  if (VIDCore->Vdp1FBDraw){
+    VIDCore->Vdp1FBDraw();
+  }
+  return 1;
+}
+
+void checkFBSync() {
+  int needClearFB = 0;
+  if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
+    //FB has been accessed
+    updateVdp1DrawingFBMem(_Ygl->drawframe);
+    needClearFB = 1;
+    Vdp1FBDraw();
+    _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = -1;
+    if (needClearFB != 0) clearVDP1Framebuffer(_Ygl->drawframe);
+  }
+}
+
 void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
   u16 oldPTMR = 0;
   addr &= 0xFF;
@@ -481,6 +500,7 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       if (val == 1){
         FRAMELOG("VDP1: VDPEV_DIRECT_DRAW\n");
         Vdp1External.plot_trigger_line = yabsys.LineCount;
+        checkFBSync();
         abortVdp1();
         RequestVdp1ToDraw();
         Vdp1TryDraw();
@@ -488,6 +508,7 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       }
       if ((val == 0x2) && (oldPTMR == 0x0)){
         FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
+        checkFBSync();
         abortVdp1();
         RequestVdp1ToDraw();
         Vdp1TryDraw();
@@ -580,13 +601,6 @@ static void checkClipCmd(vdp1cmd_struct **sysClipCmd, vdp1cmd_struct **usrClipCm
       *localCoordCmd = NULL;
     }
   }
-}
-
-static int Vdp1FBDraw(void) {
-  if (VIDCore->Vdp1FBDraw){
-    VIDCore->Vdp1FBDraw();
-  }
-  return 1;
 }
 
 static int Vdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer){
@@ -2593,6 +2607,7 @@ static void startField(void) {
     if ((Vdp1Regs->PTMR == 0x2)){
       int cylesPerLine = getVdp1CyclesPerLine();
       FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
+      checkFBSync();
       abortVdp1();
       FRAMELOG("Reset vdp1_clock %d\n", yabsys.LineCount);
       vdp1_clock = (vdp1_clock + cylesPerLine)%(cylesPerLine+1);
@@ -2674,27 +2689,7 @@ void Vdp1HBlankIN(void)
 void Vdp1StartVisibleLine(void)
 {
   int cyclesPerLine  = getVdp1CyclesPerLine();
-  int needClearFB = 0;
-
-  if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
-    //FB has been accessed
-    updateVdp1DrawingFBMem(_Ygl->drawframe);
-    if (Vdp1External.status != VDP1_STATUS_IDLE) {
-      vdp1cmdctrl_struct *ctrl = &cmdBufferBeingProcessed[nbCmdToProcess];
-      ctrl->dirty = 0;
-      ctrl->ignitionLine = MIN(yabsys.LineCount + yabsys.vdp1cycles/cyclesPerLine,yabsys.MaxLineCount-1);
-      nbCmdToProcess += Vdp1FBDraw();
-      needClearFB = 1;
-    } else {
-      //Pas bien ca
-      //A faire par core video
-      if (VIDCore->id == 2)
-        vdp1_write();
-      else
-        vdp1_write_gl();
-    }
-    _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = -1;
-  }
+  checkFBSync();
 
   if (((yabsys.LineCount == 1) && ((Vdp1Regs->FBCR&0x3) != 0x0)) || //Manual change
      ((yabsys.LineCount == 0) && ((Vdp1Regs->FBCR&0x3) == 0x0))) //Automatic change
@@ -2704,7 +2699,6 @@ void Vdp1StartVisibleLine(void)
   if (vdp1_clock > 0) vdp1_clock = 0;
   vdp1_clock += cyclesPerLine;
   Vdp1TryDraw();
-  if (needClearFB != 0) clearVDP1Framebuffer(_Ygl->drawframe);
 }
 
 //////////////////////////////////////////////////////////////////////////////
