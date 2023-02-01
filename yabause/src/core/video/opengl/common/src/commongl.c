@@ -1018,7 +1018,7 @@ int YglGenFrameBuffer() {
   if (YglTM_vdp2 == NULL) YglTM_vdp2= YglTMInit(1024, 1024);
 
   for (int j = 0; j<2; j++) {
-    u32* buf = getVDP1Framebuffer(0);
+    u32* buf = getVDP1Framebuffer(j);
     for (int i=0; i<0x20000; i++) {
       vdp1_framebuffer[j][i] = buf[i];
     }
