@@ -52,9 +52,11 @@ yabauseinit_struct* YabauseThread::yabauseConf()
 
 void YabauseThread::initEmulation()
 {
-	reloadSettings();
-	mInit = YabauseInit( &mYabauseConf );
-	SetOSDToggle(showFPS);
+	if ( mInit < 0 ) {
+		reloadSettings();
+		mInit = YabauseInit( &mYabauseConf );
+		SetOSDToggle(showFPS);
+	}
 }
 
 void YabauseThread::deInitEmulation()
@@ -73,9 +75,7 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 		deInitEmulation();
 	}
 
-	if ( mInit < 0 ) {
-		initEmulation();
-	}
+	initEmulation();
 
 	if ( mInit < 0 )
 	{

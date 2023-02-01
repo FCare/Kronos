@@ -51,13 +51,13 @@ protected:
 	int mTimerId;
 	int mInit;
 
-	void initEmulation();
 	void deInitEmulation();
 	void resetYabauseConf();
 	void timerEvent( QTimerEvent* );
 
 
 public slots:
+	void initEmulation();
 	bool pauseEmulation( bool pause, bool reset );
 	bool resetEmulation();
 	void reloadControllers();

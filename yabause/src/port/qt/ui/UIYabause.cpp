@@ -721,6 +721,8 @@ void UIYabause::on_aFileLoadStateAs_triggered()
 	const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Select a file to load your state" ), QtYabause::translate( "Kronos Save State (*.yss)" ) );
 	if ( fn.isNull() )
 		return;
+	if (mYabauseThread)
+			mYabauseThread->initEmulation();
 	if ( YabLoadState( fn.toLatin1().constData() ) != 0 )
 		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
 	else
