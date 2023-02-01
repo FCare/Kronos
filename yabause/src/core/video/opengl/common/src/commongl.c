@@ -40,8 +40,7 @@
 //#define YGLLOG
 
 extern u8 * Vdp1FrameBuffer[];
-int rebuild_frame_buffer = 0;
-int opengl_mode = 1;
+static int rebuild_frame_buffer = 0;
 
 extern int WaitVdp2Async();
 extern int YglDrawBackScreen();
@@ -63,7 +62,7 @@ static int YglDestroyOriginalBuffer();
 
 static void executeTMVDP1(int in, int out);
 
-int YglGenFrameBuffer(int force);
+int YglGenFrameBuffer();
 
 extern int WinS[enBGMAX+1];
 extern int WinS_mode[enBGMAX+1];
@@ -984,8 +983,8 @@ void YglGenReset() {
   Ygl_prog_Destroy();
 }
 //////////////////////////////////////////////////////////////////////////////
-int YglGenFrameBuffer(int force) {
-  if ((force == 0) && (rebuild_frame_buffer == 0)){
+int YglGenFrameBuffer() {
+  if (rebuild_frame_buffer == 0){
     return 0;
   }
   if (_Ygl->default_fbo == -1) _Ygl->default_fbo = YuiGetFB();
@@ -2522,7 +2521,7 @@ void YglEraseWriteVDP1(int id) {
 
   if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
 
-  YglGenFrameBuffer(0);
+  YglGenFrameBuffer();
 
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1fbo);
   int drawBuf[2] = {0};
@@ -2680,7 +2679,7 @@ void YglRenderVDP1(void) {
     }
   cprg = -1;
 
-  YglGenFrameBuffer(0);
+  YglGenFrameBuffer();
 
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1fbo);
   glDrawBuffers(2, (const GLenum*)&DrawBuffers[_Ygl->drawframe*2]);
@@ -3184,7 +3183,7 @@ void YglRender(Vdp2 *varVdp2Regs) {
    glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
    glClearBufferfv(GL_COLOR, 0, col);
 
-   YglGenFrameBuffer(0);
+   YglGenFrameBuffer();
 
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->original_fbo);
   glDrawBuffers(NB_RENDER_LAYER, (const GLenum*)&DrawBuffers[0]);
@@ -3692,72 +3691,72 @@ void YglChangeResolution(int w, int h) {
   YglLoadIdentity(&_Ygl->rbgModelView);
   float ratio = (float)w/(float)h;
   int par = w/h;
-       if (_Ygl->smallfbo != 0) {
-         glDeleteFramebuffers(1, &_Ygl->smallfbo);
-         _Ygl->smallfbo = 0;
-         glDeleteTextures(1, &_Ygl->smallfbotex);
-         _Ygl->smallfbotex = 0;
-         glDeleteBuffers(1, &_Ygl->vdp1pixelBufferID);
-         _Ygl->vdp1pixelBufferID = 0;
-         _Ygl->pFrameBuffer = NULL;
-       }
-       if (_Ygl->vdp1_pbo[0] != 0) {
-         glDeleteBuffers(2, _Ygl->vdp1_pbo);
-         _Ygl->vdp1_pbo[0] = 0;
-         _Ygl->vdp1_pbo[1] = 0;
-         glDeleteTextures(2,_Ygl->vdp1AccessTex);
-       }
-     if (_Ygl->tmpfbo != 0){
-       glDeleteFramebuffers(1, &_Ygl->tmpfbo);
-       _Ygl->tmpfbo = 0;
-       glDeleteTextures(1, &_Ygl->tmpfbotex);
-       _Ygl->tmpfbotex = 0;
-     }
+  if (_Ygl->smallfbo != 0) {
+    glDeleteFramebuffers(1, &_Ygl->smallfbo);
+    _Ygl->smallfbo = 0;
+    glDeleteTextures(1, &_Ygl->smallfbotex);
+    _Ygl->smallfbotex = 0;
+    glDeleteBuffers(1, &_Ygl->vdp1pixelBufferID);
+    _Ygl->vdp1pixelBufferID = 0;
+    _Ygl->pFrameBuffer = NULL;
+  }
+  if (_Ygl->vdp1_pbo[0] != 0) {
+    glDeleteBuffers(2, _Ygl->vdp1_pbo);
+    _Ygl->vdp1_pbo[0] = 0;
+    _Ygl->vdp1_pbo[1] = 0;
+    glDeleteTextures(2,_Ygl->vdp1AccessTex);
+  }
+  if (_Ygl->tmpfbo != 0){
+    glDeleteFramebuffers(1, &_Ygl->tmpfbo);
+    _Ygl->tmpfbo = 0;
+    glDeleteTextures(1, &_Ygl->tmpfbotex);
+    _Ygl->tmpfbotex = 0;
+  }
 
-     if (_Ygl->upfbo != 0){
-       glDeleteFramebuffers(1, &_Ygl->upfbo);
-       _Ygl->upfbo = 0;
-       glDeleteTextures(1, &_Ygl->upfbotex);
-       _Ygl->upfbotex = 0;
-     }
-     int scale = 1;
-     int upHeight = 4096;
-     int uh = h;
-     int uw = w;
-     if (_Ygl->vdp2wdensity / _Ygl->vdp2hdensity != 1.0) {
-       uh = h * _Ygl->vdp2wdensity; //uniformize density
-       uw = w * _Ygl->vdp2hdensity; //uniformize density
-     }
-     int maxRes = GlHeight;
-     switch (_Ygl->resolution_mode) {
-       case RES_480p: //480p
-          scale = floor(480.0/(float)uh);
-       break;
-       case RES_720p: //720p
-        scale = floor(720.0/(float)uh);
-       break;
-       case RES_1080p: //1080p
-        scale = floor(1080.0/(float)uh);
-       break;
-       case RES_NATIVE: //Native
-        if ((GlHeight * uw) > (GlWidth * uh)) {
-          maxRes = GlWidth * uh / uw;
-        }
-        scale = floor(maxRes/(float)uh);
-       break;
-       case RES_ORIGINAL: //Original
-       default:
-        scale = 1;
-     }
-     if (scale == 0){
-       scale = 1;
-     };
-     _Ygl->rwidth = w;
-     _Ygl->rheight = h;
-     _Ygl->height = uh * scale;
-     _Ygl->width = uw * scale;
+  if (_Ygl->upfbo != 0){
+    glDeleteFramebuffers(1, &_Ygl->upfbo);
+    _Ygl->upfbo = 0;
+    glDeleteTextures(1, &_Ygl->upfbotex);
+    _Ygl->upfbotex = 0;
+  }
+  int scale = 1;
+  int upHeight = 4096;
+  int uh = h;
+  int uw = w;
+  if (_Ygl->vdp2wdensity / _Ygl->vdp2hdensity != 1.0) {
+    uh = h * _Ygl->vdp2wdensity; //uniformize density
+    uw = w * _Ygl->vdp2hdensity; //uniformize density
+  }
+  int maxRes = GlHeight;
+  switch (_Ygl->resolution_mode) {
+    case RES_480p: //480p
+      scale = floor(480.0/(float)uh);
+    break;
+    case RES_720p: //720p
+    scale = floor(720.0/(float)uh);
+    break;
+    case RES_1080p: //1080p
+    scale = floor(1080.0/(float)uh);
+    break;
+    case RES_NATIVE: //Native
+    if ((GlHeight * uw) > (GlWidth * uh)) {
+      maxRes = GlWidth * uh / uw;
+    }
+    scale = floor(maxRes/(float)uh);
+    break;
+    case RES_ORIGINAL: //Original
+    default:
+    scale = 1;
+  }
+  if (scale == 0){
+    scale = 1;
+  };
+  _Ygl->rwidth = w;
+  _Ygl->rheight = h;
+  _Ygl->height = uh * scale;
+  _Ygl->width = uw * scale;
 
-     YGLDEBUG("YglChangeResolution %dx%d => %d => %dx%d (%.1f,%.1f) (%d %d)\n",w,h, scale, _Ygl->width, _Ygl->height,_Ygl->vdp2wdensity,_Ygl->vdp2hdensity, uw, uh);
+  YGLDEBUG("YglChangeResolution %dx%d => %d => %dx%d (%.1f,%.1f) (%d %d)\n",w,h, scale, _Ygl->width, _Ygl->height,_Ygl->vdp2wdensity,_Ygl->vdp2hdensity, uw, uh);
 
   // Texture size for vdp1
   _Ygl->vdp1width = 512*scale*_Ygl->vdp1wdensity;

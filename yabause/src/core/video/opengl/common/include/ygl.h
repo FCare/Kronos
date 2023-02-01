@@ -707,7 +707,6 @@ typedef struct {
 } Ygl;
 
 extern Ygl * _Ygl;
-extern int opengl_mode; // 0 => gles3 , 1 => gl3.3
 
 // Rotate Screen
 

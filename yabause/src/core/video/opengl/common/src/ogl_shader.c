@@ -46,7 +46,6 @@ extern int GlWidth;
 
 static YglVdp1CommonParam _ids[PG_MAX] = { 0 };
 extern void vdp1_compute_reset(void);
-extern int YglGenFrameBuffer(int force);
 
 static void Ygl_printShaderError( GLuint shader )
 {
@@ -2299,7 +2298,7 @@ int YglBlitVDP1(u32 srcTexture, float w, float h, int write) {
 static u32 write_fb[512*256];
 void vdp1_write_gl() {
   GLenum DrawBuffers[2]= {GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT2};
-  YglGenFrameBuffer(0);
+  VIDCore->setupFrame();
   glBindTexture(GL_TEXTURE_2D, _Ygl->vdp1AccessTex[_Ygl->drawframe]);
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1fbo);
   glDrawBuffers(1, (const GLenum*)&DrawBuffers[_Ygl->drawframe]);

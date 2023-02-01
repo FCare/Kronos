@@ -180,7 +180,7 @@ typedef struct
    void(*Vdp2DispOff)(void);
    void (*composeFB)(Vdp2 *regs);
    void (*composeVDP1)(void);
-   int (*setupFrame)(int);
+   int (*setupFrame)();
    void (*FinsihDraw)(void);
    void (*Vdp1FBDraw)(void);
 } VideoInterface_struct;

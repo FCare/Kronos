@@ -141,7 +141,7 @@ void VIDOGLSync();
 void VIDOGLGetNativeResolution(int *width, int *height, int*interlace);
 void VIDOGLVdp2DispOff(void);
 static int isEnabled(int id, Vdp2* varVdp2Regs);
-extern int YglGenFrameBuffer(int force);
+extern int YglGenFrameBuffer();
 extern void YglComposeVdp1(void);
 
 
@@ -3362,10 +3362,15 @@ void VIDOGLDeInit(void)
 
 //////////////////////////////////////////////////////////////////////////////
 
-int _VIDOGLIsFullscreen;
+static int _VIDOGLIsFullscreen;
 
 void VIDOGLResize(int originx, int originy, unsigned int w, unsigned int h, int on)
 {
+  if ((originx == _Ygl->originx)&&
+     (originy == _Ygl->originy)&&
+     (w == GlWidth)&&
+     (h == GlHeight)&&
+     (_VIDOGLIsFullscreen == on)) return;
 
   _VIDOGLIsFullscreen = on;
 

@@ -35,12 +35,10 @@
 extern int GlHeight;
 extern int GlWidth;
 
-extern int rebuild_frame_buffer;
 extern void vdp1_wait_regenerate(void);
 
 extern int DrawVDP2Screen(Vdp2 *varVdp2Regs, int id);
 
-extern int YglGenFrameBuffer(int force);
 extern void YglUpdateVdp2Reg();
 extern SpriteMode setupBlend(Vdp2 *varVdp2Regs, int layer);
 extern int setupColorMode(Vdp2 *varVdp2Regs, int layer);
@@ -243,7 +241,7 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
    glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
    glClearBufferfv(GL_COLOR, 0, col);
 
-   YglGenFrameBuffer(0);
+   VIDCore->setupFrame();
 
     glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->original_fbo);
     glDrawBuffers(NB_RENDER_LAYER, &DrawBuffers[0]);
