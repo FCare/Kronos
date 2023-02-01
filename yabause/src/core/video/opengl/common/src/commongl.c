@@ -62,8 +62,6 @@ static int YglDestroyOriginalBuffer();
 
 static void executeTMVDP1(int in, int out);
 
-int YglGenFrameBuffer();
-
 extern int WinS[enBGMAX+1];
 extern int WinS_mode[enBGMAX+1];
 
@@ -998,10 +996,12 @@ void YglGenReset() {
 }
 //////////////////////////////////////////////////////////////////////////////
 int YglGenFrameBuffer() {
-  u32 vdp1_framebuffer[2][0x20000];
+    u32* vdp1_framebuffer[2];
   if (rebuild_frame_buffer == 0){
     return 0;
   }
+  vdp1_framebuffer[0] = (u32*)malloc(0x20000*4);
+  vdp1_framebuffer[1] = (u32*)malloc(0x20000*4);
   if (_Ygl->default_fbo == -1) _Ygl->default_fbo = YuiGetFB();
   if (YglTM_vdp1[0] == NULL) YglTM_vdp1[0]= YglTMInit(1024, 1024);
   if (YglTM_vdp1[1] == NULL) YglTM_vdp1[1]= YglTMInit(1024, 1024);
@@ -1027,6 +1027,8 @@ int YglGenFrameBuffer() {
     _Ygl->vdp1IsNotEmpty[j] = -1;
     _Ygl->FBDirty[j] = 1;
   }
+  free(vdp1_framebuffer[0]);
+  free(vdp1_framebuffer[1]);
   return 0;
 }
 
