@@ -285,6 +285,8 @@ static int generateComputeBuffer(int w, int h) {
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_vdp1access_);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, 512*256*4, NULL, GL_DYNAMIC_DRAW);
 
+	float col[4] = {0.0};
+	int limits[4] = {0, h, w, 0};
   glGenTextures(2, &compute_tex[0]);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, compute_tex[0]);
@@ -294,6 +296,7 @@ static int generateComputeBuffer(int w, int h) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	vdp1_clear(0, col, limits);
   glBindTexture(GL_TEXTURE_2D, compute_tex[1]);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
@@ -301,7 +304,7 @@ static int generateComputeBuffer(int w, int h) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
+	vdp1_clear(1, col, limits);
   return 0;
 }
 
