@@ -707,6 +707,7 @@ void vdp1_compute() {
     if (hasDrawingCmd[i] == 0) nbCmd[i] = 0;
     if (nbCmd[i] != 0) {
 			needRender = 1;
+			break;
 		}
   }
   if (needRender == 0) {
