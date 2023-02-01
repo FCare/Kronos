@@ -91,9 +91,9 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 		mTimerId = -1;
 	}
 	else {
-                resetSyncVideo();
+    resetSyncVideo();
 		ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
-		mTimerId = startTimer( 0 );
+		mTimerId = startTimer( 0, Qt::PreciseTimer );
 	}
 
 	VolatileSettings * vs = QtYabause::volatileSettings();
