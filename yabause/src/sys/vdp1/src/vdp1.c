@@ -203,6 +203,7 @@ void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u
    syncVdp1FBBuffer(addr>>1);
    vdp1_clock -= 2;
    if (context != NULL) context->cycles += 2;
+   _Ygl->FBDirty[_Ygl->drawframe] = 1;
    _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = yabsys.LineCount;
 }
 
@@ -216,6 +217,7 @@ void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u
   syncVdp1FBBuffer(addr>>1);
   vdp1_clock -= 2;
   if (context != NULL) context->cycles += 2;
+  _Ygl->FBDirty[_Ygl->drawframe] = 1;
   _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = yabsys.LineCount;
 }
 
@@ -231,6 +233,7 @@ void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u
   syncVdp1FBBuffer((addr>>1)+1);
   vdp1_clock -= 4;
   if (context != NULL) context->cycles += 4;
+  _Ygl->FBDirty[_Ygl->drawframe] = 1;
   _Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = yabsys.LineCount;
 }
 

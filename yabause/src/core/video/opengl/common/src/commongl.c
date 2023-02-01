@@ -768,22 +768,26 @@ void invalidateVDP1ReadFramebuffer(int frame) {
   _Ygl->vdp1fb_read_buf[frame] = NULL;
 }
 
-u32* getVDP1ReadFramebuffer() {
+static u32* getVDP1Framebuffer(int frame) {
   //Verifier si le fb est dirty. Arrive apres un write ou un compute fait ou prgrammé
-  if (_Ygl->vdp1fb_read_buf[_Ygl->drawframe] == NULL) {
+  if (_Ygl->vdp1fb_read_buf[frame] == NULL) {
     //Pas bien ca
     //A faire par core video
     if (VIDCore->id == 2) {
       vdp1_compute();
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT|GL_TEXTURE_UPDATE_BARRIER_BIT);
-      _Ygl->vdp1fb_read_buf[_Ygl->drawframe] = vdp1_read();
+      _Ygl->vdp1fb_read_buf[frame] = vdp1_read();
     }
     else {
       YglComposeVdp1();
-      _Ygl->vdp1fb_read_buf[_Ygl->drawframe] = vdp1_read_gl();
+      _Ygl->vdp1fb_read_buf[frame] = vdp1_read_gl();
     }
   }
-  return _Ygl->vdp1fb_read_buf[_Ygl->drawframe];
+  return _Ygl->vdp1fb_read_buf[frame];
+}
+
+u32* getVDP1ReadFramebuffer() {
+  return getVDP1Framebuffer(_Ygl->drawframe);
 }
 
 u32* getVDP1WriteFramebuffer(int frame) {
@@ -820,10 +824,13 @@ void updateVdp1DrawingFBMem(int frame) {
 }
 
 void clearVDP1Framebuffer(int frame) {
+  if (_Ygl->FBDirty[frame] != 0) {
     invalidateVDP1ReadFramebuffer(frame);
     u32* buf = getVDP1WriteFramebuffer(frame);
     memset(buf, 0, 512*256*4);
     updateVdp1DrawingFBMem(frame);
+    _Ygl->FBDirty[frame] = 0;
+  }
 }
 
 u32 COLOR16TO24(u16 temp) {
@@ -845,6 +852,23 @@ static int warning = 0;
 
 
 void YglDestroy() {
+
+  if (_Ygl->smallfbo != 0) {
+    glDeleteFramebuffers(1, &_Ygl->smallfbo);
+    _Ygl->smallfbo = 0;
+    glDeleteTextures(1, &_Ygl->smallfbotex);
+    _Ygl->smallfbotex = 0;
+    glDeleteBuffers(1, &_Ygl->vdp1pixelBufferID);
+    _Ygl->vdp1pixelBufferID = 0;
+    _Ygl->pFrameBuffer = NULL;
+  }
+  if (_Ygl->tmpfbo != 0){
+    glDeleteFramebuffers(1, &_Ygl->tmpfbo);
+    _Ygl->tmpfbo = 0;
+    glDeleteTextures(1, &_Ygl->tmpfbotex);
+    _Ygl->tmpfbotex = 0;
+  }
+
   if (_Ygl->upfbo != 0){
     glDeleteFramebuffers(1, &_Ygl->upfbo);
     _Ygl->upfbo = 0;
@@ -984,6 +1008,7 @@ void YglGenReset() {
 }
 //////////////////////////////////////////////////////////////////////////////
 int YglGenFrameBuffer() {
+  u32 vdp1_framebuffer[2][0x20000];
   if (rebuild_frame_buffer == 0){
     return 0;
   }
@@ -991,8 +1016,27 @@ int YglGenFrameBuffer() {
   if (YglTM_vdp1[0] == NULL) YglTM_vdp1[0]= YglTMInit(1024, 1024);
   if (YglTM_vdp1[1] == NULL) YglTM_vdp1[1]= YglTMInit(1024, 1024);
   if (YglTM_vdp2 == NULL) YglTM_vdp2= YglTMInit(1024, 1024);
+
+  for (int j = 0; j<2; j++) {
+    u32* buf = getVDP1Framebuffer(0);
+    for (int i=0; i<0x20000; i++) {
+      vdp1_framebuffer[j][i] = buf[i];
+    }
+    invalidateVDP1ReadFramebuffer(j);
+  }
+
   YglDestroy();
   YglGenerate();
+
+  for (int j = 0; j<2; j++) {
+    u32 *buf = getVDP1WriteFramebuffer(j);
+    for (int i = 0; i < 0x20000; i++) {
+      buf[i] = (vdp1_framebuffer[j][i]&0xFFFF)|0xFF000000;
+    }
+    updateVdp1DrawingFBMem(j);
+    _Ygl->vdp1IsNotEmpty[j] = -1;
+    _Ygl->FBDirty[j] = 1;
+  }
   return 0;
 }
 
@@ -3691,34 +3735,7 @@ void YglChangeResolution(int w, int h) {
   YglLoadIdentity(&_Ygl->rbgModelView);
   float ratio = (float)w/(float)h;
   int par = w/h;
-  if (_Ygl->smallfbo != 0) {
-    glDeleteFramebuffers(1, &_Ygl->smallfbo);
-    _Ygl->smallfbo = 0;
-    glDeleteTextures(1, &_Ygl->smallfbotex);
-    _Ygl->smallfbotex = 0;
-    glDeleteBuffers(1, &_Ygl->vdp1pixelBufferID);
-    _Ygl->vdp1pixelBufferID = 0;
-    _Ygl->pFrameBuffer = NULL;
-  }
-  if (_Ygl->vdp1_pbo[0] != 0) {
-    glDeleteBuffers(2, _Ygl->vdp1_pbo);
-    _Ygl->vdp1_pbo[0] = 0;
-    _Ygl->vdp1_pbo[1] = 0;
-    glDeleteTextures(2,_Ygl->vdp1AccessTex);
-  }
-  if (_Ygl->tmpfbo != 0){
-    glDeleteFramebuffers(1, &_Ygl->tmpfbo);
-    _Ygl->tmpfbo = 0;
-    glDeleteTextures(1, &_Ygl->tmpfbotex);
-    _Ygl->tmpfbotex = 0;
-  }
 
-  if (_Ygl->upfbo != 0){
-    glDeleteFramebuffers(1, &_Ygl->upfbo);
-    _Ygl->upfbo = 0;
-    glDeleteTextures(1, &_Ygl->upfbotex);
-    _Ygl->upfbotex = 0;
-  }
   int scale = 1;
   int upHeight = 4096;
   int uh = h;
