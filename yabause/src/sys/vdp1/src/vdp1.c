@@ -2553,7 +2553,7 @@ static void Vdp1EraseWrite(int id){
   lastHash = -1;
   FRAMELOG("Erase fb\n");
   if ((VIDCore != NULL) && (VIDCore->Vdp1EraseWrite != NULL))VIDCore->Vdp1EraseWrite(id);
-  clearVDP1Framebuffer(_Ygl->drawframe);
+  clearVDP1Framebuffer(id);
 }
 static void startField(void) {
   int isrender = 0;
