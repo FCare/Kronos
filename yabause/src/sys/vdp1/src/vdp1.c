@@ -76,6 +76,8 @@ static void FASTCALL Vdp1ReadCommand(vdp1cmd_struct *cmd, u32 addr, u8* ram);
 
 extern void addVdp1Framecount ();
 
+static void checkFBSync();
+
 #define DEBUG_BAD_COORD //YuiMsg
 
 #define  CONVERTCMD(A) {\
@@ -463,7 +465,7 @@ static int Vdp1FBDraw(void) {
   return 1;
 }
 
-void checkFBSync() {
+static void checkFBSync() {
   int needClearFB = 0;
   if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
     //FB has been accessed
