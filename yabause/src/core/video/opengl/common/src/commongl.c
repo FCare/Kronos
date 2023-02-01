@@ -853,15 +853,6 @@ static int warning = 0;
 
 void YglDestroy() {
 
-  if (_Ygl->smallfbo != 0) {
-    glDeleteFramebuffers(1, &_Ygl->smallfbo);
-    _Ygl->smallfbo = 0;
-    glDeleteTextures(1, &_Ygl->smallfbotex);
-    _Ygl->smallfbotex = 0;
-    glDeleteBuffers(1, &_Ygl->vdp1pixelBufferID);
-    _Ygl->vdp1pixelBufferID = 0;
-    _Ygl->pFrameBuffer = NULL;
-  }
   if (_Ygl->tmpfbo != 0){
     glDeleteFramebuffers(1, &_Ygl->tmpfbo);
     _Ygl->tmpfbo = 0;
@@ -940,7 +931,6 @@ void YglGenerate() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  _Ygl->pFrameBuffer = NULL;
   _Ygl->vdp1fb_write_buf[0] = NULL;
   _Ygl->vdp1fb_read_buf[0] = NULL;
   _Ygl->vdp1fb_write_buf[1] = NULL;
@@ -1475,8 +1465,6 @@ int YglInit(int width, int height, unsigned int depth) {
 
   _Ygl->vdp2buf = (u8*)malloc(512 * sizeof(int)* NB_VDP2_REG);
 
-  _Ygl->smallfbo = 0;
-  _Ygl->smallfbotex = 0;
   _Ygl->tmpfbo = 0;
   _Ygl->tmpfbotex = 0;
   _Ygl->upfbo = 0;
@@ -2705,14 +2693,6 @@ void YglRenderVDP1(void) {
   glBindVertexArray(_Ygl->vao);
 
   FRAMELOG("YglRenderVDP1: drawframe =%d", _Ygl->drawframe);
-
-  if (_Ygl->pFrameBuffer != NULL) {
-    _Ygl->pFrameBuffer = NULL;
-    glBindTexture(GL_TEXTURE_2D, _Ygl->smallfbotex);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, _Ygl->vdp1pixelBufferID);
-    glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-    glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-  }
 
   YGLLOG("YglRenderVDP1 %d, PTMR = %d\n", _Ygl->drawframe, Vdp1Regs->PTMR);
 
