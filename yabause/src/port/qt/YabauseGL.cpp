@@ -69,7 +69,9 @@ void YabauseGL::swapBuffers()
 }
 
 void YabauseGL::resizeGL( int w, int h )
-{ updateView( QSize( w, h ) ); }
+{
+  glResized();
+ }
 
 void YabauseGL::getScale(float *xRatio, float* yRatio, int* xUp, int *yUp) {
   if ( VIDCore ) {

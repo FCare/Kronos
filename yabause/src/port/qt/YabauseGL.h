@@ -50,6 +50,7 @@ public:
 
 Q_SIGNALS:
 	void glInitialized();
+	void glResized();
 
 protected:
         void initializeGL() override;

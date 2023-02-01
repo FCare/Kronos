@@ -81,6 +81,7 @@ protected:
 	YabauseGL* mYabauseGL;
 	YabauseThread* mYabauseThread;
 	bool mInit;
+	bool mNeedResize;
 	QList <cheatsearch_struct> search;
 	int searchType;
 	int oldMouseX, oldMouseY;

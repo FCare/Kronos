@@ -495,6 +495,7 @@ void YabauseThread::timerEvent( QTimerEvent* )
 		if ( !mPause ) {
 			YabauseExec();
                 }
+		loopEnded();
 		//else
 			//msleep( 25 );
 		//sleep( 0 );
