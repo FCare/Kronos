@@ -69,6 +69,7 @@ static int CmdListInLoop = 0;
 static int CmdListLimit = 0x80000;
 
 static int needVdp1draw = 0;
+static int oldNeedVdp1draw = 0;
 static void Vdp1NoDraw(void);
 static int Vdp1Draw(void);
 static void FASTCALL Vdp1ReadCommand(vdp1cmd_struct *cmd, u32 addr, u8* ram);
@@ -448,6 +449,8 @@ static void updateFBCRMode() {
 }
 
 static void Vdp1TryDraw(void) {
+  if ((oldNeedVdp1draw == 0) && (needVdp1draw!=0)) checkFBSync();
+  oldNeedVdp1draw = needVdp1draw;
   if ((needVdp1draw == 1)) {
     needVdp1draw = Vdp1Draw();
   }
@@ -2592,6 +2595,7 @@ static void startField(void) {
       Vdp1External.manualerase = 0;
     }
     FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
+    checkFBSync();
     VIDCore->Vdp1FrameChange();
     FRAMELOG("Change frames now draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     Vdp1External.current_frame = !Vdp1External.current_frame;
@@ -2689,7 +2693,7 @@ void Vdp1HBlankIN(void)
 void Vdp1StartVisibleLine(void)
 {
   int cyclesPerLine  = getVdp1CyclesPerLine();
-  checkFBSync();
+  // checkFBSync();
 
   if (((yabsys.LineCount == 1) && ((Vdp1Regs->FBCR&0x3) != 0x0)) || //Manual change
      ((yabsys.LineCount == 0) && ((Vdp1Regs->FBCR&0x3) == 0x0))) //Automatic change
@@ -2702,7 +2706,6 @@ void Vdp1StartVisibleLine(void)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-extern void vdp1_compute();
 void Vdp1VBlankIN(void)
 {
   FRAMELOG("VBLANKIn line %d (%d)\n", yabsys.LineCount, yabsys.DecilineCount);

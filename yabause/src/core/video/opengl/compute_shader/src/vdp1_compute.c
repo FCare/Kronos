@@ -562,6 +562,10 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	}
 	if (requireCompute != 0){
 		vdp1_compute();
+		if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
+			vdp1_write();
+			_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1;
+		}
   }
   return 0;
 }
