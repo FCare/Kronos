@@ -135,19 +135,19 @@ void UICheatSearch::listResults()
          {
             QTreeWidgetItem* it = new QTreeWidgetItem( twSearchResults );
             QString s;
-            s.sprintf("%08X", search[j].results[i].addr);
+            s.asprintf("%08X", search[j].results[i].addr);
             it->setText( 0, s );
 
             switch(searchType & 0x3)
             {
             case SEARCHBYTE:
-               s.sprintf("%d", DMAMappedMemoryReadByte(search[j].results[i].addr));
+               s.asprintf("%d", DMAMappedMemoryReadByte(search[j].results[i].addr));
                break;
             case SEARCHWORD:
-               s.sprintf("%d", DMAMappedMemoryReadWord(search[j].results[i].addr));
+               s.asprintf("%d", DMAMappedMemoryReadWord(search[j].results[i].addr));
                break;
             case SEARCHLONG:
-               s.sprintf("%d", DMAMappedMemoryReadLong(search[j].results[i].addr));
+               s.asprintf("%d", DMAMappedMemoryReadLong(search[j].results[i].addr));
                break;
             default: break;
             }
@@ -287,7 +287,7 @@ void UICheatSearch::on_pbAddCheat_clicked()
    // Insert current address/values into dialog
    QTreeWidgetItem *currentItem = twSearchResults->currentItem();
    d.leAddress->setText(currentItem->text(0));
-   s.sprintf("%X", currentItem->text(1).toUInt());
+   s.asprintf("%X", currentItem->text(1).toUInt());
    d.leValue->setText(s);
    d.rbByte->setChecked(rb8Bit->isChecked());
    d.rbWord->setChecked(rb16Bit->isChecked());

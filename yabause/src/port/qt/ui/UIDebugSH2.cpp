@@ -82,13 +82,13 @@ UIDebugSH2::UIDebugSH2(UIDebugCPU::PROCTYPE proc, YabauseThread *mYabauseThread,
          QString text;
          if (cbp[i].addr != 0xFFFFFFFF)
          {
-            text.sprintf("%08X", (int)cbp[i].addr);
+            text.asprintf("%08X", (int)cbp[i].addr);
             lwCodeBreakpoints->addItem(text);
          }
 
          if (mbp[i].addr != 0xFFFFFFFF)
          {
-            text.sprintf("%08X", (int)mbp[i].addr);
+            text.asprintf("%08X", (int)mbp[i].addr);
             lwMemoryBreakpoints->addItem(text);
          }
       }
@@ -141,36 +141,36 @@ void UIDebugSH2::updateRegList()
 
    for (i = 0; i < 16; i++)
    {
-      str.sprintf("R%02d =  %08X", i, (int)sh2regs.R[i]);
+      str.asprintf("R%02d =  %08X", i, (int)sh2regs.R[i]);
       lwRegisters->addItem(str);
    }
 
    // SR
-   str.sprintf("SR =   %08X", (int)sh2regs.SR.all);
+   str.asprintf("SR =   %08X", (int)sh2regs.SR.all);
    lwRegisters->addItem(str);
 
    // GBR
-   str.sprintf("GBR =  %08X", (int)sh2regs.GBR);
+   str.asprintf("GBR =  %08X", (int)sh2regs.GBR);
    lwRegisters->addItem(str);
 
    // VBR
-   str.sprintf("VBR =  %08X", (int)sh2regs.VBR);
+   str.asprintf("VBR =  %08X", (int)sh2regs.VBR);
    lwRegisters->addItem(str);
 
    // MACH
-   str.sprintf("MACH = %08X", (int)sh2regs.MACH);
+   str.asprintf("MACH = %08X", (int)sh2regs.MACH);
    lwRegisters->addItem(str);
 
    // MACL
-   str.sprintf("MACL = %08X", (int)sh2regs.MACL);
+   str.asprintf("MACL = %08X", (int)sh2regs.MACL);
    lwRegisters->addItem(str);
 
    // PR
-   str.sprintf("PR =   %08X", (int)sh2regs.PR);
+   str.asprintf("PR =   %08X", (int)sh2regs.PR);
    lwRegisters->addItem(str);
 
    // PC
-   str.sprintf("PC =   %08X", (int)sh2regs.PC);
+   str.asprintf("PC =   %08X", (int)sh2regs.PC);
    lwRegisters->addItem(str);
 }
 

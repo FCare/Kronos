@@ -320,7 +320,7 @@ bool UIDebugCPU::addCodeBreakpoint(u32 addr)
 void UIDebugCPU::toggleCodeBreakpoint(u32 addr)
 {
 	QString text;
-	text.sprintf("%08X", addr);
+	text.asprintf("%08X", addr);
 	QList<QListWidgetItem *> list = lwCodeBreakpoints->findItems(text, Qt::MatchFixedString);
 
 	if (list.count() >= 1)
