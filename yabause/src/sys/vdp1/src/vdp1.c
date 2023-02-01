@@ -165,7 +165,7 @@ u8 FASTCALL Vdp1FrameBufferReadByte(SH2_struct *context, u8* mem, u32 addr) {
    vdp1_clock -= 2;
    if (context != NULL) context->cycles += 2;
    PRINT_FB("R B 0x%x@0x%x\n", buf[addr*2]&0xFF,addr);
-   return buf[addr*2]&0xFF;
+   return T1ReadLong((u8*)buf, addr*2) & 0xFF;
 }
 
 //////////////////////////////////////////////////////////////////////////////
