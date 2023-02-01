@@ -1059,7 +1059,7 @@ void UIYabause::on_cbVideoDriver_currentIndexChanged( int id )
 
 void UIYabause::pause( bool paused )
 {
-	// mYabauseGL->updateView();
+	mYabauseGL->updateView();
 
 	aEmulationRun->setEnabled( paused );
 	aEmulationPause->setEnabled( !paused );
@@ -1068,7 +1068,7 @@ void UIYabause::pause( bool paused )
 
 void UIYabause::reset()
 {
-	// mYabauseGL->updateView();
+	mYabauseGL->updateView();
 }
 
 void UIYabause::toggleEmulateMouse( bool enable, bool show )
