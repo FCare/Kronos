@@ -515,7 +515,7 @@ SoundInterface_struct QtYabause::defaultSNDCore()
 VideoInterface_struct QtYabause::defaultVIDCore()
 {
 #ifdef HAVE_LIBGL
-        return VIDOGL;
+        return VIDCS;
 #else
 	return VIDSoft;
 #endif
