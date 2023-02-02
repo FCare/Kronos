@@ -191,7 +191,7 @@ void UIDebugSCSP::on_pbSaveAsWav_clicked ()
 	// request a file to save to to user
    QString text;
    
-   text.asprintf("channel%02d.wav", sbSlotNumber->value());
+   text.sprintf("channel%02d.wav", sbSlotNumber->value());
 	const QString s = CommonDialogs::getSaveFileName(text, QtYabause::translate( "Choose a location for your wav file" ), QtYabause::translate( "WAV Files (*.wav)" ) );
 	
 	// write image if ok

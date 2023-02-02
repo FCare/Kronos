@@ -112,7 +112,7 @@ void UIDebugSCSPChan::update_window()
       int muted = 0;
       scsp_debug_instrument_get_data(i, &sa, &muted);
       
-      address.asprintf("%05X", sa);
+      address.sprintf("%05X", sa);
 
       checkbox[i]->setText(address);
 

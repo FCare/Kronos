@@ -29,7 +29,7 @@ UIHexInput::UIHexInput( u32 value, int size, QWidget* p )
    // Setup Text control
    QString text;
    sprintf(format, "%%0%dX", size * 2);
-   text.asprintf(format, value);
+   text.sprintf(format, value);
 
 	this->value = value;
 	this->size = size;

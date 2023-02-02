@@ -54,7 +54,7 @@ UIDebugM68K::UIDebugM68K( YabauseThread *mYabauseThread, QWidget* p )
          QString text;
          if (cbp[i].addr != 0xFFFFFFFF)
          {
-            text.asprintf("%08X", (int)cbp[i].addr);
+            text.sprintf("%08X", (int)cbp[i].addr);
             lwCodeBreakpoints->addItem(text);
          }
       }
@@ -85,23 +85,23 @@ void UIDebugM68K::updateRegList()
    // Data registers
    for (i = 0; i < 8; i++)
    {
-      str.asprintf("D%d =   %08X", i, (int)regs.D[i]);
+      str.sprintf("D%d =   %08X", i, (int)regs.D[i]);
       lwRegisters->addItem(str);
    }
 
    // Address registers
    for (i = 0; i < 8; i++)
    {
-      str.asprintf("A%d =   %08X", i, (int)regs.A[i]);
+      str.sprintf("A%d =   %08X", i, (int)regs.A[i]);
       lwRegisters->addItem(str);
    }
 
    // SR
-   str.asprintf("SR =   %08X", (int)regs.SR);
+   str.sprintf("SR =   %08X", (int)regs.SR);
    lwRegisters->addItem(str);
 
    // PC
-   str.asprintf("PC =   %08X", (int)regs.PC);
+   str.sprintf("PC =   %08X", (int)regs.PC);
    lwRegisters->addItem(str);
 }
 
