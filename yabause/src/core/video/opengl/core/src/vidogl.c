@@ -6252,35 +6252,39 @@ LOG_ASYN("*********************************\n");
   B1_Updated = 0;
 }
 
-int WaitVdp2Async() {
+int WaitVdp2Async(int sync) {
+  int empty = 0;
   if (vdp2busy == 1) {
 #ifdef RGB_ASYNC
     if (rotq_end != NULL) {
-      while (((YaGetQueueSize(rotq_end))!=0))
+      empty = 1;
+      while (((empty = YaGetQueueSize(rotq_end))!=0) && (sync == 1))
       {
         YabThreadYield();
       }
       finishRbgQueue();
+      if (empty != 0) return empty;
     }
 #endif
 #ifdef CELL_ASYNC
     if (cellq_end != NULL) {
-      while (((YaGetQueueSize(cellq_end))!=0))
+      empty = 1;
+      while (((empty = YaGetQueueSize(cellq_end))!=0) && (sync == 1))
       {
         YabThreadYield();
       }
     }
 #endif
     RBGGenerator_onFinish();
-    vdp2busy = 0;
+    if (empty == 0) vdp2busy = 0;
   }
-  return 0;
+  return empty;
 }
 
-void waitVdp2DrawScreensEnd() {
+void waitVdp2DrawScreensEnd(int sync) {
   YglCheckFBSwitch(0);
   if (vdp2busy == 1) {
-    WaitVdp2Async();
+    WaitVdp2Async(sync);
     YglTmPush(YglTM_vdp2);
     if (VIDCore != NULL) {
       VIDOGLReadColorOffset();

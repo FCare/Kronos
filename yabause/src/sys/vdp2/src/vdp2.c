@@ -67,7 +67,7 @@ INLINE int getVramCycle(u32 addr) {
 
 static u8 AC_VRAM[4][8] = {0}; //4 banks, 8 timings
 
-extern void waitVdp2DrawScreensEnd();
+extern void waitVdp2DrawScreensEnd(int sync);
 
 int isSkipped = 0;
 
@@ -649,9 +649,7 @@ void Vdp2HBlankIN(void) {
   } else {
 // Fix : Function doesn't exist without those defines
 #if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-  if (yabsys.LineCount == yabsys.VBlankLineCount) {
-    if (isSkipped == 0) if(VIDCore && (VIDCore->id != VIDCORE_SOFT)) waitVdp2DrawScreensEnd();
-  }
+  if (isSkipped == 0) if(VIDCore && (VIDCore->id != VIDCORE_SOFT)) waitVdp2DrawScreensEnd(yabsys.LineCount == yabsys.VBlankLineCount);
 #endif
   }
 }

@@ -42,7 +42,7 @@
 extern u8 * Vdp1FrameBuffer[];
 static int rebuild_frame_buffer = 0;
 
-extern int WaitVdp2Async();
+extern int WaitVdp2Async(int sync);
 extern int YglDrawBackScreen();
 
 static int YglCalcTextureQ( float   *pnts,float *q);
@@ -601,7 +601,7 @@ void YglTmPush(YglTextureManager * tm){
 #ifdef VDP1_TEXTURE_ASYNC
   if ((tm == YglTM_vdp1[0]) || (tm == YglTM_vdp1[1]))
     waitVdp1Textures(1);
-  else WaitVdp2Async();
+  else WaitVdp2Async(1);
 #endif
   YabThreadLock(tm->mtx);
   glActiveTexture(GL_TEXTURE0);
@@ -647,7 +647,7 @@ static void YglTMRealloc(YglTextureManager * tm, unsigned int width, unsigned in
 #ifdef VDP1_TEXTURE_ASYNC
   if ((tm == YglTM_vdp1[0]) || (tm == YglTM_vdp1[1]))
     waitVdp1Textures(1);
-  else WaitVdp2Async();
+  else WaitVdp2Async(1);
 #endif
 
   if (tm->texture != NULL) {
