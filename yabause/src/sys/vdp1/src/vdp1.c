@@ -167,8 +167,8 @@ u8 FASTCALL Vdp1FrameBufferReadByte(SH2_struct *context, u8* mem, u32 addr) {
    u32* buf = getVDP1ReadFramebuffer();
    vdp1_clock -= 2;
    if (context != NULL) context->cycles += 2;
-   PRINT_FB("R B 0x%x@0x%x\n", buf[addr*2]&0xFF,addr);
-   return T1ReadLong((u8*)buf, addr*2) & 0xFF;
+   PRINT_FB("R B 0x%x@0x%x\n", buf[addr*4]&0xFF,addr);
+   return T1ReadLong((u8*)buf, addr*4) & 0xFF;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -178,8 +178,8 @@ u16 FASTCALL Vdp1FrameBufferReadWord(SH2_struct *context, u8* mem, u32 addr) {
    u32* buf = getVDP1ReadFramebuffer();
    vdp1_clock -= 2;
    if (context != NULL) context->cycles += 2;
-   PRINT_FB("R W 0x%x@0x%x (%d, %d)\n", T1ReadLong((u8*)buf, addr*2) & 0xFFFF, addr, yabsys.LineCount, yabsys.DecilineCount);
-   return T1ReadLong((u8*)buf, addr*2) & 0xFFFF;
+   PRINT_FB("R W 0x%x@0x%x (%d, %d)\n", T1ReadLong((u8*)buf, addr*4) & 0xFFFF, addr, yabsys.LineCount, yabsys.DecilineCount);
+   return T1ReadLong((u8*)buf, addr*4) & 0xFFFF;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -189,8 +189,8 @@ u32 FASTCALL Vdp1FrameBufferReadLong(SH2_struct *context, u8* mem, u32 addr) {
    u32* buf = getVDP1ReadFramebuffer();
    vdp1_clock -= 4;
    if (context != NULL) context->cycles += 4;
-   PRINT_FB("R L 0x%x@0x%x\n", ((T1ReadLong((u8*)buf, addr*2)&0xFFFF)<<16)|((T1ReadLong((u8*)buf, addr*2+4)&0xFFFF)),addr);
-   return ((T1ReadLong((u8*)buf, addr*2)&0xFFFF)<<16)|((T1ReadLong((u8*)buf, addr*2+4)&0xFFFF));
+   PRINT_FB("R L 0x%x@0x%x\n", ((T1ReadLong((u8*)buf, addr*4)&0xFFFF)<<16)|((T1ReadLong((u8*)buf, addr*4+4)&0xFFFF)),addr);
+   return ((T1ReadLong((u8*)buf, addr*4)&0xFFFF)<<16)|((T1ReadLong((u8*)buf, addr*4+4)&0xFFFF));
 }
 
 //////////////////////////////////////////////////////////////////////////////
