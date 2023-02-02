@@ -1010,7 +1010,7 @@ int YglGenFrameBuffer() {
   for (int j = 0; j<2; j++) {
     u32* buf = getVDP1Framebuffer(j);
     for (int i=0; i<0x20000; i++) {
-      vdp1_framebuffer[j][i] = buf[i];
+      vdp1_framebuffer[j][i] = (T1ReadLong((u8*)buf, i*4) & 0xFFFF);
     }
     invalidateVDP1ReadFramebuffer(j);
   }
