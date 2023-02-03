@@ -90,6 +90,8 @@ static void checkFBSync();
 }
 
 static void RequestVdp1ToDraw() {
+  printf("Shift EDSR %\n", __LINE__);
+  Vdp1Regs->EDSR >>= 1;
   needVdp1draw = 1;
 }
 
@@ -1287,7 +1289,6 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
      Vdp1Regs->addr = 0;
      // BEF <- CEF
      // CEF <- 0
-     regs->EDSR >>= 1;
      Vdp1Regs->COPR = 0;
      Vdp1Regs->lCOPR = 0;
   }
@@ -1585,7 +1586,9 @@ void Vdp1FakeDrawCommands(u8 * ram, Vdp1 * regs)
       commandCounter++;
    }
    if (command & 0x8000) {
-     regs->EDSR >>= 1;
+     // printf("Shift EDSR %d\n", __LINE__);
+     // regs->EDSR >>= 1;
+     printf("Set EDSR %d\n", __LINE__);
      regs->EDSR |= 2;
    }
 }
@@ -2615,19 +2618,18 @@ static void startField(void) {
     // if Plot Trigger mode == 0x02 draw start
     if ((Vdp1Regs->PTMR == 0x2)){
       int cylesPerLine = getVdp1CyclesPerLine();
-      FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly\n");
+      printf("[VDP1] PTMR == 0x2 start drawing immidiatly %d\n", yabsys.LineCount);
       checkFBSync();
       abortVdp1();
       FRAMELOG("Reset vdp1_clock %d\n", yabsys.LineCount);
       vdp1_clock = (vdp1_clock + cylesPerLine)%(cylesPerLine+1);
       RequestVdp1ToDraw();
-      Vdp1TryDraw();
     }
   }
   else {
     if ( Vdp1External.status == VDP1_STATUS_RUNNING) {
       LOG("[VDP1] Start Drawing continue");
-      RequestVdp1ToDraw();
+      // RequestVdp1ToDraw();
     }
   }
 
@@ -2683,7 +2685,8 @@ void Vdp1HBlankIN(void)
       if(Vdp1External.plot_trigger_done == 0) {
         FRAMELOG("Draw due to PTMR\n");
         vdp1_clock = 0;
-        Vdp1Regs->EDSR |= 0x2;
+        printf("Set EDSR %d\n", __LINE__);
+        // Vdp1Regs->EDSR |= 0x2;
         RequestVdp1ToDraw();
         Vdp1External.plot_trigger_done = 1;
       }
