@@ -2714,6 +2714,7 @@ void Vdp1StartVisibleLine(void)
 void Vdp1VBlankIN(void)
 {
   FRAMELOG("VBLANKIn line %d (%d)\n", yabsys.LineCount, yabsys.DecilineCount);
+  checkFBSync();
   // if (VIDCore != NULL) {
   //   if (VIDCore->composeVDP1 != NULL) VIDCore->composeVDP1();
   // }
