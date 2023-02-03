@@ -2703,13 +2703,13 @@ void Vdp1StartVisibleLine(void)
   int cyclesPerLine  = getVdp1CyclesPerLine();
   // checkFBSync();
 
+  if (vdp1_clock > 0) vdp1_clock = 0;
+  vdp1_clock += cyclesPerLine;
   if (((yabsys.LineCount == 1) && ((Vdp1Regs->FBCR&0x3) != 0x0)) || //Manual change
      ((yabsys.LineCount == 0) && ((Vdp1Regs->FBCR&0x3) == 0x0))) //Automatic change
   {
     startField();
   }
-  if (vdp1_clock > 0) vdp1_clock = 0;
-  vdp1_clock += cyclesPerLine;
   Vdp1TryDraw();
 }
 
