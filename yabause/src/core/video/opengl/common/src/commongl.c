@@ -822,8 +822,8 @@ void updateVdp1DrawingFBMem(int frame) {
 }
 
 void clearVDP1Framebuffer(int frame) {
+  invalidateVDP1ReadFramebuffer(frame);
   if (_Ygl->FBDirty[frame] != 0) {
-    invalidateVDP1ReadFramebuffer(frame);
     u32* buf = getVDP1WriteFramebuffer(frame);
     memset(buf, 0, 512*256*4);
     updateVdp1DrawingFBMem(frame);
