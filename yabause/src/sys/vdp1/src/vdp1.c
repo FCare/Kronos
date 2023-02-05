@@ -1588,9 +1588,6 @@ void Vdp1FakeDrawCommands(u8 * ram, Vdp1 * regs)
       commandCounter++;
    }
    if (command & 0x8000) {
-     // printf("Shift EDSR %d\n", __LINE__);
-     // regs->EDSR >>= 1;
-     printf("Set EDSR %d\n", __LINE__);
      regs->EDSR |= 2;
    }
 }
@@ -2679,8 +2676,6 @@ void Vdp1HBlankIN(void)
       if(Vdp1External.plot_trigger_done == 0) {
         FRAMELOG("Draw due to PTMR\n");
         vdp1_clock = 0;
-        printf("Set EDSR %d\n", __LINE__);
-        // Vdp1Regs->EDSR |= 0x2;
         RequestVdp1ToDraw();
         Vdp1External.plot_trigger_done = 1;
       }
