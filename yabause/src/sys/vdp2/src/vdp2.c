@@ -691,6 +691,9 @@ Vdp2 * Vdp2RestoreRegs(int line, Vdp2* lines) {
 //////////////////////////////////////////////////////////////////////////////
 void Vdp2VBlankOUT(void) {
   g_frame_count++;
+  yabsys.VBlankLineCount = 225+(Vdp2Regs->TVMD & 0x30);
+  if (yabsys.VBlankLineCount > 256) yabsys.VBlankLineCount = 256;
+
   FRAMELOG("***** VOUT %d *****", g_frame_count);
 
    if (((Vdp2Regs->TVMD >> 6) & 0x3) == 0){
@@ -855,8 +858,6 @@ void FASTCALL Vdp2WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
    {
       case 0x000:
          Vdp2Regs->TVMD = val;
-         yabsys.VBlankLineCount = 225+(val & 0x30);
-         if (yabsys.VBlankLineCount > 256) yabsys.VBlankLineCount = 256;
          return;
       case 0x002:
          Vdp2Regs->EXTEN = val;
