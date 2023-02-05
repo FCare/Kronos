@@ -90,7 +90,6 @@ static void checkFBSync();
 }
 
 static void RequestVdp1ToDraw() {
-  printf("Shift EDSR %\n", __LINE__);
   Vdp1Regs->EDSR >>= 1;
   needVdp1draw = 1;
 }
@@ -481,7 +480,7 @@ static void checkFBSync() {
     if (needClearFB != 0) clearVDP1Framebuffer(_Ygl->drawframe);
   }
 }
-
+static void startField(void);
 void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
   u16 oldPTMR = 0;
   addr &= 0xFF;
@@ -494,8 +493,11 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
     break;
     case 0x2:
       Vdp1Regs->FBCR = val;
-      FRAMELOG("FBCR => Write VBE=%d FCM=%d FCT=%d line = %d (%d)\n", (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount, yabsys.DecilineCount);
+      FRAMELOG("FBCR => Write %x VBE=%d FCM=%d FCT=%d line = %d (%d)\n", val, (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount, yabsys.DecilineCount);
       updateFBCRMode();
+      if (((val &0x2) == 0x2) && ((yabsys.LineCount > yabsys.VBlankLineCount)||(yabsys.LineCount==0))) {
+        startField();
+      }
       break;
     case 0x4:
       FRAMELOG("Write PTMR %X line = %d %d\n", val, yabsys.LineCount, yabsys.VBlankLineCount);
@@ -2618,7 +2620,7 @@ static void startField(void) {
     // if Plot Trigger mode == 0x02 draw start
     if ((Vdp1Regs->PTMR == 0x2)){
       int cylesPerLine = getVdp1CyclesPerLine();
-      printf("[VDP1] PTMR == 0x2 start drawing immidiatly %d\n", yabsys.LineCount);
+      FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly %d %d\n", yabsys.LineCount, yabsys.DecilineCount);
       checkFBSync();
       abortVdp1();
       FRAMELOG("Reset vdp1_clock %d\n", yabsys.LineCount);
@@ -2626,14 +2628,6 @@ static void startField(void) {
       RequestVdp1ToDraw();
     }
   }
-  else {
-    if ( Vdp1External.status == VDP1_STATUS_RUNNING) {
-      LOG("[VDP1] Start Drawing continue");
-      // RequestVdp1ToDraw();
-    }
-  }
-
-  if (Vdp1Regs->PTMR == 0x1) Vdp1External.plot_trigger_done = 0;
 
   FRAMELOG("End StartField\n");
 
@@ -2705,11 +2699,6 @@ void Vdp1StartVisibleLine(void)
 
   if (vdp1_clock > 0) vdp1_clock = 0;
   vdp1_clock += cyclesPerLine;
-  if (((yabsys.LineCount == 1) && ((Vdp1Regs->FBCR&0x3) != 0x0)) || //Manual change
-     ((yabsys.LineCount == 0) && ((Vdp1Regs->FBCR&0x3) == 0x0))) //Automatic change
-  {
-    startField();
-  }
   Vdp1TryDraw();
 }
 
@@ -2718,7 +2707,6 @@ void Vdp1VBlankIN(void)
 {
   FRAMELOG("VBLANKIn line %d (%d)\n", yabsys.LineCount, yabsys.DecilineCount);
   checkFBSync();
-  // if (VIDCore != NULL) {
-  //   if (VIDCore->composeVDP1 != NULL) VIDCore->composeVDP1();
-  // }
+  startField();
+  if (Vdp1Regs->PTMR == 0x1) Vdp1External.plot_trigger_done = 0;
 }
