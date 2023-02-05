@@ -2677,6 +2677,7 @@ void Vdp1HBlankIN(void)
         FRAMELOG("Draw due to PTMR\n");
         vdp1_clock = 0;
         RequestVdp1ToDraw();
+        if (Vdp1External.status = VDP1_STATUS_RUNNING) Vdp1Regs->EDSR |= 0x2; //strange we need this. It maybe due to timing
         Vdp1External.plot_trigger_done = 1;
       }
     }
