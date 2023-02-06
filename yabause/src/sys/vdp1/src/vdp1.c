@@ -2693,7 +2693,7 @@ void Vdp1StartVisibleLine(void)
 {
   int cyclesPerLine  = getVdp1CyclesPerLine();
   // checkFBSync();
-  if (yabsys.LineCount == (absys.MaxLineCount - 1)) {
+  if (yabsys.LineCount == (yabsys.MaxLineCount - 1)) {
     startField();
     if (Vdp1Regs->PTMR == 0x1) Vdp1External.plot_trigger_done = 0;
   }
