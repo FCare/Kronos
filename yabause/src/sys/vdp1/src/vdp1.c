@@ -537,6 +537,7 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
          break;
       case 0xC:
          Vdp1Regs->ENDR = val;
+         FRAMELOG("Abort from ENDR %d\n", yabsys.LineCount);
          abortVdp1();
          break;
       default:
