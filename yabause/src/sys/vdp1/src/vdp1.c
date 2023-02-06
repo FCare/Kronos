@@ -2693,7 +2693,11 @@ void Vdp1StartVisibleLine(void)
 {
   int cyclesPerLine  = getVdp1CyclesPerLine();
   // checkFBSync();
-if (yabsys.LineCount == 0)   startField();
+  if (yabsys.LineCount == (absys.MaxLineCount - 1)) {
+    startField();
+    if (Vdp1Regs->PTMR == 0x1) Vdp1External.plot_trigger_done = 0;
+  }
+
   if (vdp1_clock > 0) vdp1_clock = 0;
   vdp1_clock += cyclesPerLine;
   Vdp1TryDraw();
@@ -2704,6 +2708,4 @@ void Vdp1VBlankIN(void)
 {
   FRAMELOG("VBLANKIn line %d (%d)\n", yabsys.LineCount, yabsys.DecilineCount);
   checkFBSync();
-
-  if (Vdp1Regs->PTMR == 0x1) Vdp1External.plot_trigger_done = 0;
 }
