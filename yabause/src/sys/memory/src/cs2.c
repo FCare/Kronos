@@ -845,14 +845,13 @@ int Cs2ForceCloseTray( int coreid, const char * cdpath ){
 
 //////////////////////////////////////////////////////////////////////////////
 
-void Cs2Exec(u32 timing) {
-  printf("CS2 EXec %d\n", timing);
+static void Cs2Exec_unit(u32 timing) {
    Cs2Area->_statuscycles += timing * 3;
    Cs2Area->_periodiccycles += timing * 3;
 
    if (Cs2Area->_commandtiming > 0)
    {
-      if (Cs2Area->_commandtiming < timing)
+      if (Cs2Area->_commandtiming <= timing)
       {
          Cs2Execute();
          Cs2Area->_commandtiming = 0;
@@ -1038,6 +1037,10 @@ void Cs2Exec(u32 timing) {
    else if (Cs2Area->carttype == CART_JAPMODEM)
       JapModemExec(timing);
 #endif
+}
+
+void Cs2Exec(u32 timing) {
+  for (int i = 0; i<timing; i++) Cs2Exec_unit(1);
 }
 
 //////////////////////////////////////////////////////////////////////////////
