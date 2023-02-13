@@ -188,44 +188,22 @@ void resetSyncVideo(void) {
 // CLKTYPE_28MHZ
 // (39375000.0 / 11.0) * 8.0 * 1.0 / (60/1.001) / 263 = 477750cycles/263 lines = 1817 cycles/lines => 35ns/cycle
 
-#define DECILINE_STEP   (31)
-#define HBLANKIN_STEP   (21)
+#define DECILINE_STEP   (9)
 #define HBLANKOUT_STEP  (1)
-#define VBLANKIN_STEP   (25)
-#define VBLANKOUT_STEP  (26)
+#define HBLANKIN_STEP   (5)
+#define VBLANKIN_STEP   (7)
+#define VBLANKOUT_STEP  (8)
 
 static u32 cycles[DECILINE_STEP][2][2] = {
   {{12,12},{1,1}}, //HBlankout //Start of displayed line
-  {{64,64},{1,2}},
-  {{64,64},{3,3}},
-  {{64,64},{2,2}},
-  {{64,64},{3,2}},
-  {{64,64},{2,2}},
-  {{64,64},{3,3}},
-  {{64,64},{2,2}},
-  {{64,64},{2,2}},
-  {{64,64},{3,2}},
-  {{64,64},{2,2}},
-  {{64,64},{3,3}},
-  {{64,64},{2,2}},
-  {{64,64},{3,2}},
-  {{64,64},{2,2}},
-  {{64,64},{2,3}},
-  {{64,64},{3,2}},
-  {{64,64},{2,2}},
-  {{64,64},{3,2}},
-  {{64,64},{2,3}},
-  {{64,64},{3,2}}, //1292 cycles //End of displayed line
-  {{50,50},{1,2}},
-  {{50,50},{2,1}},
-  {{50,50},{2,2}},
-  {{50,50},{2,2}}, // Vblankin on Vblankline
+  {{320,320},{11,11}},
+  {{320,320},{12,11}},
+  {{320,320},{12,12}},
+  {{320,320},{13,11}},
+  {{50,50},{1,2}}, //1292 cycles //End of displayed line
+  {{150,150},{6,5}}, // Vblankin on Vblankline
   {{40,40},{2,1}}, // Vblankout on MaxLine
-  {{34,57},{1,2}},
-  {{34,57},{1,2}},
-  {{34,57},{2,2}},
-  {{34,57},{1,2}},
-  {{35,57},{1,2}}
+  {{170,285},{6,10}}
 };
 
 void YabauseChangeTiming(int freqtype) {
