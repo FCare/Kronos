@@ -495,9 +495,9 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       Vdp1Regs->FBCR = val;
       FRAMELOG("FBCR => Write %x VBE=%d FCM=%d FCT=%d line = %d (%d)\n", val, (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount, yabsys.DecilineCount);
       updateFBCRMode();
-      if (((val &0x2) == 0x2) && ((yabsys.LineCount > yabsys.VBlankLineCount+1)||(yabsys.LineCount==0))) {
-        startField();
-      }
+      // if (((val &0x2) == 0x2) && ((yabsys.LineCount > yabsys.VBlankLineCount+1)||(yabsys.LineCount==0))) {
+      //   startField();
+      // }
       break;
     case 0x4:
       FRAMELOG("Write PTMR %X line = %d %d\n", val, yabsys.LineCount, yabsys.VBlankLineCount);
@@ -2636,7 +2636,7 @@ static void startField(void) {
 
 void Vdp1HBlankIN(void)
 {
-  if (yabsys.LineCount == yabsys.MaxLineCount-2) {
+  if (yabsys.LineCount == yabsys.MaxLineCount-1) {
     FRAMELOG("HBlank-in line %d (%d) VBlankErase %d\n", yabsys.LineCount, yabsys.DecilineCount, needVBlankErase());
     if (needVBlankErase()) {
       int id = 0;

@@ -708,7 +708,6 @@ void Vdp2VBlankOUT(void) {
    Vdp2Regs->TVSTAT = ((Vdp2Regs->TVSTAT & ~0x0008) & ~0x0002) | (vdp2_is_odd_frame << 1);
 
    ScuSendVBlankOUT();
-
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -744,7 +743,7 @@ u16 FASTCALL Vdp2ReadWord(SH2_struct *context, u8* mem, u32 addr) {
          if (!(Vdp2Regs->EXTEN & 0x200))
          {
             // Latch HV counter on read
-            Vdp2Regs->HCNT = (yabsys.DecilineCount * _Ygl->rwidth / DECILINE_STEP) << 1;
+            // Vdp2Regs->HCNT = (yabsys.DecilineCount * _Ygl->rwidth / DECILINE_STEP) << 1;
             Vdp2Regs->VCNT = yabsys.LineCount;
             Vdp2Regs->TVSTAT |= 0x200;
          }

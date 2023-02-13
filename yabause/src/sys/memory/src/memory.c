@@ -1504,7 +1504,6 @@ int YabSaveState(const char *filename)
 //    yabsys.DecilineStop (new format)
 //    yabsys.SH2CycleFrac (new field)
 //    yabsys.DecilineUSed (new field)
-//    yabsys.UsecFrac (new field)
 //    [scsp2.c] It would be nice to redo the format entirely because so
 //              many fields have changed format/size from the old scsp.c
 //    [scsp2.c] scsp_clock, scsp_clock_frac, ScspState.sample_timer (timing)
@@ -1580,7 +1579,7 @@ int YabSaveStateStream(void ** stream)
    MemStateWrite((void *)&temp, sizeof(int), 1, stream);
    temp = (yabsys.CurSH2FreqType == CLKTYPE_26MHZ) ? 268 : 286;
    MemStateWrite((void *)&temp, sizeof(int), 1, stream);
-   temp32 = (yabsys.UsecFrac * temp / 10) >> YABSYS_TIMING_BITS;
+   temp32 = 0;
    MemStateWrite((void *)&temp32, sizeof(u32), 1, stream);
    MemStateWrite((void *)&yabsys.CurSH2FreqType, sizeof(int), 1, stream);
    MemStateWrite((void *)&yabsys.IsPal, sizeof(int), 1, stream);
@@ -1847,7 +1846,7 @@ int YabLoadStateStream(const void * stream, size_t size_stream)
    MemStateRead((void *)&yabsys.CurSH2FreqType, sizeof(int), 1, stream);
    MemStateRead((void *)&yabsys.IsPal, sizeof(int), 1, stream);
    YabauseChangeTiming(yabsys.CurSH2FreqType);
-   yabsys.UsecFrac = (temp32 << YABSYS_TIMING_BITS) * temp / 10;
+   yabsys.UsecFrac = 0;
 
    if (headerversion > 1) {
 

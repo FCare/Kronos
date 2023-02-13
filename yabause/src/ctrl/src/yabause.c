@@ -176,35 +176,66 @@ void resetSyncVideo(void) {
   resetFrameSkip();
 }
 
-void YabauseChangeTiming(int freqtype) {
-   // Setup all the variables related to timing
+// PAL
+// CLKTYPE_26MHZ
+// 28437500 * 15.0/16.0 / 50 /313 = 533203 cycles/313 lines = 1703 cycles/line => 38 ns/cycle
+// CLKTYPE_28MHZ
+// 28437500 * 1.0 / 50 /313 = 568750/313 lines = 1817 cycles => 35 ns/cycle
+//
+// NTSC
+// CLKTYPE_26MHZ
+// (39375000.0 / 11.0) * 8.0 * 15.0/16.0 / (60/1.001) / 263 = 447890/263 lines = 1703 cycles/line => 37ns/cycle
+// CLKTYPE_28MHZ
+// (39375000.0 / 11.0) * 8.0 * 1.0 / (60/1.001) / 263 = 477750cycles/263 lines = 1817 cycles/lines => 35ns/cycle
 
-   const double freq_base = yabsys.IsPal ? 28437500.0
-      : (39375000.0 / 11.0) * 8.0;  // i.e. 8 * 3.579545... = 28.636363... MHz
-   const double freq_mult = (freqtype == CLKTYPE_26MHZ) ? 15.0/16.0 : 1.0;
-   const double freq_shifted = (freq_base * freq_mult) * (1 << YABSYS_TIMING_BITS);
-   const double usec_shifted = 1.0e6 * (1 << YABSYS_TIMING_BITS);
-   const double line_time = yabsys.IsPal ? 1.0 /  50        / 313
-                                         : 1.0 / (60/1.001) / 263;
-   const double line_clk_cnt = line_time * (freq_base * freq_mult);
-   const double deciline_time = line_time / DECILINE_STEP;
+#define DECILINE_STEP   (31)
+#define HBLANKIN_STEP   (21)
+#define HBLANKOUT_STEP  (1)
+#define VBLANKIN_STEP   (25)
+#define VBLANKOUT_STEP  (26)
+
+static u32 cycles[DECILINE_STEP][2][2] = {
+  {{12,12},{1,1}}, //HBlankout //Start of displayed line
+  {{64,64},{1,2}},
+  {{64,64},{3,3}},
+  {{64,64},{2,2}},
+  {{64,64},{3,2}},
+  {{64,64},{2,2}},
+  {{64,64},{3,3}},
+  {{64,64},{2,2}},
+  {{64,64},{2,2}},
+  {{64,64},{3,2}},
+  {{64,64},{2,2}},
+  {{64,64},{3,3}},
+  {{64,64},{2,2}},
+  {{64,64},{3,2}},
+  {{64,64},{2,2}},
+  {{64,64},{2,3}},
+  {{64,64},{3,2}},
+  {{64,64},{2,2}},
+  {{64,64},{3,2}},
+  {{64,64},{2,3}},
+  {{64,64},{3,2}}, //1292 cycles //End of displayed line
+  {{50,50},{1,2}},
+  {{50,50},{2,1}},
+  {{50,50},{2,2}},
+  {{50,50},{2,2}}, // Vblankin on Vblankline
+  {{40,40},{2,1}}, // Vblankout on MaxLine
+  {{34,57},{1,2}},
+  {{34,57},{1,2}},
+  {{34,57},{2,2}},
+  {{34,57},{1,2}},
+  {{35,57},{1,2}}
+};
+
+void YabauseChangeTiming(int freqtype) {
 
    yabsys.DecilineCount = 0;
    yabsys.LineCount = 0;
    yabsys.CurSH2FreqType = freqtype;
 
-   for (int i = 0; i < DECILINE_STEP; i++) {
-     yabsys.LineCycle[i] = (u32) (line_clk_cnt * (float)i/(float)(DECILINE_STEP - 1));
-   }
-   for (int i = DECILINE_STEP-1; i>0; i--) {
-     yabsys.LineCycle[i] -= yabsys.LineCycle[i-1];
-   }
-
-   yabsys.DecilineStop = (u32) (freq_shifted * deciline_time + 0.5);
    MSH2->cycleFrac = 0;
    SSH2->cycleFrac = 0;
-   yabsys.DecilineUsec = (u32) (usec_shifted * deciline_time + 0.5);
-   yabsys.UsecFrac = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -398,6 +429,7 @@ TRACE_EMULATOR("YabauseInit");
    SSH2->cycleLost = 0;
    SSH2->cdiff = 0;
 
+printf("Video Init\n");
    if (VideoInit(init->vidcoretype) != 0)
    {
       YabSetError(YAB_ERR_CANNOTINIT, _("Video"));
@@ -682,10 +714,6 @@ u32 YabauseGetCpuTime(){
   return MSH2->cycles;
 }
 
-// cyclesinc
-
-#define PORCH_IN_STEP ((DECILINE_STEP)/10)
-
 //////////////////////////////////////////////////////////////////////////////
 static void FPSDisplay(void)
 {
@@ -731,8 +759,6 @@ int YabauseEmulate(void) {
    int ret = 0;
    yabsys.frame_count++;
 
-   const u32 usecinc = yabsys.DecilineUsec;
-
    unsigned int m68kcycles;       // Integral M68k cycles per call
    unsigned int m68kcenticycles;  // 1/100 M68k cycles per call
 
@@ -760,9 +786,12 @@ int YabauseEmulate(void) {
    u64 cpu_emutime = 0;
 
    TRACE_EMULATOR("YabauseEmulate");
-   yabsys.LineCount = -1;
+   yabsys.LineCount = 0;
    yabsys.DecilineCount = 0;
-   while (yabsys.LineCount < yabsys.MaxLineCount-1)
+
+   ScspAddCycles((u64)(44100 * 256 / frames)<< SCSP_FRACTIONAL_BITS);
+
+   while (yabsys.LineCount < yabsys.MaxLineCount)
    {
       PROFILE_START("Total Emulation");
       VIDCore->setupFrame();
@@ -773,68 +802,64 @@ int YabauseEmulate(void) {
 #ifdef YAB_STATICS
 		 cpu_emutime += (YabauseGetTicks() - current_cpu_clock) * 1000000 / yabsys.tickfreq;
 #endif
-    if (yabsys.DecilineCount == 0)
+    if (yabsys.DecilineCount == HBLANKOUT_STEP)
     {
       PROFILE_START("hblankout");
       // printf("hblankout %d %d\n", yabsys.LineCount, yabsys.DecilineCount);
-
-      PROFILE_STOP("hblankout");
-      if (yabsys.LineCount == -1)
-      {
-         // VBlankOUT
-         PROFILE_START("VDP1/VDP2");
-         Vdp2VBlankOUT();
-         PROFILE_STOP("VDP1/VDP2");
-      }
-      if (yabsys.LineCount == yabsys.VBlankLineCount)
-      {
-         ScspAddCycles((u64)(44100 * 256 / frames)<< SCSP_FRACTIONAL_BITS);
-         PROFILE_START("vblankin");
-         // VBlankIN
-         SmpcINTBACKEnd();
-         Vdp1VBlankIN();
-         Vdp2VBlankIN();
-         SyncCPUtoSCSP();
-         PROFILE_STOP("vblankin");
-         CheatDoPatches(MSH2);
-      }
-    }
-    if(yabsys.DecilineCount == PORCH_IN_STEP) //Start display area
-    {
-      yabsys.LineCount++;
       Vdp1StartVisibleLine();
       Vdp2StartVisibleLine();
+      PROFILE_STOP("hblankout");
     }
-    if(yabsys.DecilineCount == DECILINE_STEP - PORCH_IN_STEP) //Hblankin
+    if(yabsys.DecilineCount == HBLANKIN_STEP) //Hblankin
     {
-       // HBlankIN
-       PROFILE_START("hblankin");
-       // printf("hblankin %d %d\n", yabsys.LineCount, yabsys.DecilineCount);
-       Vdp1HBlankIN();
-       Vdp2HBlankIN();
-       PROFILE_STOP("hblankin");
+      // HBlankIN
+      PROFILE_START("hblankin");
+      // printf("hblankin %d %d\n", yabsys.LineCount, yabsys.DecilineCount);
+      Vdp1HBlankIN();
+      Vdp2HBlankIN();
+      PROFILE_STOP("hblankin");
+    }
+    if ((yabsys.DecilineCount == VBLANKIN_STEP) && (yabsys.LineCount == (yabsys.VBlankLineCount)))
+    {
+
+      PROFILE_START("vblankin");
+      // VBlankIN
+      SmpcINTBACKEnd();
+      Vdp1VBlankIN();
+      Vdp2VBlankIN();
+      SyncCPUtoSCSP();
+      PROFILE_STOP("vblankin");
+      CheatDoPatches(MSH2);
+    }
+    if ((yabsys.DecilineCount == VBLANKOUT_STEP) && (yabsys.LineCount == (yabsys.MaxLineCount-1)))
+    {
+      // VBlankOUT
+      PROFILE_START("VDP1/VDP2");
+      Vdp2VBlankOUT();
+      PROFILE_STOP("VDP1/VDP2");
     }
 
     THREAD_LOG("Unlock MSH2\n");
-     sh2ExecuteSync(MSH2, yabsys.LineCycle[yabsys.DecilineCount]);
+     sh2ExecuteSync(MSH2, cycles[yabsys.DecilineCount][0][!yabsys.IsPal]);
      if (yabsys.IsSSH2Running) {
-       sh2ExecuteSync(SSH2, yabsys.LineCycle[yabsys.DecilineCount]);
+       sh2ExecuteSync(SSH2, cycles[yabsys.DecilineCount][0][!yabsys.IsPal]);
      }
 
       PROFILE_START("SCU");
-      ScuExec(yabsys.DecilineStop>>YABSYS_TIMING_BITS);
+      ScuExec(cycles[yabsys.DecilineCount][0][!yabsys.IsPal]);
       PROFILE_STOP("SCU");
 
-      yabsys.UsecFrac += usecinc;
       PROFILE_START("SMPC");
-      SmpcExec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
+      SmpcExec(cycles[yabsys.DecilineCount][1][!yabsys.IsPal]);
       PROFILE_STOP("SMPC");
       PROFILE_START("CDB");
-      Cs2Exec(yabsys.UsecFrac >> YABSYS_TIMING_BITS);
+      Cs2Exec(cycles[yabsys.DecilineCount][1][!yabsys.IsPal]);
       PROFILE_STOP("CDB");
-      yabsys.UsecFrac &= YABSYS_TIMING_MASK;
       // printf("Deciline %d line %d\n", yabsys.DecilineCount, yabsys.LineCount);
       yabsys.DecilineCount  = (yabsys.DecilineCount+1)%DECILINE_STEP;
+      if (yabsys.DecilineCount == 0) {
+        yabsys.LineCount++;
+      }
       PROFILE_STOP("Total Emulation");
    }
 

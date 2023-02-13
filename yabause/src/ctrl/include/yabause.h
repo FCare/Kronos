@@ -109,8 +109,6 @@ void DisableAutoFrameSkip(void);
 #define YABSYS_TIMING_BITS  20
 #define YABSYS_TIMING_MASK  ((1 << YABSYS_TIMING_BITS) - 1)
 
-#define DECILINE_STEP (20)
-
 typedef struct
 {
    int DecilineCount;
@@ -139,7 +137,6 @@ typedef struct
    int wireframe_mode;
    int stvInputType;
    int vdp1cycles;
-   u32 LineCycle[DECILINE_STEP];
 } yabsys_struct;
 
 extern yabsys_struct yabsys;

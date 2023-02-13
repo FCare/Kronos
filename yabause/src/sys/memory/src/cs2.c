@@ -846,6 +846,7 @@ int Cs2ForceCloseTray( int coreid, const char * cdpath ){
 //////////////////////////////////////////////////////////////////////////////
 
 void Cs2Exec(u32 timing) {
+  printf("CS2 EXec %d\n", timing);
    Cs2Area->_statuscycles += timing * 3;
    Cs2Area->_periodiccycles += timing * 3;
 
