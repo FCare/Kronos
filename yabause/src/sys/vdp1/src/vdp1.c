@@ -2643,6 +2643,7 @@ void Vdp1HBlankIN(void)
       if (_Ygl != NULL) id = _Ygl->readframe;
       Vdp1EraseWrite(id);
     }
+    startField();
   }
 
   int needToCompose = 0;
@@ -2693,7 +2694,6 @@ void Vdp1StartVisibleLine(void)
 {
   int cyclesPerLine  = getVdp1CyclesPerLine();
   // checkFBSync();
-if (yabsys.LineCount == 0)   startField();
   if (vdp1_clock > 0) vdp1_clock = 0;
   vdp1_clock += cyclesPerLine;
   Vdp1TryDraw();
