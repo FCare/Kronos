@@ -279,11 +279,11 @@ void FASTCALL SH2OnFrame(SH2_struct *context) {
 
 void SH2SendInterrupt(SH2_struct *context, u8 vector, u8 level)
 {
-   SH2Core->SendInterrupt(context, vector, level);
-   if (SH2MappedMemoryReadWord(context, context->regs.PC) == 0x1B) {
-     //SH2 on a sleep command, wake it up
-     context->regs.PC+=2;
-   }
+  if (SH2MappedMemoryReadWord(context, context->regs.PC) == 0x1B) {
+    //SH2 on a sleep command, wake it up
+    context->regs.PC+=2;
+  }
+  SH2Core->SendInterrupt(context, vector, level);
 }
 
 void SH2RemoveInterrupt(SH2_struct *context, u8 vector, u8 level)
