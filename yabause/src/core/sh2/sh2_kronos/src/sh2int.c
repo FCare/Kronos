@@ -131,7 +131,6 @@ void biosDecode(SH2_struct *context) {
 }
 
 void decodeInt(SH2_struct *context) {
-  printf("decodeInt\n");
   int id = (context->regs.PC >> 20) & 0xFFF;
   u16 opcode = krfetchlist[id](context, context->regs.PC);
   u32 oldPC = context->regs.PC;
@@ -141,18 +140,14 @@ void decodeInt(SH2_struct *context) {
   if (context->regs.PC != oldPC) {
     //There was an interrupt to execute
     //Update the command to execute
-    printf("Jump during execution\n");
     id = (context->regs.PC >> 20) & 0xFFF;
     opcode = krfetchlist[id](context, context->regs.PC);
     cacheCode[context->isslave][cacheId[id]][(context->regs.PC >> 1) & 0x7FFFF] = opcodeTable[opcode];
-  } else {
-    printf("Not handled interrupt\n");
   }
   opcodeTable[opcode](context);
 }
 
 void biosDecodeInt(SH2_struct *context) {
-  printf("biosDecodeInt\n");
   int isBUPHandled = BackupHandled(context, context->regs.PC);
   if (isBUPHandled == 0) {
     decodeInt(context);
@@ -702,7 +697,6 @@ void SH2KronosInterpreterSendInterrupt(SH2_struct *context, u8 vector, u8 level)
    UNLOCK(context);
 
    if (context->target_cycles != 0) {
-     printf("Add an it while running\n");
      // force the next PC to be decodeWithInterrupt so that interrupt is evaluated asap
      insertInterruptHandling(context);
    }
