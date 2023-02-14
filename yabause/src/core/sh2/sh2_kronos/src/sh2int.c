@@ -41,6 +41,8 @@
 
 extern void SH2undecoded(SH2_struct * sh);
 
+static void insertInterruptHandling(SH2_struct *context);
+
 void SH2KronosIOnFrame(SH2_struct *context) {
 }
 
@@ -66,6 +68,8 @@ void SH2HandleInterrupts(SH2_struct *context)
       else {
         context->regs.SR.part.I = context->interrupts[context->NumberOfInterrupts - 1].level;
       }
+      insertInterruptHandling(context); //Insert a new interrupt handling once this one will have been executed
+      // force the next PC (or PC+2?) to be decodeWithInterrupt so that next interrupt is evaluated when back from IT
       context->regs.PC = SH2MappedMemoryReadLong(context,context->regs.VBR + (context->interrupts[context->NumberOfInterrupts - 1].vector << 2));
       context->NumberOfInterrupts--;
       context->isSleeping = 0;
@@ -123,6 +127,37 @@ void biosDecode(SH2_struct *context) {
   int isBUPHandled = BackupHandled(context, context->regs.PC);
   if (isBUPHandled == 0) {
     decode(context);
+  }
+}
+
+void decodeInt(SH2_struct *context) {
+  printf("decodeInt\n");
+  int id = (context->regs.PC >> 20) & 0xFFF;
+  u16 opcode = krfetchlist[id](context, context->regs.PC);
+  u32 oldPC = context->regs.PC;
+
+  cacheCode[context->isslave][cacheId[id]][(context->regs.PC >> 1) & 0x7FFFF] = opcodeTable[opcode];
+  SH2HandleInterrupts(context);
+  if (context->regs.PC != oldPC) {
+    //There was an interrupt to execute
+    //Update the command to execute
+    printf("Jump during execution\n");
+    id = (context->regs.PC >> 20) & 0xFFF;
+    opcode = krfetchlist[id](context, context->regs.PC);
+    cacheCode[context->isslave][cacheId[id]][(context->regs.PC >> 1) & 0x7FFFF] = opcodeTable[opcode];
+  } else {
+    printf("Not handled interrupt\n");
+  }
+  opcodeTable[opcode](context);
+}
+
+void biosDecodeInt(SH2_struct *context) {
+  printf("biosDecodeInt\n");
+  int isBUPHandled = BackupHandled(context, context->regs.PC);
+  if (isBUPHandled == 0) {
+    decodeInt(context);
+  } else {
+    SH2HandleInterrupts(context);
   }
 }
 
@@ -282,6 +317,7 @@ FASTCALL void SH2KronosInterpreterExec(SH2_struct *context, u32 cycles)
   while (context->cycles < context->target_cycles){
     cacheCode[context->isslave][cacheId[(context->regs.PC >> 20) & 0xFFF]][(context->regs.PC >> 1) & 0x7FFFF](context);
   }
+  context->target_cycles = 0;
 }
 
 FASTCALL void SH2KronosInterpreterExecSave(SH2_struct *context, u32 cycles, sh2regs_struct *oldRegs)
@@ -296,9 +332,11 @@ FASTCALL void SH2KronosInterpreterExecSave(SH2_struct *context, u32 cycles, sh2r
     if(context->isAccessingCPUBUS != 0) {
       context->cycles = context->target_cycles;
       memcpy(&context->regs, oldRegs, sizeof(sh2regs_struct));
+      context->target_cycles = 0;
       return;
     }
   }
+  context->target_cycles = 0;
 }
 
 static int enableTrace = 0;
@@ -469,6 +507,7 @@ FASTCALL void SH2KronosInterpreterTestExec(SH2_struct *context, u32 cycles)
 {
   context->target_cycles = context->cycles + cycles;
   cacheCode[context->isslave][cacheId[(context->regs.PC >> 20) & 0xFFF]][(context->regs.PC >> 1) & 0x7FFFF](context);
+  context->target_cycles = 0;
 }
 
 
@@ -605,6 +644,19 @@ void SH2KronosInterpreterSetPC(SH2_struct *context, u32 value)
 
 //////////////////////////////////////////////////////////////////////////////
 
+static void insertInterruptHandling(SH2_struct *context) {
+  int addr = (context->regs.PC + 2)>>1;
+  int id = (addr >> 19) & 0xFFF;
+  if (cacheId[id] == 0) {  //Special BAckupHandled case
+    cacheCode[context->isslave][cacheId[id]][addr & 0x7FFFF] = biosDecodeInt;
+  }
+  else{
+    cacheCode[context->isslave][cacheId[id]][addr & 0x7FFFF] = decodeInt;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 void SH2KronosInterpreterSendInterrupt(SH2_struct *context, u8 vector, u8 level)
 {
    u32 i, i2;
@@ -648,6 +700,12 @@ void SH2KronosInterpreterSendInterrupt(SH2_struct *context, u8 vector, u8 level)
       }
    }
    UNLOCK(context);
+
+   if (context->target_cycles != 0) {
+     printf("Add an it while running\n");
+     // force the next PC to be decodeWithInterrupt so that interrupt is evaluated asap
+     insertInterruptHandling(context);
+   }
 }
 
 void SH2KronosInterpreterRemoveInterrupt(SH2_struct *context, u8 vector, u8 level) {
