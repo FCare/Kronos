@@ -383,7 +383,6 @@ static void requestDrawCellQuad(vdp2draw_struct * info, YglTexture *texture, Vdp
    texture->textdata -= (texture->w + 8) * 8 - 8;
    Vdp2DrawCell_in_sync(info, texture, varVdp2Regs);
    texture->textdata -= 8;
-   task->info->draw_line += 8;
    Vdp2DrawCell_in_sync(info, texture, varVdp2Regs);
    texture->textdata -= (texture->w + 8) * 8 - 8;
    Vdp2DrawCell_in_sync(info, texture, varVdp2Regs);
