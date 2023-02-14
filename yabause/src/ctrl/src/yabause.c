@@ -777,6 +777,7 @@ int YabauseEmulate(void) {
    yabsys.DecilineCount = 0;
 
    ScspAddCycles((u64)(44100 * 256 / frames)<< SCSP_FRACTIONAL_BITS);
+   SyncCPUtoSCSP();
 
    while (yabsys.LineCount < yabsys.MaxLineCount)
    {
@@ -814,7 +815,6 @@ int YabauseEmulate(void) {
       SmpcINTBACKEnd();
       Vdp1VBlankIN();
       Vdp2VBlankIN();
-      SyncCPUtoSCSP();
       PROFILE_STOP("vblankin");
       CheatDoPatches(MSH2);
     }
