@@ -503,6 +503,10 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       break;
     case 0x4:
       FRAMELOG("Write PTMR %X line = %d (%d) %d\n", val, yabsys.LineCount, yabsys.DecilineCount, yabsys.VBlankLineCount);
+      if ((Vdp1External.status & VDP1_STATUS_SWITCHING) != 0) {
+        FRAMELOG("Non allowed access\n");
+        return;
+      }
       if ((val & 0x3)==0x3) {
         //Skeleton warriors is writing 0xFFF to PTMR. It looks like the behavior is 0x2
           val = 0x2;
@@ -2649,6 +2653,10 @@ void Vdp1HBlankIN(void)
     RequestVdp1ToDraw();
     Vdp1TryDraw();
   }
+  if (yabsys.LineCount == 0) {
+    Vdp1External.status |= VDP1_STATUS_SWITCHING;
+  }
+  if (yabsys.LineCount == 1) Vdp1External.status &= ~VDP1_STATUS_SWITCHING;
   if (nbCmdToProcess > 0) {
     for (int i = 0; i<nbCmdToProcess; i++) {
       if (cmdBufferBeingProcessed[i].ignitionLine == (yabsys.LineCount+1)) {
