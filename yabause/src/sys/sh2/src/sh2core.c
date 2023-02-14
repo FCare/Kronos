@@ -265,10 +265,11 @@ void FASTCALL SH2TestExec(SH2_struct *context, u32 cycles)
 
 void FASTCALL SH2Exec(SH2_struct *context, u32 cycles)
 {
+   int sh2start = context->cycles;
    SH2InterruptibleExec(context, cycles);
    FRTExec(context);
    WDTExec(context);
-   DMAProc(context, cycles);
+   DMAProc(context, context->cycles-sh2start);
 }
 
 void FASTCALL SH2OnFrame(SH2_struct *context) {
