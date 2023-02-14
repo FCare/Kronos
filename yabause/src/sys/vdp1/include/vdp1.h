@@ -212,8 +212,10 @@ void Vdp1FakeDrawCommands(u8 * ram, Vdp1 * regs);
 extern Vdp1 * Vdp1Regs;
 
 enum VDP1STATUS {
-  VDP1_STATUS_IDLE = 0,
-  VDP1_STATUS_RUNNING
+  VDP1_STATUS_IDLE = 0x0,
+  VDP1_STATUS_RUNNING = 0x1,
+  VDP1_STATUS_SWITCHING = 0x2,
+  VDP1_STATUS_DRAW_REQUEST = 0x4
 };
 
 int Vdp1Init(void);
@@ -244,6 +246,7 @@ void ToggleVDP1(void);
 void Vdp1HBlankIN(void);
 void Vdp1StartVisibleLine(void);
 void Vdp1VBlankIN(void);
+void Vdp1SwitchFrame(void);
 
 #ifdef __cplusplus
 }

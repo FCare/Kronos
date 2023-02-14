@@ -189,11 +189,12 @@ void resetSyncVideo(void) {
 // (39375000.0 / 11.0) * 8.0 * 1.0 / (60/1.001) / 263 = 477750cycles/263 lines = 1817 cycles/lines => 35ns/cycle
 #define MIN_STEP_RUN (32)
 
-#define DECILINE_STEP   (15)
+#define DECILINE_STEP   (16)
 #define HBLANKOUT_STEP  (1)
 #define HBLANKIN_STEP   (11)
 #define VBLANKIN_STEP   (12)
 #define VBLANKOUT_STEP  (13)
+#define SWITCH_STEP     (14)
 
 static const u32 const cycles[DECILINE_STEP][2][2] = {
   {{12,12},{1,1}}, //HBlankout //Start of displayed line
@@ -210,7 +211,8 @@ static const u32 const cycles[DECILINE_STEP][2][2] = {
   {{50,50},{1,2}}, //1292 cycles //End of displayed line
   {{150,150},{6,5}}, // Vblankin on Vblankline
   {{40,40},{2,1}}, // Vblankout on MaxLine
-  {{170,285},{6,10}}
+  {{15,25},{1,1}},
+  {{155,260},{5,9}}
 };
 
 void YabauseChangeTiming(int freqtype) {
@@ -821,9 +823,15 @@ int YabauseEmulate(void) {
     if ((yabsys.DecilineCount == VBLANKOUT_STEP) && (yabsys.LineCount == (yabsys.MaxLineCount-1)))
     {
       // VBlankOUT
-      PROFILE_START("VDP1/VDP2");
+      PROFILE_START("VDP2");
       Vdp2VBlankOUT();
-      PROFILE_STOP("VDP1/VDP2");
+      PROFILE_STOP("VDP2");
+    }
+    if ((yabsys.DecilineCount == SWITCH_STEP) && (yabsys.LineCount == (yabsys.MaxLineCount-1)))
+    {
+      PROFILE_START("VDP1");
+      Vdp1SwitchFrame();
+      PROFILE_STOP("VDP1");
     }
 
     THREAD_LOG("Unlock MSH2\n");
