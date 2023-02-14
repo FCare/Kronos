@@ -188,18 +188,16 @@ void resetSyncVideo(void) {
 // CLKTYPE_28MHZ
 // (39375000.0 / 11.0) * 8.0 * 1.0 / (60/1.001) / 263 = 477750cycles/263 lines = 1817 cycles/lines => 35ns/cycle
 
-#define DECILINE_STEP   (9)
+#define DECILINE_STEP   (6)
 #define HBLANKOUT_STEP  (1)
-#define HBLANKIN_STEP   (5)
-#define VBLANKIN_STEP   (7)
-#define VBLANKOUT_STEP  (8)
+#define HBLANKIN_STEP   (2)
+#define VBLANKIN_STEP   (4)
+#define VBLANKOUT_STEP  (5)
 
-static u32 cycles[DECILINE_STEP][2][2] = {
+#define MIN_STEP_RUN (32)
+static const u32 const cycles[DECILINE_STEP][2][2] = {
   {{12,12},{1,1}}, //HBlankout //Start of displayed line
-  {{320,320},{11,11}},
-  {{320,320},{12,11}},
-  {{320,320},{12,12}},
-  {{320,320},{13,11}},
+  {{1280,1280},{48,45}},
   {{50,50},{1,2}}, //1292 cycles //End of displayed line
   {{150,150},{6,5}}, // Vblankin on Vblankline
   {{40,40},{2,1}}, // Vblankout on MaxLine
@@ -820,21 +818,41 @@ int YabauseEmulate(void) {
     }
 
     THREAD_LOG("Unlock MSH2\n");
-     sh2ExecuteSync(MSH2, cycles[yabsys.DecilineCount][0][!yabsys.IsPal]);
-     if (yabsys.IsSSH2Running) {
-       sh2ExecuteSync(SSH2, cycles[yabsys.DecilineCount][0][!yabsys.IsPal]);
-     }
+
+    int nb_cycles = cycles[yabsys.DecilineCount][0][!yabsys.IsPal];
+    int cycles_to_run = 0;
+    int usec_to_run = 0;
+    int non_run_sec_cycles = 0;
+    while (nb_cycles > 0) {
+      int SH2cycles = MSH2->cycles;
+      cycles_to_run = (nb_cycles >= MIN_STEP_RUN)?MIN_STEP_RUN:nb_cycles;
+      // printf("Was %d run %d\n", nb_cycles,  cycles_to_run);
+      nb_cycles -= cycles_to_run;
+      sh2ExecuteSync(MSH2, cycles_to_run);
+      usec_to_run = (int)((double)(cycles_to_run + non_run_sec_cycles)* (double)cycles[yabsys.DecilineCount][1][!yabsys.IsPal]/(double)cycles[yabsys.DecilineCount][0][!yabsys.IsPal]) ;
+      if (usec_to_run > 0) {
+        non_run_sec_cycles = cycles_to_run + non_run_sec_cycles - (int)((double)usec_to_run/((double)cycles[yabsys.DecilineCount][1][!yabsys.IsPal]/(double)cycles[yabsys.DecilineCount][0][!yabsys.IsPal]));
+      } else {
+        non_run_sec_cycles += cycles_to_run;
+      }
+      if (yabsys.IsSSH2Running) {
+        sh2ExecuteSync(SSH2, cycles_to_run);
+      }
 
       PROFILE_START("SCU");
-      ScuExec(cycles[yabsys.DecilineCount][0][!yabsys.IsPal]);
+      ScuExec(cycles_to_run);
       PROFILE_STOP("SCU");
 
-      PROFILE_START("SMPC");
-      SmpcExec(cycles[yabsys.DecilineCount][1][!yabsys.IsPal]);
-      PROFILE_STOP("SMPC");
-      PROFILE_START("CDB");
-      Cs2Exec(cycles[yabsys.DecilineCount][1][!yabsys.IsPal]);
-      PROFILE_STOP("CDB");
+      if (usec_to_run > 0) {
+        // printf("Run %d on %d\n", usec_to_run, cycles[yabsys.DecilineCount][1][!yabsys.IsPal]);
+        PROFILE_START("SMPC");
+        SmpcExec(usec_to_run);
+        PROFILE_STOP("SMPC");
+        PROFILE_START("CDB");
+        Cs2Exec(usec_to_run);
+        PROFILE_STOP("CDB");
+      }
+    }
       // printf("Deciline %d line %d\n", yabsys.DecilineCount, yabsys.LineCount);
       yabsys.DecilineCount  = (yabsys.DecilineCount+1)%DECILINE_STEP;
       if (yabsys.DecilineCount == 0) {
