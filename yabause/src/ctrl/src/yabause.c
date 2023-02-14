@@ -227,6 +227,8 @@ static void sh2ExecuteSync( SH2_struct* sh, int req ) {
      int sh2start = sh->cycles;
      SH2Exec(sh, unbiasedReq);
      sh->cdiff = unbiasedReq - (sh->cycles-sh2start);
+   } else {
+     sh->cdiff += req;
    }
 }
 
