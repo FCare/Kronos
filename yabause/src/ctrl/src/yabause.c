@@ -815,8 +815,8 @@ int YabauseEmulate(void) {
       PROFILE_START("vblankin");
       // VBlankIN
       SmpcINTBACKEnd();
-      Vdp1VBlankIN();
       Vdp2VBlankIN();
+      Vdp1VBlankIN();
       PROFILE_STOP("vblankin");
       CheatDoPatches(MSH2);
     }
