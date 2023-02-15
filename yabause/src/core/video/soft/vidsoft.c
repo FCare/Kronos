@@ -1603,7 +1603,7 @@ static void Vdp2DrawNBG0(Vdp2* lines, Vdp2* regs, u8* ram, u8* color_ram, struct
    ReadVdp2ColorOffset(regs, &info, 0x1, 0x1);
    info.priority = regs->PRINA & 0x7;
 
-   if (!(info.enable & Vdp2External.disptoggle))
+   if (!(info.enable))
       return;
 
    ReadMosaicData(&info, 0x1, regs);
@@ -1712,7 +1712,7 @@ static void Vdp2DrawNBG1(Vdp2* lines, Vdp2* regs, u8* ram, u8* color_ram, struct
    info.priority = (regs->PRINA >> 8) & 0x7;
    info.PlaneAddr = (void FASTCALL(*)(void *, int, Vdp2*))&Vdp2NBG1PlaneAddr;
 
-   if (!(info.enable & Vdp2External.disptoggle) ||
+   if (!(info.enable) ||
        (regs->BGON & 0x1 && (regs->CHCTLA & 0x70) >> 4 == 4)) // If NBG0 16M mode is enabled, don't draw
       return;
 
@@ -1798,7 +1798,7 @@ static void Vdp2DrawNBG2(Vdp2* lines, Vdp2* regs, u8* ram, u8* color_ram, struct
    info.priority = regs->PRINB & 0x7;
    info.PlaneAddr = (void FASTCALL(*)(void *, int, Vdp2*))&Vdp2NBG2PlaneAddr;
 
-   if (!(info.enable & Vdp2External.disptoggle) ||
+   if (!(info.enable) ||
       (regs->BGON & 0x1 && (regs->CHCTLA & 0x70) >> 4 >= 2)) // If NBG0 2048/32786/16M mode is enabled, don't draw
       return;
 
@@ -1871,7 +1871,7 @@ static void Vdp2DrawNBG3(Vdp2* lines, Vdp2* regs, u8* ram, u8* color_ram, struct
    info.priority = (regs->PRINB >> 8) & 0x7;
    info.PlaneAddr = (void FASTCALL(*)(void *, int, Vdp2*))&Vdp2NBG3PlaneAddr;
 
-   if (!(info.enable & Vdp2External.disptoggle) ||
+   if (!(info.enable) ||
       (regs->BGON & 0x1 && (regs->CHCTLA & 0x70) >> 4 == 4) || // If NBG0 16M mode is enabled, don't draw
       (regs->BGON & 0x2 && (regs->CHCTLA & 0x3000) >> 12 >= 2)) // If NBG1 2048/32786 is enabled, don't draw
       return;
@@ -1914,7 +1914,7 @@ static void Vdp2DrawRBG0(Vdp2* lines, Vdp2* regs, u8* ram, u8* color_ram, struct
 
    info.enable = regs->BGON & 0x10;
    info.priority = regs->PRIR & 0x7;
-   if (!(info.enable & Vdp2External.disptoggle))
+   if (!(info.enable))
       return;
    info.transparencyenable = !(regs->BGON & 0x1000);
    info.specialprimode = (regs->SFPRMD >> 8) & 0x3;
@@ -3512,7 +3512,7 @@ void VidsoftDrawSprite(Vdp2 * vdp2_regs, u8 * spr_window_mask, u8* vdp1_front_fr
 
    // Figure out whether to draw vdp1 framebuffer or vdp2 framebuffer pixels
    // based on priority
-   if (Vdp1External.disptoggle && (vdp2_regs->TVMD & 0x8000))
+   if (vdp2_regs->TVMD & 0x8000)
    {
       int SPCCCS = (vdp2_regs->SPCTL >> 12) & 0x3;
       int SPCCN = (vdp2_regs->SPCTL >> 8) & 0x7;

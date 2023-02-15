@@ -4880,7 +4880,7 @@ static void Vdp2DrawRBG1_part(RBGDrawInfo *rgb, Vdp2* varVdp2Regs)
 
   LOG_AREA("RGB1 prio = %d\n", info->priority);
 
-  if (((Vdp2External.disptoggle & 0x20)==0) || (info->priority == 0)) {
+  if (info->priority == 0) {
     free(rgb);
     return;
   }
@@ -5200,7 +5200,7 @@ static void Vdp2DrawNBG0(Vdp2* varVdp2Regs) {
   info.linecheck_mask = 0x01;
   info.priority = varVdp2Regs->PRINA & 0x7;
 
-  if (((Vdp2External.disptoggle & 0x1)==0) || (info.priority == 0))
+  if (info.priority == 0)
     return;
 
   ReadLineScrollData(&info, varVdp2Regs->SCRCTL & 0xFF, varVdp2Regs->LSTA0.all);
@@ -5494,7 +5494,7 @@ static void Vdp2DrawNBG1(Vdp2* varVdp2Regs)
 
   info.PlaneAddr = (void FASTCALL(*)(void *, int, Vdp2*))&Vdp2NBG1PlaneAddr;
 
-  if (((Vdp2External.disptoggle & 0x2)==0) || (info.priority == 0) ||
+  if ((info.priority == 0) ||
     (varVdp2Regs->BGON & 0x1 && (varVdp2Regs->CHCTLA & 0x70) >> 4 == 4)) // If NBG0 16M mode is enabled, don't draw
     return;
 
@@ -5700,7 +5700,7 @@ static void Vdp2DrawNBG2(Vdp2* varVdp2Regs)
   info.priority = varVdp2Regs->PRINB & 0x7;
   info.PlaneAddr = (void FASTCALL(*)(void *, int, Vdp2*))&Vdp2NBG2PlaneAddr;
 
-  if (((Vdp2External.disptoggle & 0x4)==0) || (info.priority == 0) ||
+  if ((info.priority == 0) ||
     (varVdp2Regs->BGON & 0x1 && (varVdp2Regs->CHCTLA & 0x70) >> 4 >= 2)) // If NBG0 2048/32786/16M mode is enabled, don't draw
     return;
 
@@ -5797,7 +5797,7 @@ static void Vdp2DrawNBG3(Vdp2* varVdp2Regs)
   info.priority = (varVdp2Regs->PRINB >> 8) & 0x7;
   info.PlaneAddr = (void FASTCALL(*)(void *, int, Vdp2*))&Vdp2NBG3PlaneAddr;
 
-  if (((Vdp2External.disptoggle & 0x8)==0) || (info.priority == 0) ||
+  if ((info.priority == 0) ||
     (varVdp2Regs->BGON & 0x1 && (varVdp2Regs->CHCTLA & 0x70) >> 4 == 4) || // If NBG0 16M mode is enabled, don't draw
     (varVdp2Regs->BGON & 0x2 && (varVdp2Regs->CHCTLA & 0x3000) >> 12 >= 2)) // If NBG1 2048/32786 is enabled, don't draw
     return;
@@ -5880,7 +5880,7 @@ static void Vdp2DrawRBG0_part( RBGDrawInfo *rgb, Vdp2* varVdp2Regs)
 
   LOG_AREA("RGB0 prio = %d\n", info->priority);
 
-  if (((Vdp2External.disptoggle & 0x10)==0) || (info->priority == 0)) {
+  if (info->priority == 0) {
     free(rgb);
     return;
   }

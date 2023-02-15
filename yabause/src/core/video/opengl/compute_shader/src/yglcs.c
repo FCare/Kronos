@@ -302,6 +302,9 @@ void YglCSRender(Vdp2 *varVdp2Regs) {
       glDrawBuffers(1, &DrawBuffers[i]);
     }
     drawScreen[i] = DrawVDP2Screen(varVdp2Regs, i);
+    if ((Vdp2External.disptoggle & (1<<i)) == 0) {
+      drawScreen[i] = 0;
+    }
   }
 
   const int vdp2screens[] = {RBG0, RBG1, NBG0, NBG1, NBG2, NBG3};

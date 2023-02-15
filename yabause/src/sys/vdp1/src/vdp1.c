@@ -1607,12 +1607,7 @@ void Vdp1FakeDrawCommands(u8 * ram, Vdp1 * regs)
 static int Vdp1Draw(void)
 {
   FRAMELOG("Vdp1Draw %d\n", yabsys.LineCount);
-   if (!Vdp1External.disptoggle)
-   {
-      Vdp1NoDraw();
-   } else {
-     VIDCore->Vdp1Draw();
-   }
+  VIDCore->Vdp1Draw();
    if ((Vdp1External.status&0x1) == VDP1_STATUS_IDLE) {
      FRAMELOG("Vdp1Draw end at line %d \n", yabsys.LineCount);
      ScuSendDrawEnd();
@@ -1714,12 +1709,10 @@ int Vdp1LoadState(const void * stream, UNUSED int version, int size)
      } else {
        YuiMsg("Too old savestate, can not restore Vdp1External\n");
        memset((void *)(&Vdp1External), 0, sizeof(Vdp1External_struct));
-       Vdp1External.disptoggle = 1;
      }
    } else {
      YuiMsg("Too old savestate, can not restore Vdp1External\n");
      memset((void *)(&Vdp1External), 0, sizeof(Vdp1External_struct));
-     Vdp1External.disptoggle = 1;
    }
    Vdp1External.updateVdp1Ram = 1;
 
