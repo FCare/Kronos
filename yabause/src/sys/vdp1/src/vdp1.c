@@ -2630,10 +2630,12 @@ static void startField(void) {
     // if Plot Trigger mode == 0x02 draw start
 
     Vdp1External.status |= VDP1_STATUS_SWITCH_REQUEST;
-    Vdp1External.plot_trigger_line = switchdelay;
+    Vdp1External.switch_trigger_line = switchdelay;
+  } else {
+    Vdp1External.switch_trigger_line = 0;
   }
 
-  FRAMELOG("End StartField\n");
+  FRAMELOG("End StartField => will switch on line %d\n", Vdp1External.switch_trigger_line);
 
   Vdp1External.manualchange = 0;
 }
@@ -2650,7 +2652,7 @@ void Vdp1HBlankIN(void)
     Vdp1EraseWrite(id);
   }
 
-  if (((Vdp1External.status & VDP1_STATUS_SWITCH_REQUEST) != 0) && (Vdp1External.plot_trigger_line == yabsys.LineCount)) {
+  if (((Vdp1External.status & VDP1_STATUS_SWITCH_REQUEST) != 0) && (Vdp1External.switch_trigger_line == yabsys.LineCount)) {
     Vdp1External.status &= ~VDP1_STATUS_SWITCH_REQUEST;
     FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     checkFBSync();
@@ -2746,7 +2748,7 @@ void Vdp1VBlankIN(void)
 
 void Vdp1SwitchFrame(void)
 {
-  if (((Vdp1External.status & VDP1_STATUS_SWITCH_REQUEST) != 0) && (Vdp1External.plot_trigger_line == yabsys.MaxLineCount)) {
+  if (((Vdp1External.status & VDP1_STATUS_SWITCH_REQUEST) != 0) && (Vdp1External.switch_trigger_line == yabsys.MaxLineCount)) {
     Vdp1External.status &= ~VDP1_STATUS_SWITCH_REQUEST;
     FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
     checkFBSync();
