@@ -573,8 +573,10 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
   return 0;
 }
 
-void vdp1_clear(int id, float *col, int* limits) {
+void vdp1_clear(int id, float *col, int* lim) {
 	int progId = CLEAR;
+	int limits[4];
+	memcpy(limits, lim, 4*sizeof(int));
 	if (prg_vdp1[progId] == 0)
     prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
 	limits[0] = limits[0]*_Ygl->vdp1width/512;
