@@ -417,9 +417,7 @@ void FASTCALL Vdp1WriteByte(SH2_struct *context, u8* mem, u32 addr, UNUSED u8 va
 }
 
 //////////////////////////////////////////////////////////////////////////////
-static int needVBlankErase() {
-  return (Vdp1External.useVBlankErase != 0);
-}
+
 static void updateTVMRMode() {
   Vdp1External.useVBlankErase = 0;
   if (((Vdp1Regs->FBCR & 3) == 3) && (((Vdp1Regs->TVMR >> 3) & 0x01) == 1)) {
@@ -2603,7 +2601,7 @@ static int Vdp1EraseWrite(int id){
 static void startField(void) {
   int isrender = 0;
   yabsys.wait_line_count = -1;
-  FRAMELOG("StartField ***** VOUT(T) %d FCM=%d FCT=%d VBE=%d PTMR=%d (%d, %d, %d, %d)*****%d (%d)\n", Vdp1External.swap_frame_buffer, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01), (Vdp1Regs->TVMR >> 3) & 0x01, Vdp1Regs->PTMR, Vdp1External.onecyclemode, Vdp1External.manualchange, Vdp1External.manualerase, needVBlankErase(), yabsys.LineCount, yabsys.DecilineCount);
+  FRAMELOG("StartField ***** VOUT(T) %d FCM=%d FCT=%d VBE=%d PTMR=%d (%d, %d, %d)*****%d (%d)\n", Vdp1External.swap_frame_buffer, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01), (Vdp1Regs->TVMR >> 3) & 0x01, Vdp1Regs->PTMR, Vdp1External.onecyclemode, Vdp1External.manualchange, Vdp1External.manualerase, yabsys.LineCount, yabsys.DecilineCount);
 
   // Manual Change
   Vdp1External.swap_frame_buffer |= (Vdp1External.manualchange == 1);
@@ -2645,6 +2643,13 @@ static void startField(void) {
 void Vdp1HBlankIN(void)
 {
   int needToCompose = 0;
+  if ((yabsys.LineCount == yabsys.VBlankLineCount+1) && ((Vdp1Regs->TVMR >> 3) & 0x01)) {
+    FRAMELOG("VBlank-out line %d (%d) VBlankErase %d\n", yabsys.LineCount, yabsys.DecilineCount, (Vdp1Regs->TVMR >> 3) & 0x01);
+    int id = 0;
+    if (_Ygl != NULL) id = _Ygl->drawframe;
+    Vdp1EraseWrite(id);
+  }
+
   if (((Vdp1External.status & VDP1_STATUS_SWITCH_REQUEST) != 0) && (Vdp1External.plot_trigger_line == yabsys.LineCount)) {
     Vdp1External.status &= ~VDP1_STATUS_SWITCH_REQUEST;
     FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
@@ -2734,15 +2739,8 @@ void Vdp1VBlankIN(void)
   checkFBSync();
 
   if (Vdp1Regs->PTMR == 0x1) Vdp1External.plot_trigger_done = 0;
-
   //Game test: Akumajou, Dragon Force, Alone in the dark2
   updateFBCRMode();
-  FRAMELOG("VBlank-out line %d (%d) VBlankErase %d\n", yabsys.LineCount, yabsys.DecilineCount, needVBlankErase());
-  if (needVBlankErase()) {
-    int id = 0;
-    if (_Ygl != NULL) id = _Ygl->readframe;
-    Vdp1EraseWrite(id);
-  }
   startField();
 }
 
