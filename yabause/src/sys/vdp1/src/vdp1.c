@@ -94,6 +94,7 @@ static void checkFBSync();
 
 static void RequestVdp1ToDraw() {
   if (needVdp1draw == 0){
+    FRAMELOG("Shift EDSR\n");
     Vdp1Regs->EDSR >>= 1;
     needVdp1draw = 1;
   }
@@ -1465,11 +1466,12 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
              oldCmd = *localCoordCmd;
              break;
              default: // Abort
-             VDP1LOG("vdp1\t: Bad command: %x\n", command);
+             FRAMELOG("vdp1\t: Bad command: %x\n", command);
              checkClipCmd(&sysClipCmd, &usrClipCmd, &localCoordCmd, ram, regs);
              Vdp1External.status &= ~0x1;
              Vdp1External.status |= VDP1_STATUS_IDLE;
              regs->COPR = (regs->addr & 0x7FFFF) >> 3;
+             FRAMELOG("Clear EDSR\n");
              regs->EDSR = 0;
              CmdListLimit = MAX((regs->addr & 0x7FFFF), regs->addr);
              return;
@@ -1532,6 +1534,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
         Vdp1External.status |= VDP1_STATUS_IDLE;
         regs->COPR = (regs->addr & 0x7FFFF) >> 3;
         regs->lCOPR = (regs->addr & 0x7FFFF) >> 3;
+        FRAMELOG("Set EDSR\n");
         regs->EDSR |= 2;
    }
    CmdListLimit = MAX((regs->addr & 0x7FFFF), regs->addr);
@@ -1575,7 +1578,7 @@ void Vdp1FakeDrawCommands(u8 * ram, Vdp1 * regs)
             VIDCore->Vdp1LocalCoordinate(&cmd, ram, regs);
             break;
          default: // Abort
-            VDP1LOG("vdp1\t: Bad command: %x\n", command);
+            FRAMELOG("vdp1\t: Bad command: %x\n", command);
             // regs->EDSR |= 2;
             regs->COPR = regs->addr >> 3;
             return;
@@ -2701,7 +2704,10 @@ void Vdp1HBlankIN(void)
         FRAMELOG("Draw due to PTMR\n");
         vdp1_clock = 0;
         RequestVdp1ToDraw();
-        if ((Vdp1External.status&0x1) == VDP1_STATUS_RUNNING) Vdp1Regs->EDSR |= 0x2; //strange we need this. It maybe due to timing
+        if ((Vdp1External.status&0x1) == VDP1_STATUS_RUNNING) {
+          FRAMELOG("Set EDSR\n");
+          Vdp1Regs->EDSR |= 0x2; //strange we need this. It maybe due to timing
+        }
         Vdp1External.plot_trigger_done = 1;
       }
     }
