@@ -504,8 +504,8 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
     case 0x4:
       FRAMELOG("Write PTMR %X line = %d (%d) %d\n", val, yabsys.LineCount, yabsys.DecilineCount, yabsys.VBlankLineCount);
       if ((Vdp1External.status & VDP1_STATUS_SWITCHING) != 0) {
-        FRAMELOG("Non allowed access\n");
-        return;
+        YuiMsg("Non allowed PTMR access during frame switch\n");
+        // return;
       }
       if ((val & 0x3)==0x3) {
         //Skeleton warriors is writing 0xFFF to PTMR. It looks like the behavior is 0x2
