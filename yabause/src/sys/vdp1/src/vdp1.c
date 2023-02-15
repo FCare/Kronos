@@ -2604,12 +2604,7 @@ static void startField(void) {
   int isrender = 0;
   yabsys.wait_line_count = -1;
   FRAMELOG("StartField ***** VOUT(T) %d FCM=%d FCT=%d VBE=%d PTMR=%d (%d, %d, %d, %d)*****%d (%d)\n", Vdp1External.swap_frame_buffer, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01), (Vdp1Regs->TVMR >> 3) & 0x01, Vdp1Regs->PTMR, Vdp1External.onecyclemode, Vdp1External.manualchange, Vdp1External.manualerase, needVBlankErase(), yabsys.LineCount, yabsys.DecilineCount);
-  if (needVBlankErase()) {
-    int id = 0;
-    if (_Ygl != NULL) id = _Ygl->readframe;
-    FRAMELOG("VBlankErase %d(%d)\n",yabsys.LineCount, yabsys.DecilineCount);
-    Vdp1EraseWrite(id);
-  }
+
   // Manual Change
   Vdp1External.swap_frame_buffer |= (Vdp1External.manualchange == 1);
   Vdp1External.swap_frame_buffer |= (Vdp1External.onecyclemode == 1);
@@ -2742,7 +2737,12 @@ void Vdp1VBlankIN(void)
 
   //Game test: Akumajou, Dragon Force, Alone in the dark2
   updateFBCRMode();
-  FRAMELOG("VBlank-in line %d (%d) VBlankErase %d\n", yabsys.LineCount, yabsys.DecilineCount, needVBlankErase());
+  FRAMELOG("VBlank-out line %d (%d) VBlankErase %d\n", yabsys.LineCount, yabsys.DecilineCount, needVBlankErase());
+  if (needVBlankErase()) {
+    int id = 0;
+    if (_Ygl != NULL) id = _Ygl->readframe;
+    Vdp1EraseWrite(id);
+  }
   startField();
 }
 
