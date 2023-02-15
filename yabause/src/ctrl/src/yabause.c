@@ -194,7 +194,6 @@ void resetSyncVideo(void) {
 #define HBLANKIN_STEP   (11)
 #define VBLANKIN_STEP   (12)
 #define VBLANKOUT_STEP  (13)
-#define SWITCH_STEP     (14)
 
 static const u32 const cycles[DECILINE_STEP][2][2] = {
   {{12,12},{1,1}}, //HBlankout //Start of displayed line
@@ -827,12 +826,6 @@ int YabauseEmulate(void) {
       Vdp2VBlankOUT();
       PROFILE_STOP("VDP2");
     }
-    if ((yabsys.DecilineCount == SWITCH_STEP) && (yabsys.LineCount == (yabsys.MaxLineCount-1)))
-    {
-      PROFILE_START("VDP1");
-      Vdp1SwitchFrame();
-      PROFILE_STOP("VDP1");
-    }
 
     THREAD_LOG("Unlock MSH2\n");
 
@@ -863,6 +856,10 @@ int YabauseEmulate(void) {
       }
       PROFILE_STOP("Total Emulation");
    }
+
+   PROFILE_START("VDP1");
+   Vdp1SwitchFrame();
+   PROFILE_STOP("VDP1");
 
    syncVideoMode();
    FPSDisplay();
