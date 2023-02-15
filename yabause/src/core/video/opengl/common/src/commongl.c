@@ -2534,7 +2534,7 @@ int YglQuadRbg0(RBGDrawInfo * rbg, YglTexture * output, YglCache * c, int rbg_ty
 }
 
 //////////////////////////////////////////////////////////////////////////////
-void YglEraseWriteVDP1(int id) {
+int YglEraseWriteVDP1(int id) {
 
   float col[4] = {0.0};
   float meshcol[4] = {0.0};
@@ -2543,7 +2543,7 @@ void YglEraseWriteVDP1(int id) {
   u32 alpha = 0;
   int status = 0;
   GLenum DrawBuffers[4]= {GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2,GL_COLOR_ATTACHMENT3};
-  if (_Ygl->vdp1FrameBuff[0] == 0) return;
+  if (_Ygl->vdp1FrameBuff[0] == 0) return 0;
 
   int shift = ((Vdp1Regs->TVMR & 0x1) == 1)?4:3;
   int limits[4] = {0};
@@ -2553,7 +2553,7 @@ void YglEraseWriteVDP1(int id) {
   limits[2] = (((Vdp1Regs->EWRR>>9)&0x7F)<<shift) - 1;
   limits[3] = ((Vdp1Regs->EWRR)&0x1FF); //TODO: manage double interlace
 
-  if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
+  if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return 0; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
 
   YglGenFrameBuffer();
 
@@ -2601,6 +2601,8 @@ void YglEraseWriteVDP1(int id) {
   glDrawBuffers(2, (const GLenum*)&drawBuf[0]);
 
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
+
+  return ((limits[2]-limits[0])*(limits[3]-limits[1]))>>(Vdp1Regs->TVMR & 0x1);
 
 }
 

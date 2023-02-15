@@ -2579,11 +2579,13 @@ void ToggleVDP1(void)
 }
 //////////////////////////////////////////////////////////////////////////////
 
-static void Vdp1EraseWrite(int id){
+static int Vdp1EraseWrite(int id){
+  int nbPix = 0;
   lastHash = -1;
   FRAMELOG("Erase fb\n");
-  if ((VIDCore != NULL) && (VIDCore->Vdp1EraseWrite != NULL))VIDCore->Vdp1EraseWrite(id);
+  if ((VIDCore != NULL) && (VIDCore->Vdp1EraseWrite != NULL)) nbPix = VIDCore->Vdp1EraseWrite(id);
   clearVDP1Framebuffer(id);
+  return nbPix;
 }
 static void startField(void) {
   int isrender = 0;

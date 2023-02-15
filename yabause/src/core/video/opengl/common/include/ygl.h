@@ -820,10 +820,10 @@ int Ygl_cleanupNormal(void * p, YglTextureManager *tm);
 int YglSetupWindow(YglProgram * prg);
 void Vdp2GenerateWindowInfo(Vdp2 *varVdp2Regs);
 
-void YglEraseWriteVDP1(int id);
+int YglEraseWriteVDP1(int id);
 void YglFrameChangeVDP1();
 
-void YglEraseWriteCSVDP1(int id);
+int YglEraseWriteCSVDP1(int id);
 void YglFrameChangeCSVDP1();
 
 extern void RBGGenerator_init(int width, int height);
