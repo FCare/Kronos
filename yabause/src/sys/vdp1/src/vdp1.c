@@ -206,7 +206,7 @@ u32 FASTCALL Vdp1FrameBufferReadLong(SH2_struct *context, u8* mem, u32 addr) {
 void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
    addr &= 0x3FFFF;
    u32* buf = getVDP1WriteFramebuffer(_Ygl->drawframe);
-   PRINT_FB("W B 0x%x@0x%x\n", val, addr);
+   PRINT_FB("W B 0x%x@0x%x line %d(%d) frame %d\n", val, addr, yabsys.LineCount, yabsys.DecilineCount, _Ygl->drawframe);
    buf[addr>>1] = (val&0xFF)|0xFF000000;
    syncVdp1FBBuffer(addr>>1);
    vdp1_clock -= 2;
@@ -220,7 +220,7 @@ void FASTCALL Vdp1FrameBufferWriteByte(SH2_struct *context, u8* mem, u32 addr, u
 void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
   addr &= 0x3FFFF;
   u32* buf = getVDP1WriteFramebuffer(_Ygl->drawframe);
-  PRINT_FB("W W 0x%x@0x%x\n", val, addr);
+  PRINT_FB("W W 0x%x@0x%x line %d(%d) frame %d\n", val, addr, yabsys.LineCount, yabsys.DecilineCount, _Ygl->drawframe);
   buf[addr>>1] = (val&0xFFFF)|0xFF000000;
   syncVdp1FBBuffer(addr>>1);
   vdp1_clock -= 2;
@@ -234,7 +234,7 @@ void FASTCALL Vdp1FrameBufferWriteWord(SH2_struct *context, u8* mem, u32 addr, u
 void FASTCALL Vdp1FrameBufferWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 val) {
   addr &= 0x3FFFF;
   u32* buf = getVDP1WriteFramebuffer(_Ygl->drawframe);
-  PRINT_FB("W L 0x%x@0x%x %d\n", val, addr, yabsys.LineCount);
+  PRINT_FB("W L 0x%x@0x%x line %d(%d) frame %d\\n", val, addr, yabsys.LineCount, yabsys.DecilineCount, _Ygl->drawframe);
   buf[(addr>>1)] = ((val>>16)&0xFFFF)|0xFF000000;
   buf[(addr>>1)+1] = (val&0xFFFF)|0xFF000000;
   syncVdp1FBBuffer(addr>>1);
@@ -481,6 +481,7 @@ static void checkFBSync() {
   int needClearFB = 0;
   if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
     //FB has been accessed
+    FRAMELOG("Update FB Direct access on frame %d line %d(%d)\n", _Ygl->drawframe, yabsys.LineCount, yabsys.DecilineCount);
     updateVdp1DrawingFBMem(_Ygl->drawframe);
     needClearFB = 1;
     Vdp1FBDraw();
@@ -2635,7 +2636,8 @@ static void startField(void) {
     Vdp1External.switch_trigger_line = 0;
   }
 
-  FRAMELOG("End StartField => will switch on line %d\n", Vdp1External.switch_trigger_line);
+  if (Vdp1External.status & VDP1_STATUS_SWITCH_REQUEST) FRAMELOG("End StartField => will switch on line %d\n", Vdp1External.switch_trigger_line);
+  else FRAMELOG("End StartField => No need to switch\n");
 
   Vdp1External.manualchange = 0;
 }
