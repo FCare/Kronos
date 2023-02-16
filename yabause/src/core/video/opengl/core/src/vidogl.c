@@ -6830,7 +6830,7 @@ void VIDOGLSetSettingValueMode(int type, int value) {
         _Ygl->rbg_use_compute_shader = COMPUTE_RBG_OFF;
       }
     } else {
-      _Ygl->rbg_use_compute_shader = value;
+        _Ygl->rbg_use_compute_shader = value;
     }
     YglChangeResolution(_Ygl->rwidth, _Ygl->rheight);
   break;

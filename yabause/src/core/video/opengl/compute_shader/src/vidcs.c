@@ -97,6 +97,7 @@ extern void VIDOGLVdp1Draw();
 
 extern vdp2rotationparameter_struct  Vdp1ParaA;
 
+int VIDCSInit(void);
 void VIDCSVdp1Draw();
 void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
 void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
@@ -129,7 +130,7 @@ extern u32 FASTCALL Vdp1ReadPolygonColor(vdp1cmd_struct *cmd, Vdp2* varVdp2Regs)
 VideoInterface_struct VIDCS = {
 VIDCORE_CS,
 "Compute Shader Video Interface",
-VIDOGLInit,
+VIDCSInit,
 VIDOGLDeInit,
 VIDOGLResize,
 VIDOGLGetScale,
@@ -161,6 +162,13 @@ YglGenFrameBuffer,
 YglCSFinsihDraw,
 VIDCSVdp1DrawFB
 };
+
+
+int VIDCSInit(void){
+  int ret = VIDOGLInit();
+  _Ygl->rbg_use_compute_shader = 1;
+  return ret;
+}
 
 void addCSCommands(vdp1cmd_struct* cmd, int type)
 {

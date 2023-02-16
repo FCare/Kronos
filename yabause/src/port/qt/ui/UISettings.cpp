@@ -436,6 +436,9 @@ void UISettings::changeVideoMode(int id)
 		//Wireframe off
 		Wireframe->setVisible(false);
 		cbWireframeFilter->setVisible(false);
+		//Enable RGB compute Shader on CS core
+		GPURBG->setVisible(true);
+		cbGPURBG->setVisible(true);
 	}
 	if (VIDCoreList[id]->id == 2) {//Compute Shader
 		//Tesselation offcol4
@@ -447,6 +450,9 @@ void UISettings::changeVideoMode(int id)
 		//Wireframe on
 		Wireframe->setVisible(true);
 		cbWireframeFilter->setVisible(true);
+		//Disable and force RGB compute Shader on CS core
+		GPURBG->setVisible(false);
+		cbGPURBG->setVisible(false);
 	}
 }
 
