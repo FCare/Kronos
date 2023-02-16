@@ -2553,6 +2553,10 @@ int YglEraseWriteVDP1(int id) {
   limits[2] = (((Vdp1Regs->EWRR>>9)&0x7F)<<shift) - 1;
   limits[3] = ((Vdp1Regs->EWRR)&0x1FF); //TODO: manage double interlace
 
+  //Prohibited value seems to be considered as maximum values
+  if (limits[2] == -1) limits[2] = 511;
+  if (limits[3] == 0) limits[3] = 511;
+
   if ((limits[0]>=limits[2])||(limits[1]>limits[3])) return 0; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
 
   YglGenFrameBuffer();
