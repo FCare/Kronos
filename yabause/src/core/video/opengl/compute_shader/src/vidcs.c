@@ -98,6 +98,7 @@ extern void VIDOGLVdp1Draw();
 extern vdp2rotationparameter_struct  Vdp1ParaA;
 
 int VIDCSInit(void);
+void VIDCSSetSettingValueMode(int type, int value);
 void VIDCSVdp1Draw();
 void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
 void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
@@ -152,7 +153,7 @@ vdp1GenerateBuffer,
 VIDOGLVdp2Reset,
 VIDOGLVdp2Draw,
 YglGetGlSize,
-VIDOGLSetSettingValueMode,
+VIDCSSetSettingValueMode,
 VIDOGLSync,
 VIDOGLGetNativeResolution,
 VIDOGLVdp2DispOff,
@@ -166,8 +167,13 @@ VIDCSVdp1DrawFB
 
 int VIDCSInit(void){
   int ret = VIDOGLInit();
-  _Ygl->rbg_use_compute_shader = 1;
+  _Ygl->rbg_use_compute_shader = COMPUTE_RBG_ON;
   return ret;
+}
+
+void VIDCSSetSettingValueMode(int type, int value) {
+  VIDOGLSetSettingValueMode(type, value);
+  _Ygl->rbg_use_compute_shader = COMPUTE_RBG_ON;
 }
 
 void addCSCommands(vdp1cmd_struct* cmd, int type)
