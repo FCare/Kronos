@@ -275,6 +275,9 @@ int Vdp1Init(void) {
    vdp1Ram_update_start = 0x80000;
    vdp1Ram_update_end = 0x0;
 
+   _Ygl->shallVdp1Erase[0] = 1;
+   _Ygl->shallVdp1Erase[1] = 1;
+
    return 0;
 }
 
@@ -2591,14 +2594,30 @@ void ToggleVDP1(void)
 }
 //////////////////////////////////////////////////////////////////////////////
 
-static int Vdp1EraseWrite(int id){
-  int nbPix = 0;
-  lastHash = -1;
-  FRAMELOG("Erase fb\n");
-  if ((VIDCore != NULL) && (VIDCore->Vdp1EraseWrite != NULL)) nbPix = VIDCore->Vdp1EraseWrite(id);
-  clearVDP1Framebuffer(id);
-  return nbPix;
+static int getVdp1ErasePixelNb() {
+  int shift = ((Vdp1Regs->TVMR & 0x1) == 1)?4:3;
+  int limits[4] = {0};
+  limits[0] = ((Vdp1Regs->EWLR>>9)&0x3F)<<shift;
+  limits[1] = ((Vdp1Regs->EWLR)&0x1FF); //TODO: manage double interlace
+  limits[2] = (((Vdp1Regs->EWRR>>9)&0x7F)<<shift) - 1;
+  limits[3] = ((Vdp1Regs->EWRR)&0x1FF); //TODO: manage double interlace
+
+  //Prohibited value seems to be considered as maximum values
+  if (limits[2] == -1) limits[2] = 511;
+  if (limits[3] == 0) limits[3] = 511;
+
+  if ((limits[0]>=limits[2])||(limits[1]>limits[3])) {
+    return 0; //No erase write when invalid area - Should be done only for one dot but no idea of which dot it shall be
+  }
+  return ((limits[2]-limits[0])*(limits[3]-limits[1]))>>(Vdp1Regs->TVMR & 0x1);
 }
+
+static int Vdp1EraseWrite(int id){
+  lastHash = -1;
+  _Ygl->shallVdp1Erase[id] = 1;
+  FRAMELOG("Erase fb\n");
+}
+
 static void startField(void) {
   int isrender = 0;
   yabsys.wait_line_count = -1;
@@ -2620,11 +2639,16 @@ static void startField(void) {
     if ((Vdp1External.manualerase == 1) || (Vdp1External.onecyclemode == 1))
     {
       int id = 0;
-      if (_Ygl != NULL) id = _Ygl->drawframe;
-      switchdelay = Vdp1EraseWrite(id) / ((yabsys.IsPal?1820:1708)-200) + yabsys.VBlankLineCount;
-      if (switchdelay > yabsys.MaxLineCount) switchdelay = yabsys.MaxLineCount;
+      if (_Ygl != NULL) id = _Ygl->readframe;
+      Vdp1EraseWrite(id);
       FRAMELOG("Draw delay shall be %d (%d)(%d)\n", switchdelay, yabsys.VBlankLineCount, yabsys.MaxLineCount);
       Vdp1External.manualerase = 0;
+    }
+    if (((Vdp1Regs->TVMR >> 3) & 0x01) && (yabsys.LineCount >= yabsys.VBlankLineCount))  {
+      //VBE is on going on draw Framebuffer
+      switchdelay =  getVdp1ErasePixelNb() / ((yabsys.IsPal?1820:1708)-200) + yabsys.LineCount+1;
+      if (switchdelay > yabsys.MaxLineCount) switchdelay = yabsys.MaxLineCount;
+      FRAMELOG("Draw delay shall be %d (%d)(%d)\n", switchdelay, yabsys.VBlankLineCount, yabsys.MaxLineCount);
     }
 
     Vdp1External.swap_frame_buffer = 0;
@@ -2651,7 +2675,7 @@ void Vdp1HBlankIN(void)
   if ((yabsys.LineCount == yabsys.VBlankLineCount+1) && ((Vdp1Regs->TVMR >> 3) & 0x01)) {
     FRAMELOG("VBlankin line %d (%d) VBlankErase %d => Erase Frame %d\n", yabsys.LineCount, yabsys.DecilineCount, (Vdp1Regs->TVMR >> 3) & 0x01, _Ygl->readframe);
     int id = 0;
-    if (_Ygl != NULL) id = _Ygl->drawframe;
+    if (_Ygl != NULL) id = _Ygl->readframe;
     Vdp1EraseWrite(id);
   }
 

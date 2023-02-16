@@ -559,7 +559,7 @@ typedef struct {
    float heightRatio;
    int drawframe;
    int readframe;
-   int vdp1On[2];
+   int shallVdp1Erase[2];
    GLuint rboid_depth;
    GLuint vdp1fbo;
    GLuint vdp1FrameBuff[4];

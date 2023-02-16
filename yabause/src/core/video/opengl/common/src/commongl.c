@@ -2635,6 +2635,11 @@ void YglFrameChangeVDP1(){
   _Ygl->drawframe = _Ygl->readframe;
   _Ygl->readframe = current_drawframe;
   executeTMVDP1(_Ygl->readframe, _Ygl->drawframe);
+  if (_Ygl->shallVdp1Erase[_Ygl->drawframe] != 0) {
+    _Ygl->shallVdp1Erase[_Ygl->drawframe] = 0;
+    YglEraseWriteVDP1(_Ygl->drawframe);
+    clearVDP1Framebuffer(_Ygl->drawframe);
+  }
 
   FRAMELOG("YglFrameChangeVDP1: swap drawframe =%d readframe = %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
 }
