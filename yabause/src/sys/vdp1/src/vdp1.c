@@ -1376,7 +1376,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
              ret = Vdp1NormalSpriteDraw(&ctrl->cmd, ram, regs, back_framebuffer);
              if (ret == 1) nbCmdToProcess++;
              else {
-               FRAMELOG("Reset vdp1_clock %d\n", yabsys.LineCount);
+               FRAMELOG("Reset vdp1_clock %d %d\n", yabsys.LineCount, __LINE__);
                vdp1_clock = 0; //Incorrect command, wait next line to continue
              }
              setupSpriteLimit(ctrl);
@@ -1393,7 +1393,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
              ret = Vdp1ScaledSpriteDraw(&ctrl->cmd, ram, regs, back_framebuffer);
              if (ret == 1) nbCmdToProcess++;
              else {
-               FRAMELOG("Reset vdp1_clock %d\n", yabsys.LineCount);
+               FRAMELOG("Reset vdp1_clock %d %d\n", yabsys.LineCount, __LINE__);
                vdp1_clock = 0; //Incorrect command, wait next line to continue
              }
              setupSpriteLimit(ctrl);
@@ -1412,7 +1412,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
              ret = Vdp1DistortedSpriteDraw(&ctrl->cmd, ram, regs, back_framebuffer);
              if (ret == 1) nbCmdToProcess++;
              else {
-               FRAMELOG("Reset vdp1_clock %d\n", yabsys.LineCount);
+               FRAMELOG("Reset vdp1_clock %d %d\n", yabsys.LineCount, __LINE__);
                vdp1_clock = 0; //Incorrect command, wait next line to continue
              }
              setupSpriteLimit(ctrl);
@@ -1509,7 +1509,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
             //The next adress is the same as the old adress and the command is skipped => Exit
             //The next adress is the start of the command list. It means the list has an infinte loop => Exit (used by Burning Rangers)
             regs->lCOPR = (regs->addr & 0x7FFFF) >> 3;
-            FRAMELOG("Reset vdp1_clock %d\n", yabsys.LineCount);
+            FRAMELOG("Reset vdp1_clock %d %d\n", yabsys.LineCount, __LINE__);
             vdp1_clock = 0;
             CmdListInLoop = 1;
             CmdListLimit = MAX((regs->addr & 0x7FFFF), regs->addr);
