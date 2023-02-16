@@ -2649,7 +2649,7 @@ void Vdp1HBlankIN(void)
 {
   int needToCompose = 0;
   if ((yabsys.LineCount == yabsys.VBlankLineCount+1) && ((Vdp1Regs->TVMR >> 3) & 0x01)) {
-    FRAMELOG("VBlank-out line %d (%d) VBlankErase %d\n", yabsys.LineCount, yabsys.DecilineCount, (Vdp1Regs->TVMR >> 3) & 0x01);
+    FRAMELOG("VBlankin line %d (%d) VBlankErase %d => Erase Frame %d\n", yabsys.LineCount, yabsys.DecilineCount, (Vdp1Regs->TVMR >> 3) & 0x01, _Ygl->readframe);
     int id = 0;
     if (_Ygl != NULL) id = _Ygl->drawframe;
     Vdp1EraseWrite(id);
