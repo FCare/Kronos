@@ -504,7 +504,7 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       Vdp1Regs->FBCR = val;
       FRAMELOG("FBCR => Write %x VBE=%d FCM=%d FCT=%d line = %d (%d) (VBlank %d, max %d)\n", val, (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount, yabsys.DecilineCount, yabsys.VBlankLineCount, yabsys.MaxLineCount);
       FBCRUpdated = 1;
-      if (((yabsys.LineCount > yabsys.VBlankLineCount) && (yabsys.LineCount < yabsys.MaxLineCount))||(yabsys.LineCount == 0))
+      if (((yabsys.LineCount >= yabsys.VBlankLineCount) && (yabsys.LineCount < yabsys.MaxLineCount))||(yabsys.LineCount == 0))
       {
         updateFBCRMode();
         startField();
