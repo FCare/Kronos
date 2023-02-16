@@ -2613,6 +2613,9 @@ static void startField(void) {
   {
     int switchdelay = yabsys.MaxLineCount;
     if (yabsys.LineCount == 0) switchdelay = 0;
+    FRAMELOG("Change frames before draw %d, read %d (%d)\n", _Ygl->drawframe, _Ygl->readframe, yabsys.LineCount);
+    checkFBSync();
+    FRAMELOG("Switch Frame change VDP1 %d(%d)\n", yabsys.LineCount, yabsys.DecilineCount);
     addVdp1Framecount();
     FRAMELOG("Swap Line %d\n", yabsys.LineCount);
     lastHash = -1;
