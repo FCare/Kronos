@@ -48,10 +48,10 @@ SHADER_VERSION_COMPUTE
 "{\n"
 "  ivec2 size = imageSize(outSurface);\n"
 "  ivec2 texel = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);\n"
-"  int x = int(texel.x * upscale.x);\n"
-"  int y = int(texel.y * upscale.y);\n"
-"  if (x >= 512 || y >= 256 ) return;\n"
-"  vec4 pix = imageLoad(fbSurface, ivec2(vec2(x,255-y)));\n"
+"  ivec2 coord = ivec2(int(texel.x * upscale.x),int(texel.y * upscale.y));\n"
+"  texel.y = 255 - texel.y;\n"
+"  if (any(greaterThanEqual(coord, ivec2(512, 256)))) return;"
+"  vec4 pix = imageLoad(fbSurface, coord);\n"
 "  if (pix.a != 0.0) imageStore(outSurface,texel,vec4(pix.r, pix.g, 0.0, 0.0));\n"
 "}\n";
 
