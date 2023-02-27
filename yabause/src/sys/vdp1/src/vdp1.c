@@ -2626,7 +2626,7 @@ static int getVdp1ErasePixelNb() {
 static int Vdp1EraseWrite(int id){
   lastHash = -1;
   _Ygl->shallVdp1Erase[id] = 1;
-  FRAMELOG("Erase fb\n");
+  FRAMELOG("Erase fb %d\n", id);
 }
 
 static void startField(void) {
@@ -2800,12 +2800,14 @@ void Vdp1SwitchFrame(void)
 
     FRAMELOG("[VDP1] Displayed framebuffer changed. EDSR=%02X\n", Vdp1Regs->EDSR);
 
-    FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly %d %d EDSR %x\n", yabsys.LineCount, yabsys.DecilineCount, Vdp1Regs->EDSR);
-    int cylesPerLine = getVdp1CyclesPerLine();
-    checkFBSync();
-    abortVdp1();
-    vdp1_clock = (vdp1_clock + cylesPerLine)%(cylesPerLine+1);
-    RequestVdp1ToDraw();
-    Vdp1TryDraw();
+    if (Vdp1Regs->PTMR == 0x2) {
+      FRAMELOG("[VDP1] PTMR == 0x2 start drawing immidiatly %d %d EDSR %x PTMR %x\n", yabsys.LineCount, yabsys.DecilineCount, Vdp1Regs->EDSR,  Vdp1Regs->PTMR);
+      int cylesPerLine = getVdp1CyclesPerLine();
+      checkFBSync();
+      abortVdp1();
+      vdp1_clock = (vdp1_clock + cylesPerLine)%(cylesPerLine+1);
+      RequestVdp1ToDraw();
+      Vdp1TryDraw();
+    }
   }
 }
