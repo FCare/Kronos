@@ -2657,8 +2657,10 @@ static void startField(void) {
     }
     if (((Vdp1Regs->TVMR >> 3) & 0x01) && (yabsys.LineCount >= yabsys.VBlankLineCount))  {
       //VBE is on going on draw Framebuffer
-      switchdelay =  getVdp1ErasePixelNb() / ((yabsys.IsPal?1820:1708)-200) + yabsys.LineCount+1;
-      if (switchdelay > yabsys.MaxLineCount) switchdelay = yabsys.MaxLineCount;
+      switchdelay = yabsys.MaxLineCount;
+      int id = 0;
+      if (_Ygl != NULL) id = _Ygl->readframe;
+      Vdp1EraseWrite(id);
       FRAMELOG("Draw delay shall be %d (%d)(%d)\n", switchdelay, yabsys.VBlankLineCount, yabsys.MaxLineCount);
     }
 
