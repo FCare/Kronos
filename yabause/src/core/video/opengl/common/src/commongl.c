@@ -785,7 +785,7 @@ static u32* getVDP1Framebuffer(int frame) {
 }
 
 u32* getVDP1ReadFramebuffer() {
-  return getVDP1Framebuffer(_Ygl->drawframe);
+  return getVDP1Framebuffer(_Ygl->readframe);
 }
 
 u32* getVDP1WriteFramebuffer(int frame) {
