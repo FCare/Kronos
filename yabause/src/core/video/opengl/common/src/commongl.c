@@ -762,7 +762,7 @@ void YglTMAllocate(YglTextureManager * tm, YglTexture * output, unsigned int w, 
 
 u32 write_fb[512*256] = {0};
 
-void invalidateVDP1ReadFramebuffer(int frame) {
+static void invalidateVDP1ReadFramebuffer(int frame) {
   _Ygl->vdp1fb_read_buf[frame] = NULL;
 }
 
