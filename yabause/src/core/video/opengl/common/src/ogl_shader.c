@@ -2295,7 +2295,7 @@ int YglBlitVDP1(u32 srcTexture, float w, float h, int write) {
 
   return 0;
 }
-static u32 write_fb[512*256];
+static u32 write_fb[2][512*256];
 void vdp1_write_gl() {
   GLenum DrawBuffers[2]= {GL_COLOR_ATTACHMENT0,GL_COLOR_ATTACHMENT2};
   VIDCore->setupFrame();
@@ -2308,14 +2308,14 @@ void vdp1_write_gl() {
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
 }
 
-u32* vdp1_read_gl() {
-  glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1AccessFB[_Ygl->drawframe]);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _Ygl->vdp1AccessTex[_Ygl->drawframe], 0);
+u32* vdp1_read_gl(int frame) {
+  glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->vdp1AccessFB[frame]);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _Ygl->vdp1AccessTex[frame], 0);
   glViewport(0,0,512,256);
   YglBlitVDP1(_Ygl->vdp1FrameBuff[_Ygl->drawframe*2], _Ygl->vdp1width, _Ygl->vdp1height, 0);
-  glReadPixels(0, 0, 512, 256, GL_RGBA, GL_UNSIGNED_BYTE, write_fb);
+  glReadPixels(0, 0, 512, 256, GL_RGBA, GL_UNSIGNED_BYTE, &write_fb[frame][0]);
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
-	return &write_fb[0];
+	return &write_fb[frame][0];
 }
 
 //----------------------------------------------------------------------------------------

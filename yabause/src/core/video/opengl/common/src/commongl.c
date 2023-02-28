@@ -760,7 +760,7 @@ void YglTMAllocate(YglTextureManager * tm, YglTexture * output, unsigned int w, 
   YabThreadUnLock(tm->mtx);
 }
 
-u32 write_fb[512*256] = {0};
+u32 write_fb[2][512*256] = {0};
 
 static void invalidateVDP1ReadFramebuffer(int frame) {
   _Ygl->vdp1fb_read_buf[frame] = NULL;
@@ -774,11 +774,11 @@ static u32* getVDP1Framebuffer(int frame) {
     if (VIDCore->id == 2) {
       vdp1_compute();
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT|GL_TEXTURE_UPDATE_BARRIER_BIT);
-      _Ygl->vdp1fb_read_buf[frame] = vdp1_read();
+      _Ygl->vdp1fb_read_buf[frame] = vdp1_read(frame);
     }
     else {
       YglComposeVdp1();
-      _Ygl->vdp1fb_read_buf[frame] = vdp1_read_gl();
+      _Ygl->vdp1fb_read_buf[frame] = vdp1_read_gl(frame);
     }
   }
   return _Ygl->vdp1fb_read_buf[frame];

@@ -46,9 +46,6 @@ extern int setupShadow(Vdp2 *varVdp2Regs, int layer);
 extern int setupBlur(Vdp2 *varVdp2Regs, int layer);
 extern int YglDrawBackScreen();
 
-extern u32* vdp1_read();
-extern void vdp1_write();
-
 //////////////////////////////////////////////////////////////////////////////
 int YglEraseWriteCSVDP1(int id) {
 

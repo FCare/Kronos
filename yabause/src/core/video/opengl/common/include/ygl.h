@@ -798,9 +798,9 @@ void YglSetLineColorScreen(u32 * pbuf, int size);
 
 //To be removed
 void vdp1_write_gl();
-u32* vdp1_read_gl();
+u32* vdp1_read_gl(int);
 void vdp1_write();
-u32* vdp1_read();
+u32* vdp1_read(int);
 //End of remove
 
 u32 * YglGetLineColorOffsetPointer(int id, int start, int size);

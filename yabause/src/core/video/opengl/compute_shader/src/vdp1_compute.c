@@ -55,7 +55,7 @@ static YabEventQueue *cmdq[2] = {NULL};
 static int vdp1_generate_run = 0;
 #endif
 
-static u32 write_fb[512*256];
+static u32 write_fb[2][512*256];
 
 static const GLchar * a_prg_vdp1[NB_PRG][5] = {
   //VDP1_MESH_STANDARD - BANDING
@@ -612,7 +612,7 @@ void vdp1_write() {
 	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 }
 
-u32* vdp1_read() {
+u32* vdp1_read(int frame) {
 	int progId = READ;
 	float wratio = 1.0f/_Ygl->vdp1wratio;
 	float hratio = 1.0f/_Ygl->vdp1hratio;
@@ -620,7 +620,7 @@ u32* vdp1_read() {
     prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
   glUseProgram(prg_vdp1[progId]);
 
-	glBindImageTexture(0, get_vdp1_tex(_Ygl->drawframe), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+	glBindImageTexture(0, get_vdp1_tex(frame), 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, ssbo_vdp1access_);
 	glUniform2f(2, wratio, hratio);
 
@@ -631,11 +631,11 @@ u32* vdp1_read() {
 	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
 
 #ifdef _OGL3_
-	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0x0, 512*256*4, (void*)(&write_fb[0]));
+	glGetBufferSubData(GL_SHADER_STORAGE_BUFFER, 0x0, 512*256*4, (void*)(&write_fb[frame][0]));
 #endif
 
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-	return &write_fb[0];
+	return &write_fb[frame][0];
 }
 
 
