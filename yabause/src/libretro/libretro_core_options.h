@@ -65,28 +65,17 @@ struct retro_core_option_definition option_defs_us[] = {
       },
       "0"
    },
+#ifdef USE_CACHE
    {
-      "kronos_sh2coretype",
-      "SH-2 cpu core",
-      "Select an interpreter for the SH-2 cpus, 'old' is the old interpreter from yabause (we don't provide support for this one). Requires a restart.",
+      "kronos_usecache",
+      "SH-2 cache support (experimental)",
+      "Support for SH-2's cache. Required for some games. Can kill performance",
       {
-         { "kronos", NULL },
-         { "old", NULL },
+         { "disabled", NULL },
+         { "enabled", NULL },
          { NULL, NULL},
       },
-      "kronos"
-   },
-#if !defined(_OGLES3_)
-   {
-      "kronos_videocoretype",
-      "Video renderer",
-      "Change the renderer. Requires a restart.",
-      {
-         { "opengl", "OpenGL (requires OpenGL 4.2+)" },
-         { "opengl_cs", "OpenGL CS (requires OpenGL 4.3+)" },
-         { NULL, NULL},
-      },
-      "perspective_correction"
+      "disabled"
    },
 #endif
    {
@@ -164,18 +153,6 @@ struct retro_core_option_definition option_defs_us[] = {
          { NULL, NULL},
       },
       "disabled"
-   },
-   {
-      "kronos_polygon_mode",
-      "Polygon Mode",
-      "Select method for applying textures on polygon, gpu_tesselation requires OpenGL 4.2+, OpenGL CS renderer doesn't need this.",
-      {
-         { "perspective_correction", NULL },
-         { "gpu_tesselation", NULL },
-         { "cpu_tesselation", NULL },
-         { NULL, NULL},
-      },
-      "cpu_tesselation"
    },
    {
       "kronos_meshmode",
