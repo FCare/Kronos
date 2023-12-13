@@ -1504,14 +1504,18 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
       regs->lCOPR = (regs->addr & 0x7FFFF) >> 3;
    }
    if (command & 0x8000) {
-        FRAMELOG("VDP1: Command Finished! count = %d @ %08X\n", nbCmdToProcess, regs->addr);
-        Vdp1External.status &= ~VDP1_STATUS_MASK;
-        Vdp1External.status |= VDP1_STATUS_IDLE;
-        regs->COPR = (regs->addr & 0x7FFFF) >> 3;
-        regs->lCOPR = (regs->addr & 0x7FFFF) >> 3;
-        FRAMELOG("Set EDSR\n");
-        regs->EDSR |= 2;
-        Vdp1LoopAddr = -1;
+     if (vdp1_clock >= 0) {
+       FRAMELOG("VDP1: Command Finished! count = %d @ %08X\n", nbCmdToProcess, regs->addr);
+       Vdp1External.status &= ~VDP1_STATUS_MASK;
+       Vdp1External.status |= VDP1_STATUS_IDLE;
+       regs->COPR = (regs->addr & 0x7FFFF) >> 3;
+       regs->lCOPR = (regs->addr & 0x7FFFF) >> 3;
+       FRAMELOG("Set EDSR\n");
+       regs->EDSR |= 2;
+       Vdp1LoopAddr = -1;
+     } else {
+       FRAMELOG("Wait a bit before the stop. Enough for the command to end\n");
+     }
    }
    CmdListLimit = MAX((regs->addr & 0x7FFFF), regs->addr);
    checkClipCmd(&sysClipCmd, &usrClipCmd, &localCoordCmd, ram, regs);
