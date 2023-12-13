@@ -692,7 +692,7 @@ static int Vdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* 
     default:
       break;
   }
-  yabsys.vdp1cycles+= MIN(1000, 70 + (area));
+  yabsys.vdp1cycles+= area;
 
   memset(cmd->G, 0, sizeof(float)*16);
   if ((cmd->CMDPMOD & 4))
@@ -871,7 +871,7 @@ static int Vdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* 
     default:
       break;
   }
-  yabsys.vdp1cycles+= MIN(1000, 70 + area);
+  yabsys.vdp1cycles+= area;
 
   //gouraud
   memset(cmd->G, 0, sizeof(float)*16);
@@ -945,7 +945,7 @@ static int Vdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u
       break;
   }
   //mission 1 of burning rangers is loading a lot the vdp1.
-  yabsys.vdp1cycles+= MIN(1000, 70 + (area*3/2));
+  yabsys.vdp1cycles+= area;
 
   memset(cmd->G, 0, sizeof(float)*16);
   if ((cmd->CMDPMOD & 4))
@@ -986,8 +986,7 @@ static int Vdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_
 
   int w = (sqrt((cmd->CMDXA - cmd->CMDXB)*(cmd->CMDXA - cmd->CMDXB)) + sqrt((cmd->CMDXD - cmd->CMDXC)*(cmd->CMDXD - cmd->CMDXC)))/2;
   int h = (sqrt((cmd->CMDYA - cmd->CMDYD)*(cmd->CMDYA - cmd->CMDYD)) + sqrt((cmd->CMDYB - cmd->CMDYC)*(cmd->CMDYB - cmd->CMDYC)))/2;
-  yabsys.vdp1cycles += MIN(1000, 16 + (w * h) + (w * 2));
-
+  yabsys.vdp1cycles += (w*h)>>2; //MIN(1000, 16 + (w * h) + (w * 2));
   //gouraud
   memset(cmd->G, 0, sizeof(float)*16);
   if ((cmd->CMDPMOD & 4))
@@ -1152,50 +1151,9 @@ static void setupSpriteLimit(vdp1cmdctrl_struct *ctrl){
 
 static int getVdp1CyclesPerLine(void)
 {
-  int clock = 26842600;
-  int fps = 60;
-  //Using p37, Table 4.2 of vdp1 official doc
-  if (yabsys.IsPal) {
-    fps = 50;
-    // Horizontal Resolution
-    switch (Vdp2Lines[0].TVMD & 0x7)
-    {
-    case 0:
-    case 2:
-    case 4:
-    case 6:
-      //W is 320 or 640
-      clock = 26656400;
-      break;
-    case 1:
-    case 3:
-    case 5:
-    case 7:
-      //W is 352 or 704
-      clock = 28437500;
-      break;
-    }
-  } else {
-    // Horizontal Resolution
-    switch (Vdp2Lines[0].TVMD & 0x7)
-    {
-    case 0:
-    case 2:
-    case 4:
-    case 6:
-      //W is 320 or 640
-      clock = 26842600;
-      break;
-    case 1:
-    case 3:
-    case 5:
-    case 7:
-      //W is 352 or 704
-      clock = 28636400;
-      break;
-    }
-  }
-  return clock/(fps*yabsys.MaxLineCount);
+  if (yabsys.IsPal)
+    return 1820;
+  else return 1708;
 }
 
 static u32 returnAddr = 0xffffffff;
