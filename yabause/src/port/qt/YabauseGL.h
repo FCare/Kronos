@@ -36,7 +36,7 @@ class YabauseGL : public QWidget
 
 public:
 
-	YabauseGL( );
+	YabauseGL( bool vsync );
 
 	void updateView( const QSize& size = QSize() );
 	void swapBuffers();
@@ -60,7 +60,7 @@ protected:
 
 		bool mPause;
 		int64_t nextFrameTime = 0;
-		bool fpsLimited;
+		bool syncOnVsync;
 		bool waitForSwap;
 };
 

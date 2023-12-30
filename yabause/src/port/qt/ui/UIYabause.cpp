@@ -84,7 +84,8 @@ UIYabause::UIYabause( QWidget* parent )
 		cbVideoDriver->addItem( VIDCoreList[i]->Name, VIDCoreList[i]->id );
 	cbVideoDriver->blockSignals( false );
 	// create glcontext
-	mYabauseGL = new YabauseGL( );
+	VolatileSettings* vs = QtYabause::volatileSettings();
+	mYabauseGL = new YabauseGL(vs->value( "General/EnableVSync", 1 ).toBool() );
 	// and set it as central application widget
 	QWidget *container = QWidget::createWindowContainer(mYabauseGL, this);
 	container->setFocusPolicy( Qt::StrongFocus );
@@ -141,7 +142,6 @@ UIYabause::UIYabause( QWidget* parent )
 	connect( mYabauseThread, SIGNAL( toggleEmulateMouse( bool, bool ) ), this, SLOT( toggleEmulateMouse( bool, bool ) ) );
 
 	// Load shortcuts
-	VolatileSettings* vs = QtYabause::volatileSettings();
 	QList<QAction *> actions = findChildren<QAction *>();
 	foreach ( QAction* action, actions )
 	{
@@ -635,10 +635,10 @@ void UIYabause::on_aFileSettings_triggered()
 			if(newhash["General/EnableVSync"].toBool())
 			{
 				DisableAutoFrameSkip();
-				mYabauseGL->SetFPSLimit(true);
+				// mYabauseGL->SetFPSLimit(true);
 			} else {
 				EnableAutoFrameSkip();
-				mYabauseGL->SetFPSLimit(false);
+				// mYabauseGL->SetFPSLimit(false);
 			}
 		}
 
@@ -813,14 +813,14 @@ void UIYabause::on_aEmulationVSync_toggled( bool toggled )
 	vs->setValue( "General/EnableVSync", toggled );
 	vs->sync();
 
-	if ( !toggled ) {
-		EnableAutoFrameSkip();
-		mYabauseGL->SetFPSLimit(false);
-	}
-	else {
-		DisableAutoFrameSkip();
-		mYabauseGL->SetFPSLimit(true);
-	}
+	// if ( !toggled ) {
+	// 	EnableAutoFrameSkip();
+	// 	mYabauseGL->SetFPSLimit(false);
+	// }
+	// else {
+	// 	DisableAutoFrameSkip();
+	// 	mYabauseGL->SetFPSLimit(true);
+	// }
 }
 
 void UIYabause::on_aToolsBackupManager_triggered()

@@ -24,7 +24,7 @@
 #include <QApplication>
 
 
-YabauseGL::YabauseGL( ) : QOpenGLWindow()
+YabauseGL::YabauseGL(bool vsync) : QOpenGLWindow()
 {
   QSurfaceFormat format;
   format.setDepthBufferSize(24);
@@ -33,7 +33,7 @@ YabauseGL::YabauseGL( ) : QOpenGLWindow()
   format.setGreenBufferSize(8);
   format.setBlueBufferSize(8);
   format.setAlphaBufferSize(8);
-  format.setSwapInterval(1);
+  format.setSwapInterval(vsync?1:0);
   format.setRenderableType(QSurfaceFormat::OpenGL);
 
 #ifdef _OGL3_
@@ -56,7 +56,7 @@ YabauseGL::YabauseGL( ) : QOpenGLWindow()
   format.setProfile(QSurfaceFormat::CoreProfile);
   setFormat(format);
   mPause = true;
-  fpsLimited = false;
+  syncOnVsync = vsync;
   waitForSwap = false;
 }
 
@@ -78,31 +78,25 @@ void YabauseGL::initializeGL()
 }
 
 void YabauseGL::SetFPSLimit(bool on) {
-  if (fpsLimited != on) {
+  if (syncOnVsync != on) {
     nextFrameTime = YabauseGetTicks();
   }
-  fpsLimited = on;
+  syncOnVsync = on;
 }
 
 
 bool YabauseGL::event(QEvent *event)
 {
     switch (event->type()) {
-    case FrameSwitch::mType:
-      if ((nextFrameTime - (int64_t)YabauseGetTicks()) < (int64_t)yabsys.OneFrameTime/2) {
-        context()->swapBuffers(context()->surface());
-        waitForSwap = false;
-        QApplication::postEvent(this, new FrameRequest());
-      } else {
-        QApplication::postEvent(this, new FrameSwitch());
-      }
-      return true;
-    break;
     case FrameRequest::mType:
         if ( !mPause ) {
-            nextFrameTime += yabsys.OneFrameTime;
-            YabauseExec();
-            if (!waitForSwap) QApplication::postEvent(this, new FrameRequest());
+            int64_t now = (int64_t)YabauseGetTicks();
+            int64_t delta = now - nextFrameTime;
+            if((delta >= 0) || (!syncOnVsync)) {
+              YabauseExec();
+              nextFrameTime = now + yabsys.OneFrameTime - delta;
+            }
+            QApplication::postEvent(this, new FrameRequest());
         }
         return true;
     default:
@@ -113,7 +107,7 @@ bool YabauseGL::event(QEvent *event)
 void YabauseGL::swapBuffers()
 {
   waitForSwap = true;
-  QApplication::postEvent(this, new FrameSwitch());
+  context()->swapBuffers(context()->surface());
 }
 
 void YabauseGL::resizeGL( int w, int h )
