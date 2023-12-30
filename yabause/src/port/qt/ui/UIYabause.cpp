@@ -635,10 +635,10 @@ void UIYabause::on_aFileSettings_triggered()
 			if(newhash["General/EnableVSync"].toBool())
 			{
 				DisableAutoFrameSkip();
-				// mYabauseGL->SetFPSLimit(true);
+				mYabauseGL->SetFPSLimit(true);
 			} else {
 				EnableAutoFrameSkip();
-				// mYabauseGL->SetFPSLimit(false);
+				mYabauseGL->SetFPSLimit(false);
 			}
 		}
 
@@ -813,14 +813,14 @@ void UIYabause::on_aEmulationVSync_toggled( bool toggled )
 	vs->setValue( "General/EnableVSync", toggled );
 	vs->sync();
 
-	// if ( !toggled ) {
-	// 	EnableAutoFrameSkip();
-	// 	mYabauseGL->SetFPSLimit(false);
-	// }
-	// else {
-	// 	DisableAutoFrameSkip();
-	// 	mYabauseGL->SetFPSLimit(true);
-	// }
+	if ( !toggled ) {
+		EnableAutoFrameSkip();
+		mYabauseGL->SetFPSLimit(false);
+	}
+	else {
+		DisableAutoFrameSkip();
+		mYabauseGL->SetFPSLimit(true);
+	}
 }
 
 void UIYabause::on_aToolsBackupManager_triggered()

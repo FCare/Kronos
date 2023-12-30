@@ -33,7 +33,7 @@ YabauseGL::YabauseGL(bool vsync) : QOpenGLWindow()
   format.setGreenBufferSize(8);
   format.setBlueBufferSize(8);
   format.setAlphaBufferSize(8);
-  format.setSwapInterval(vsync?1:0);
+  format.setSwapInterval(0);
   format.setRenderableType(QSurfaceFormat::OpenGL);
 
 #ifdef _OGL3_
