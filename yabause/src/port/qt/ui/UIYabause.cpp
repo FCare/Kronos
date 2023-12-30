@@ -632,8 +632,14 @@ void UIYabause::on_aFileSettings_triggered()
       SetOSDToggle(newhash["General/ShowFPS"].toBool());
 
 		if(newhash["General/EnableVSync"] != hash["General/EnableVSync"]){
-			if(newhash["General/EnableVSync"].toBool()) DisableAutoFrameSkip();
-			else EnableAutoFrameSkip();
+			if(newhash["General/EnableVSync"].toBool())
+			{
+				DisableAutoFrameSkip();
+				mYabauseGL->SetFPSLimit(true);
+			} else {
+				EnableAutoFrameSkip();
+				mYabauseGL->SetFPSLimit(false);
+			}
 		}
 
 		if (newhash["Sound/SoundCore"] != hash["Sound/SoundCore"])
@@ -807,10 +813,14 @@ void UIYabause::on_aEmulationVSync_toggled( bool toggled )
 	vs->setValue( "General/EnableVSync", toggled );
 	vs->sync();
 
-	if ( !toggled )
+	if ( !toggled ) {
 		EnableAutoFrameSkip();
-	else
+		mYabauseGL->SetFPSLimit(false);
+	}
+	else {
 		DisableAutoFrameSkip();
+		mYabauseGL->SetFPSLimit(true);
+	}
 }
 
 void UIYabause::on_aToolsBackupManager_triggered()

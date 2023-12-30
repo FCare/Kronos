@@ -44,12 +44,10 @@ public:
 	void pause(bool);
   QImage grabFrameBuffer();
 	void makeCurrent();
+	void SetFPSLimit(bool);
 
-private:
-	void requestFrame();
 Q_SIGNALS:
 	void glInitialized();
-	void frameSwapped();
 
 protected:
         void initializeGL() override;
@@ -61,7 +59,9 @@ protected:
     bool event(QEvent *event) override;
 
 		bool mPause;
-
+		int64_t nextFrameTime = 0;
+		bool fpsLimited;
+		bool waitForSwap;
 };
 
 
@@ -69,5 +69,11 @@ struct FrameRequest : public QEvent
 {
 	static const QEvent::Type mType = static_cast<QEvent::Type>(2000);
 	FrameRequest():QEvent(mType){};
+};
+
+struct FrameSwitch : public QEvent
+{
+	static const QEvent::Type mType = static_cast<QEvent::Type>(2100);
+	FrameSwitch():QEvent(mType){};
 };
 #endif // YABAUSEGL_H

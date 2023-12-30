@@ -33,7 +33,7 @@ YabauseGL::YabauseGL( ) : QOpenGLWindow()
   format.setGreenBufferSize(8);
   format.setBlueBufferSize(8);
   format.setAlphaBufferSize(8);
-  format.setSwapInterval(0);
+  format.setSwapInterval(1);
   format.setRenderableType(QSurfaceFormat::OpenGL);
 
 #ifdef _OGL3_
@@ -56,17 +56,16 @@ YabauseGL::YabauseGL( ) : QOpenGLWindow()
   format.setProfile(QSurfaceFormat::CoreProfile);
   setFormat(format);
   mPause = true;
-}
-
-void YabauseGL::requestFrame() {
-  QApplication::postEvent(this, new FrameRequest());
+  fpsLimited = false;
+  waitForSwap = false;
 }
 
 void YabauseGL::pause(bool pause) {
   if (pause != mPause) {
     mPause = pause;
     if (!mPause) {
-      requestFrame();
+      nextFrameTime = YabauseGetTicks();
+      QApplication::postEvent(this, new FrameRequest());
     }
   }
 }
@@ -78,13 +77,32 @@ void YabauseGL::initializeGL()
   glClear(GL_COLOR_BUFFER_BIT);
 }
 
+void YabauseGL::SetFPSLimit(bool on) {
+  if (fpsLimited != on) {
+    nextFrameTime = YabauseGetTicks();
+  }
+  fpsLimited = on;
+}
+
+
 bool YabauseGL::event(QEvent *event)
 {
     switch (event->type()) {
+    case FrameSwitch::mType:
+      if ((nextFrameTime - (int64_t)YabauseGetTicks()) < (int64_t)yabsys.OneFrameTime/2) {
+        context()->swapBuffers(context()->surface());
+        waitForSwap = false;
+        QApplication::postEvent(this, new FrameRequest());
+      } else {
+        QApplication::postEvent(this, new FrameSwitch());
+      }
+      return true;
+    break;
     case FrameRequest::mType:
         if ( !mPause ) {
-          YabauseExec();
-          requestFrame();
+            nextFrameTime += yabsys.OneFrameTime;
+            YabauseExec();
+            if (!waitForSwap) QApplication::postEvent(this, new FrameRequest());
         }
         return true;
     default:
@@ -94,7 +112,8 @@ bool YabauseGL::event(QEvent *event)
 
 void YabauseGL::swapBuffers()
 {
-  context()->swapBuffers(context()->surface());
+  waitForSwap = true;
+  QApplication::postEvent(this, new FrameSwitch());
 }
 
 void YabauseGL::resizeGL( int w, int h )
