@@ -1073,10 +1073,10 @@ int Cs2GetTimeToNextSector(void) {
 void Cs2SetTiming(int playing) {
   if (playing) {
      if (Cs2Area->isaudio || Cs2Area->speed1x == 1) {
-       Cs2Area->_periodictiming = 40000;  // 13333.333... * 3
+       Cs2Area->_periodictiming = 43587;  // tested to get exactly 75 FAD read out from CD per second
      }
      else {
-       Cs2Area->_periodictiming = 20000;  // 6666.666... * 3
+       Cs2Area->_periodictiming = 43587>>1;  //Go twice as fast as cd 1X
      }
   }
   else {
