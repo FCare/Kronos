@@ -5263,21 +5263,6 @@ ScspConvert32uto16s (s32 *srcL, s32 *srcR, s16 *dst, u32 len)
 void
 ScspReceiveCDDA (const u8 *sector)
 {
-   // If buffer is half empty or less, boost timing for a bit until we've buffered a few sectors
-   if (cdda_out_left < (sizeof(cddabuf.data) / 2))
-   {
-      Cs2Area->isaudio = 0;
-      Cs2SetTiming(1);
-		Cs2Area->isaudio = 1;
-   }
-	else if (cdda_out_left > (sizeof(cddabuf.data) * 3 / 4 ))
-		Cs2SetTiming(0);
-   else
-   {
-      Cs2Area->isaudio = 1;
-      Cs2SetTiming(1);
-   }
-
   memcpy(cddabuf.data+cdda_next_in, sector, 2352);
   if (sizeof(cddabuf.data)-cdda_next_in <= 2352)
      cdda_next_in = 0;
