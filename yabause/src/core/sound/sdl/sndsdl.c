@@ -123,14 +123,14 @@ static int SNDSDLInit(void)
    audiofmt.callback = MixAudio;
    audiofmt.userdata = NULL;
 
-   while (normSamples < audiofmt.samples) 
+   while (normSamples < audiofmt.samples)
       normSamples <<= 1;
 
    audiofmt.samples = normSamples;
-   
-   soundlen = audiofmt.freq / 60; // 60 for NTSC or 50 for PAL. Initially assume it's going to be NTSC.
+
+   soundlen = audiofmt.freq / 25; // 60 for NTSC or 50 for PAL. Initially assume it's going to be NTSC.
    soundbufsize = soundlen * NUMSOUNDBLOCKS * 2 * 2;
-   
+
    soundvolume = SDL_MIX_MAXVOLUME;
 
    if (SDL_OpenAudio(&audiofmt, NULL) != 0)
