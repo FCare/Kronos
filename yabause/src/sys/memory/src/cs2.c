@@ -605,6 +605,7 @@ int Cs2ChangeCDCore(int coreid, const char *cdpath)
    if (coreid == CDCORE_DEFAULT)
       coreid = 0; // Assume we want the first one
 
+
    // Go through core list and find the id
    for (i = 0; CDCoreList[i] != NULL; i++)
    {

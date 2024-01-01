@@ -119,7 +119,7 @@ static int SNDSDLInit(void)
    audiofmt.freq = 44100;
    audiofmt.format = AUDIO_S16SYS;
    audiofmt.channels = 2;
-   audiofmt.samples = (audiofmt.freq / 60) * 2;
+   audiofmt.samples = 512;
    audiofmt.callback = MixAudio;
    audiofmt.userdata = NULL;
 
@@ -128,7 +128,7 @@ static int SNDSDLInit(void)
 
    audiofmt.samples = normSamples;
 
-   soundlen = audiofmt.freq / 25; // 60 for NTSC or 50 for PAL. Initially assume it's going to be NTSC.
+   soundlen = 512;
    soundbufsize = soundlen * NUMSOUNDBLOCKS * 2 * 2;
 
    soundvolume = SDL_MIX_MAXVOLUME;
@@ -172,17 +172,6 @@ static int SNDSDLReset(void)
 
 static int SNDSDLChangeVideoFormat(int vertfreq)
 {
-   soundlen = audiofmt.freq / vertfreq;
-   soundbufsize = soundlen * NUMSOUNDBLOCKS * 2 * 2;
-
-   if (stereodata16)
-      free(stereodata16);
-
-   if ((stereodata16 = (u16 *)malloc(soundbufsize)) == NULL)
-      return -1;
-
-   memset(stereodata16, 0, soundbufsize);
-
    return 0;
 }
 
@@ -207,7 +196,7 @@ static void sdlConvert32uto16s(s32 *srcL, s32 *srcR, s16 *dst, u32 len) {
       else *dst = *srcR;
       srcR++;
       dst++;
-   } 
+   }
 }
 
 static void SNDSDLUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num_samples)
@@ -231,7 +220,7 @@ static void SNDSDLUpdateAudio(u32 *leftchanbuffer, u32 *rightchanbuffer, u32 num
    if (copy2size)
       sdlConvert32uto16s((s32 *)leftchanbuffer + (copy1size / sizeof(s16) / 2), (s32 *)rightchanbuffer + (copy1size / sizeof(s16) / 2), (s16 *)stereodata16, copy2size / sizeof(s16) / 2);
 
-   soundoffset += copy1size + copy2size;   
+   soundoffset += copy1size + copy2size;
    soundoffset %= soundbufsize;
 
    SDL_UnlockAudio();
