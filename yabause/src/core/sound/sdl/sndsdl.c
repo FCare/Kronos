@@ -128,7 +128,7 @@ static int SNDSDLInit(void)
 
    audiofmt.samples = normSamples;
 
-   soundlen = 512;
+   soundlen = 2048;
    soundbufsize = soundlen * NUMSOUNDBLOCKS * 2 * 2;
 
    soundvolume = SDL_MIX_MAXVOLUME;
