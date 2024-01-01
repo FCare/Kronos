@@ -94,7 +94,11 @@ bool YabauseGL::event(QEvent *event)
             int64_t delta = now - nextFrameTime;
             if((delta >= 0) || (!syncOnVsync)) {
               YabauseExec();
-              nextFrameTime = now + yabsys.OneFrameTime - delta;
+              if (delta > yabsys.OneFrameTime) {
+                nextFrameTime = (int64_t)YabauseGetTicks();
+              } else {
+                nextFrameTime = now + yabsys.OneFrameTime - delta;
+              }
             }
             QApplication::postEvent(this, new FrameRequest());
         }
