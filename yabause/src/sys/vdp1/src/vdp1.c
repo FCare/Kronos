@@ -2105,7 +2105,7 @@ void Vdp1DebugCommand(u32 number, char *outstring)
              rw = cmd.CMDXB;
              rh = cmd.CMDYB;
              if ((rw < 0)||(rh <0)) {
-               return 0;
+               return;
              }
              break;
            case 0x6: // Upper-Center
@@ -2113,7 +2113,7 @@ void Vdp1DebugCommand(u32 number, char *outstring)
              rh = cmd.CMDYB;
              x = x - rw / 2;
              if ((rw < 0)||(rh <0)) {
-               return 0;
+               return;
              }
              break;
            case 0x7: // Upper-Right
@@ -2121,7 +2121,7 @@ void Vdp1DebugCommand(u32 number, char *outstring)
              rh = cmd.CMDYB;
              x = x - rw;
              if ((rw < 0)||(rh <0)) {
-               return 0;
+               return;
              }
              break;
            case 0x9: // Center-left
@@ -2129,7 +2129,7 @@ void Vdp1DebugCommand(u32 number, char *outstring)
              rh = cmd.CMDYB;
              y = y - rh / 2;
              if ((rw < 0)||(rh <0)) {
-               return 0;
+               return;
              }
              break;
            case 0xA: // Center-center
@@ -2144,7 +2144,7 @@ void Vdp1DebugCommand(u32 number, char *outstring)
              x = x - rw;
              y = y - rh / 2;
              if ((rw < 0)||(rh <0)) {
-               return 0;
+               return;
              }
              break;
            case 0xD: // Lower-left
@@ -2152,7 +2152,7 @@ void Vdp1DebugCommand(u32 number, char *outstring)
              rh = cmd.CMDYB;
              y = y - rh;
              if ((rw < 0)||(rh <0)) {
-               return 0;
+               return;
              }
              break;
            case 0xE: // Lower-center
@@ -2167,7 +2167,7 @@ void Vdp1DebugCommand(u32 number, char *outstring)
              x = x - rw;
              y = y - rh;
              if ((rw < 0)||(rh <0)) {
-               return 0;
+               return;
              }
              break;
            default: break;
