@@ -27,6 +27,8 @@
 #include "debug.h"
 #include "memory.h"
 #include "yabause.h"
+#include <scu.h>
+#include <error.h>
 
 SH2_struct *SSH2=NULL;
 SH2_struct *MSH2=NULL;
