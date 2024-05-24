@@ -35,6 +35,8 @@
 
 #include "cs2.h"
 
+#include <yui.h>
+
 #define LOCK(A)
 #define UNLOCK(A)
 
