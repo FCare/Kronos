@@ -79,6 +79,11 @@ ifneq (,$(findstring unix,$(platform)))
 		HAVE_SSE = 0
 		FLAGS += -DARM
 	endif
+	
+	# riscv64
+	ifneq ($(findstring riscv64,$(shell uname -a)),)
+		HAVE_SSE = 0
+	endif
 
 ifneq ($(findstring Linux,$(shell uname -s)),)
 	HAVE_CDROM = 1
