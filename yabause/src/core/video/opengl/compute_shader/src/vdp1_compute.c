@@ -16,6 +16,20 @@
 
 #define NB_COARSE_RAST (NB_COARSE_RAST_X * NB_COARSE_RAST_Y)
 
+typedef struct {
+	u32 CMDPMOD;
+	s32 CMDXA;
+	s32 CMDYA;
+	s32 CMDXB;
+	s32 CMDYB;
+	u32 COLOR;
+	u32 valid;
+	float dl;
+	float dr;
+	float G[16];
+	u32 pad[7];
+} cmd_poly;
+
 extern vdp2rotationparameter_struct  Vdp1ParaA;
 
 static int local_size_x = 8;
@@ -27,6 +41,8 @@ static int tex_height;
 static float tex_ratiow;
 static float tex_ratioh;
 static int struct_size;
+static int struct_line_size;
+void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type);
 
 static int work_groups_x;
 static int work_groups_y;
@@ -50,6 +66,9 @@ static GLuint ssbo_vdp1ram_[2] = {0};
 static GLuint ssbo_nbcmd_ = 0;
 static GLuint ssbo_vdp1access_ = 0;
 static GLuint prg_vdp1[NB_PRG] = {0};
+
+static GLuint compute_test_tex = 0;
+static GLuint ssbo_cmd_line_list_ = 0;
 
 #ifdef VDP1RAM_CS_ASYNC
 static YabEventQueue *cmdq[2] = {NULL};
@@ -123,6 +142,15 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		NULL,
 		NULL
 	},
+	//DRAW_POLY
+	{
+		vdp1_draw_polygon_f,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	},
+
 };
 
 static int progMask = 0;
@@ -247,6 +275,10 @@ static int generateComputeBuffer(int w, int h) {
   if (compute_tex[0] != 0) {
     glDeleteTextures(2,&compute_tex[0]);
   }
+  if (compute_test_tex != 0) {
+    glDeleteTextures(1,&compute_test_tex);
+  }
+
 	if (ssbo_vdp1ram_[0] != 0) {
     glDeleteBuffers(2, &ssbo_vdp1ram_[0]);
 	}
@@ -271,6 +303,13 @@ static int generateComputeBuffer(int w, int h) {
 	glGenBuffers(1, &ssbo_cmd_list_);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_list_);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, struct_size*CMD_QUEUE_SIZE, NULL, GL_DYNAMIC_DRAW);
+
+	if (ssbo_cmd_line_list_ != 0) {
+		glDeleteBuffers(1, &ssbo_cmd_line_list_);
+	}
+	glGenBuffers(1, &ssbo_cmd_line_list_);
+	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, struct_line_size*32, NULL, GL_DYNAMIC_DRAW);
 
   if (ssbo_nbcmd_ != 0) {
     glDeleteBuffers(1, &ssbo_nbcmd_);
@@ -307,6 +346,15 @@ static int generateComputeBuffer(int w, int h) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	vdp1_clear(1, col, limits);
+
+  glGenTextures(1, &compute_test_tex);
+	glBindTexture(GL_TEXTURE_2D, compute_test_tex);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, w, h);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
   return 0;
 }
 
@@ -440,6 +488,46 @@ void VIDCSGenerateBufferVdp1(vdp1cmd_struct* cmd){
 }
 #endif
 
+typedef struct{
+	s32 x, y;
+} point;
+
+static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
+	int i, a, ax, ay, dx, dy;
+	a = i = 0;
+	dx = x2 - x1;
+	dy = y2 - y1;
+	ax = (dx >= 0) ? 1 : -1;
+	ay = (dy >= 0) ? 1 : -1;
+	int nbMaxPoint = MAX(abs(dx), abs(dy))+1;
+	*data = (point*)malloc(nbMaxPoint*sizeof(point));
+	if (abs(dx) > abs(dy)) {
+		if (ax != ay) dx = -dx;
+
+		for (i = 0; x1 != x2; x1 += ax, i++) {
+			(*data)[i] = (point){.x=x1, .y=y1};
+			a += dy;
+			if (abs(a) >= abs(dx)) {
+				a -= dx;
+				y1 += ay;
+			}
+		}
+	} else {
+		if (ax != ay) dy = -dy;
+
+		for (i = 0; y1 != y2; y1 += ay, i++) {
+      (*data)[i] = (point){.x=x1, .y=y1};
+			a += dx;
+			if (abs(a) >= abs(dy)) {
+				a -= dy;
+				x1 += ax;
+			}
+		}
+	}
+	(*data)[i++] = (point){.x=x2, .y=y2};
+	return i;
+}
+
 int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int minx = 1024;
 	int miny = 1024;
@@ -449,6 +537,81 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int intersectX = -1;
 	int intersectY = -1;
 	int requireCompute = 0;
+
+	if ((cmd->type == POLYGON) || (cmd->type == DISTORTED)) {
+		if (cmd->type == DISTORTED) cmd->COLOR[0] = 0xC610;
+		point *dataL, *dataR;
+#if 1
+		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
+		int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
+#else
+		int xA = 20;
+		int yA = 20;
+		int xB = 60;
+		int yB = 20;
+		int xC = 60;
+		int yC = 60;
+		int xD = 20;
+		int yD = 60;
+		int li = computeLinePoints(xA, yA, xD, yD, &dataL);
+		int ri = computeLinePoints(xB, yB, xC, yC, &dataR);
+#endif
+		int nbCmd = (MAX(li,ri) + 31) & ~31; //Align nbCmd on 32
+		cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
+		int idl = 0;
+		int idr = 0;
+		int a = 0;
+		int i = 0;
+		if(li>ri) {
+			for (i = 0; i != li; i++) {
+				a += ri;
+				idl = i;
+				printf("%d segment %dx%d => %dx%d\n", __LINE__, dataL[idl].x, dataL[idl].y, dataR[idr].x, dataR[idr].y);
+				cmd_pol[i] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDXA = dataL[idl].x,
+					.CMDYA = dataL[idl].y,
+					.CMDXB = dataR[idr].x,
+					.CMDYB = dataR[idr].y,
+					.COLOR = cmd->COLOR[0],
+					.valid = 1,
+					.dl = (float)idl/(float)li,
+					.dr = (float)idr/(float)ri
+				};
+				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+				if (abs(a) >= abs(li)) {
+					a -= li;
+					idr++;
+				}
+			}
+		} else {
+			for (i = 0; i != ri; i++) {
+				a += li;
+				idr = i;
+				printf("%d segment %dx%d => %dx%d\n", __LINE__, dataL[idl].x, dataL[idl].y, dataR[idr].x, dataR[idr].y);
+				cmd_pol[i] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDXA = dataL[idl].x,
+					.CMDYA = dataL[idl].y,
+					.CMDXB = dataR[idr].x,
+					.CMDYB = dataR[idr].y,
+					.COLOR = cmd->COLOR[0],
+					.valid = 1,
+					.dl = (float)idl/(float)li,
+					.dr = (float)idr/(float)ri
+				};
+				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+				if (abs(a) >= abs(ri)) {
+					a -= ri;
+					idl++;
+				}
+			}
+		}
+		drawPolygonLine(cmd_pol, i, cmd->type);
+		free(cmd_pol);
+		free(dataL);
+		free(dataR);
+	}
 
 	if (_Ygl->wireframe_mode != 0) {
 		int pos = (cmd->CMDSRCA * 8) & 0x7FFFF;
@@ -572,6 +735,35 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
   return 0;
 }
 
+void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
+	int progId = DRAW_POLY;
+
+	if (prg_vdp1[progId] == 0) {
+		prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
+	}
+	glUseProgram(prg_vdp1[progId]);
+
+	glBindImageTexture(0, compute_test_tex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssbo_cmd_line_list_);
+	glUniform2f(7, tex_ratiow, tex_ratioh);
+	glUniform2i(8, Vdp1Regs->systemclipX2, Vdp1Regs->systemclipY2);
+	glUniform4i(9, Vdp1Regs->userclipX1, Vdp1Regs->userclipY1, Vdp1Regs->userclipX2, Vdp1Regs->userclipY2);
+
+	for (int i = 0; i<nbLines; i+=32) {
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 32*sizeof(cmd_poly), (void*)&cmd_pol[i]);
+		glDispatchCompute(1, 1, 1); //might be better to launch only the right number of workgroup
+		ErrorHandle("glDispatchCompute");
+	}
+	progMask = 0;
+
+	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+	glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+  glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void vdp1_clear(int id, float *col, int* lim) {
 	int progId = CLEAR;
 	int limits[4];
@@ -588,6 +780,8 @@ void vdp1_clear(int id, float *col, int* lim) {
 	glBindImageTexture(1, get_vdp1_mesh(id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glUniform4fv(2, 1, col);
 	glUniform4iv(3, 1, limits);
+	glDispatchCompute(work_groups_x, work_groups_y, 1); //might be better to launch only the right number of workgroup
+	glBindImageTexture(0, compute_test_tex, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glDispatchCompute(work_groups_x, work_groups_y, 1); //might be better to launch only the right number of workgroup
 	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
@@ -657,6 +851,9 @@ void vdp1_compute_init(int width, int height, float ratiow, float ratioh)
 	length = sizeof(vdp1_start_f_base) + 64;
 	snprintf(vdp1_start_f,length,vdp1_start_f_base,local_size_x,local_size_y);
 
+	length = sizeof(vdp1_draw_polygon_f_base) + 64;
+	snprintf(vdp1_draw_polygon_f,length,vdp1_draw_polygon_f_base,1,32);
+
   int am = sizeof(vdp1cmd_struct) % 16;
   tex_width = width;
   tex_height = height;
@@ -665,6 +862,10 @@ void vdp1_compute_init(int width, int height, float ratiow, float ratioh)
   struct_size = sizeof(vdp1cmd_struct);
   if (am != 0) {
     struct_size += 16 - am;
+  }
+  struct_line_size = sizeof(cmd_poly);
+  if (am != 0) {
+    struct_line_size += 16 - am;
   }
 	progMask = 0;
 #ifdef VDP1RAM_CS_ASYNC

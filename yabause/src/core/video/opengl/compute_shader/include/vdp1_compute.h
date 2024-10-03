@@ -18,6 +18,7 @@ enum
   READ,
   CLEAR,
   CLEAR_MESH,
+  DRAW_POLY,
   NB_PRG
 };
 

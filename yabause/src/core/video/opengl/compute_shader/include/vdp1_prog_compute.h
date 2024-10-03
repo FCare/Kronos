@@ -102,6 +102,132 @@ SHADER_VERSION_COMPUTE
 
 static char vdp1_clear_f[ sizeof(vdp1_clear_f_base) + 64 ] = {};
 
+#define CLIP(P, A, OK, BAD) \
+"    if ("Stringify(P)".x<clip.x*upscale.x) { \n" \
+"      if ("Stringify(A)".x > 0.0) "Stringify(OK)";\n" \
+"      else "Stringify(BAD)";\n" \
+"    }\n" \
+"    if ("Stringify(P)".y<clip.y*upscale.y) { \n" \
+"      if ("Stringify(A)".y > 0.0) "Stringify(OK)";\n" \
+"      else "Stringify(BAD)";\n" \
+"    }\n" \
+"    if ("Stringify(P)".x>clip.z*upscale.x) { \n" \
+"      if ("Stringify(A)".x < 0.0) "Stringify(OK)";\n" \
+"      else "Stringify(BAD)";\n" \
+"    }\n" \
+"    if ("Stringify(P)".y>clip.w*upscale.x) { \n" \
+"      if ("Stringify(A)".y < 0.0) "Stringify(OK)";\n" \
+"      else "Stringify(BAD)";\n" \
+"    }\n"
+
+static const char vdp1_draw_polygon_f_base[] =
+SHADER_VERSION_COMPUTE
+"#ifdef GL_ES\n"
+"precision highp float;\n"
+"#endif\n"
+"layout(local_size_x = %d, local_size_y = %d) in;\n"
+"struct cmdparameter_struct{ \n"
+"  int CMDPMOD;\n"
+"  int CMDXA;\n"
+"  int CMDYA;\n"
+"  int CMDXB;\n"
+"  int CMDYB;\n"
+"  int COLOR;\n"
+"  int valid;\n"
+"  float dl;\n"
+"  float dr;\n"
+"  float G[16];\n"
+"  int pad[7];\n"
+"};\n"
+"layout(rgba8, binding = 0) uniform image2D outSurface;\n"
+"layout(std430, binding = 6) readonly buffer CMD_LIST {\n"
+"  cmdparameter_struct cmd[];\n"
+"};\n"
+"layout(location = 7) uniform vec2 upscale;\n"
+"layout(location = 8) uniform ivec2 sysClip;\n"
+"layout(location = 9) uniform ivec4 usrClip;\n"
+"ivec4 VDP1COLOR(uint CMDCOLR) {\n"
+"  return ivec4((CMDCOLR>>0)&0xFFu,(CMDCOLR>>8)&0xFFu,0.0,0.0);\n"
+"}\n"
+"vec4 extractPolygonColor(cmdparameter_struct pixcmd, float dp){\n"
+"  uint color = pixcmd.COLOR;\n"
+"  ivec4 ret = VDP1COLOR(color);\n"
+//This part shall be done in a dedicated program
+"  if ((pixcmd.CMDPMOD & 0x7u) == 0x4) {\n"
+"   //Gouraud\n"
+"   float Rg = float((color >> 00) & 0x1F)/31.0;\n"
+"   float Gg = float((color >> 05) & 0x1F)/31.0;\n"
+"   float Bg = float((color >> 10) & 0x1F)/31.0;\n"
+"   int MSBg = int((color & 0x8000) >> 8);\n"
+"   Rg = clamp(Rg + mix(mix(pixcmd.G[0],pixcmd.G[12],pixcmd.dl), mix(pixcmd.G[4],pixcmd.G[8],pixcmd.dr), dp), 0.0, 1.0);\n"
+"   Gg = clamp(Gg + mix(mix(pixcmd.G[1],pixcmd.G[13],pixcmd.dl), mix(pixcmd.G[5],pixcmd.G[9],pixcmd.dr), dp), 0.0, 1.0);\n"
+"   Bg = clamp(Bg + mix(mix(pixcmd.G[2],pixcmd.G[14],pixcmd.dl), mix(pixcmd.G[6],pixcmd.G[10],pixcmd.dr), dp), 0.0, 1.0);\n"
+"   ret.r = (int(Rg*255.0)>>3) | (((int(Gg*255.0)>>3) & 0x7)<<5);\n"
+"   ret.g = ((int(Gg*255.0)>>3)>>3) | ((int(Bg*255.0)>>3)<<2) | MSBg;\n"
+"  }\n"
+"  return vec4(ret)/vec4(255.0);\n"
+"};\n"
+"void main()\n"
+"{\n"
+" vec4 finalColor = vec4(0.0);\n"
+" ivec4 clip = ivec4(usrClip.xy, min(usrClip.zw, sysClip));\n"
+" cmdparameter_struct pixcmd = cmd[gl_LocalInvocationID.y];\n"
+" if (pixcmd.valid == 0) return;\n"
+" vec2 texcoord = vec2(0);\n"
+" vec2 size = vec2(pixcmd.CMDXB - pixcmd.CMDXA, pixcmd.CMDYB - pixcmd.CMDYA);\n"
+" vec3 a = vec3(sign(size), 0.0);\n"
+" if (a.x == 0.0) a.x = 1.0;\n"
+" if (a.y == 0.0) a.y = 1.0;\n"
+" vec2 P = vec2(pixcmd.CMDXA, pixcmd.CMDYA);\n"
+" if (abs(size.x) > abs(size.y)) {\n"
+"	 if (a.x != a.y) size.x = -size.x;\n"
+"  for (; P.x != pixcmd.CMDXB; P.x += a.x) {\n"
+"   //Draw pixels\n"
+CLIP(P, a, continue, return)
+"   imageStore(outSurface,ivec2(int(P.x), int(P.y)),extractPolygonColor(pixcmd, float(P.x)/float(size.x)));\n"
+"   a.z += size.y;\n"
+"   if (abs(a.z) >= abs(size.x)) {\n"
+"    a.z -= size.x;\n"
+"    P.y += a.y;\n"
+"    //Greedy saturn effect\n"
+"    if (a.x == a.y) {\n"
+CLIP((P+ivec2(a.x, -a.y)), a, continue, return)
+"     imageStore(outSurface,ivec2(int(P.x+a.x), int(P.y-a.y)),extractPolygonColor(pixcmd, float(P.x+a.x)/float(size.x)));\n"
+"    } else {\n"
+CLIP(P, a, continue, return)
+"     imageStore(outSurface,ivec2(int(P.x), int(P.y)),extractPolygonColor(pixcmd, float(P.x)/float(size.x)));\n"
+"    }\n"
+"   }\n"
+"  }\n"
+" } else {\n"
+"	 if (a.x != a.y) size.y = -size.y;\n"
+"  for (; P.y != pixcmd.CMDYB; P.y += a.y) {\n"
+"   //Draw pixels\n"
+CLIP(P, a, continue, return)
+"   imageStore(outSurface,ivec2(int(P.x), int(P.y)),extractPolygonColor(pixcmd, float(P.x)/float(size.x)));\n"
+"   a.z += size.x;\n"
+"   if (abs(a.z) >= abs(size.y)) {\n"
+"    a.z -= size.y;\n"
+"    P.x += a.x;\n"
+"    //Greedy saturn effect\n"
+"    if (a.x == a.y) {\n"
+CLIP(P, a, continue, return)
+"     imageStore(outSurface,ivec2(int(P.x), int(P.y)),extractPolygonColor(pixcmd, float(P.x)/float(size.x)));\n"
+"    } else {\n"
+CLIP((P+ivec2(-a.x, a.y)), a, continue, return)
+"     imageStore(outSurface,ivec2(int(P.x-a.x), int(P.y+a.y)),extractPolygonColor(pixcmd, float(P.x-a.x)/float(size.x)));\n"
+"    }\n"
+"   }\n"
+"  }\n"
+" }\n"
+" if (all(greaterThan(vec2(pixcmd.CMDXB, pixcmd.CMDYB),clip.zw*upscale))) return; \n"
+" if (all(lessThan(vec2(pixcmd.CMDXB, pixcmd.CMDYB),clip.xy*upscale))) return; \n"
+" imageStore(outSurface,ivec2(pixcmd.CMDXB, pixcmd.CMDYB),extractPolygonColor(pixcmd,1.0));\n"
+"}\n";
+
+
+static char vdp1_draw_polygon_f[ sizeof(vdp1_draw_polygon_f_base) + 64 ] = {};
+
 static const char vdp1_clear_mesh_f_base[] =
 SHADER_VERSION_COMPUTE
 "#ifdef GL_ES\n"
