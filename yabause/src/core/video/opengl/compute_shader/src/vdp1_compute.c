@@ -145,55 +145,55 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		NULL,
 		NULL
 	},
-	// DRAW_POLY_MSB_SHADOW
+	// DRAW_POLY_MSB_SHADOW_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_POLY_REPLACE
+  // DRAW_POLY_REPLACE_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_replace_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_POLY_SHADOW
+  // DRAW_POLY_SHADOW_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_shadow_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_POLY_HALF_LUMINANCE
+  // DRAW_POLY_HALF_LUMINANCE_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_luminance_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_POLY_HALF_TRANSPARENT
+  // DRAW_POLY_HALF_TRANSPARENT_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_transparent_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-	// DRAW_POLY_GOURAUD
+	// DRAW_POLY_GOURAUD_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-	// DRAW_POLY_UNSUPPORTED
+	// DRAW_POLY_UNSUPPORTED_NO_MESH
 	{
 		NULL,
 		NULL,
@@ -201,71 +201,71 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		NULL,
 		NULL
 	},
-  // DRAW_POLY_GOURAUD_HALF_LUMINANCE
+  // DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_POLY_GOURAUD_HALF_TRANSPARENT
+  // DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_QUAD_MSB_SHADOW
+  // DRAW_QUAD_MSB_SHADOW_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_QUAD_REPLACE
+  // DRAW_QUAD_REPLACE_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_replace_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_QUAD_SHADOW
+  // DRAW_QUAD_SHADOW_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_shadow_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_QUAD_HALF_LUMINANCE
+  // DRAW_QUAD_HALF_LUMINANCE_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_luminance_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_QUAD_HALF_TRANSPARENT
+  // DRAW_QUAD_HALF_TRANSPARENT_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_transparent_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-	// DRAW_QUAD_GOURAUD
+	// DRAW_QUAD_GOURAUD_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-	// DRAW_QUAD_UNSUPPORTED
+	// DRAW_QUAD_UNSUPPORTED_NO_MESH
 	{
 		NULL,
 		NULL,
@@ -273,21 +273,165 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		NULL,
 		NULL
 	},
-  // DRAW_QUAD_GOURAUD_HALF_LUMINANCE
+  // DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
-		vdp1_draw_line_f,
-		NULL
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
 	},
-  // DRAW_QUAD_GOURAUD_HALF_TRANSPARENT
+  // DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH
 	{
 		vdp1_draw_line_start_f,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
-		vdp1_draw_line_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_f
+	},
+	// DRAW_POLY_MSB_SHADOW_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_POLY_REPLACE_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_POLY_SHADOW_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_POLY_HALF_LUMINANCE_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_POLY_HALF_TRANSPARENT_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+	// DRAW_POLY_GOURAUD_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+	// DRAW_POLY_UNSUPPORTED_NO_MESH
+	{
+		NULL,
+		NULL,
+		NULL,
+		NULL,
 		NULL
+	},
+  // DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_QUAD_MSB_SHADOW_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_QUAD_REPLACE_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_QUAD_SHADOW_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_QUAD_HALF_LUMINANCE_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_QUAD_HALF_TRANSPARENT_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+	// DRAW_QUAD_GOURAUD_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+	// DRAW_QUAD_UNSUPPORTED_MESH
+	{
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	},
+  // DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
+	},
+  // DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_f
 	}
 };
 
@@ -878,79 +1022,140 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 
 static void trace_prog(int progId) {
 	switch(progId) {
-		case DRAW_POLY_MSB_SHADOW:
-			printf("DRAW_POLY_MSB_SHADOW\n");
+		case DRAW_POLY_MSB_SHADOW_NO_MESH:
+			printf("DRAW_POLY_MSB_SHADOW_NO_MESH\n");
 		break;
-	  case DRAW_POLY_REPLACE:
-			printf("DRAW_POLY_REPLACE\n");
+	  case DRAW_POLY_REPLACE_NO_MESH:
+			printf("DRAW_POLY_REPLACE_NO_MESH\n");
 		break;
-	  case DRAW_POLY_SHADOW:
-			printf("DRAW_POLY_SHADOW\n");
+	  case DRAW_POLY_SHADOW_NO_MESH:
+			printf("DRAW_POLY_SHADOW_NO_MESH\n");
 		break;
-	  case DRAW_POLY_HALF_LUMINANCE:
-			printf("DRAW_POLY_HALF_LUMINANCE\n");
+	  case DRAW_POLY_HALF_LUMINANCE_NO_MESH:
+			printf("DRAW_POLY_HALF_LUMINANCE_NO_MESH\n");
 		break;
-	  case DRAW_POLY_HALF_TRANSPARENT:
-			printf("DRAW_POLY_HALF_TRANSPARENT\n");
+	  case DRAW_POLY_HALF_TRANSPARENT_NO_MESH:
+			printf("DRAW_POLY_HALF_TRANSPARENT_NO_MESH\n");
 		break;
-	  case DRAW_POLY_GOURAUD:
-			printf("DRAW_POLY_GOURAUD\n");
+	  case DRAW_POLY_GOURAUD_NO_MESH:
+			printf("DRAW_POLY_GOURAUD_NO_MESH\n");
 		break;
-	  case DRAW_POLY_UNSUPPORTED:
-			printf("DRAW_POLY_UNSUPPORTED\n");
+	  case DRAW_POLY_UNSUPPORTED_NO_MESH:
+			printf("DRAW_POLY_UNSUPPORTED_NO_MESH\n");
 		break;
-	  case DRAW_POLY_GOURAUD_HALF_LUMINANCE:
-			printf("DRAW_POLY_GOURAUD_HALF_LUMINANCE\n");
+	  case DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH:
+			printf("DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH\n");
 		break;
-	  case DRAW_POLY_GOURAUD_HALF_TRANSPARENT:
-			printf("DRAW_POLY_GOURAUD_HALF_TRANSPARENT\n");
+	  case DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH:
+			printf("DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_MSB_SHADOW:
-			printf("DRAW_QUAD_MSB_SHADOW\n");
+	  case DRAW_QUAD_MSB_SHADOW_NO_MESH:
+			printf("DRAW_QUAD_MSB_SHADOW_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_REPLACE:
-			printf("DRAW_QUAD_REPLACE\n");
+	  case DRAW_QUAD_REPLACE_NO_MESH:
+			printf("DRAW_QUAD_REPLACE_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_SHADOW:
-			printf("DRAW_QUAD_SHADOW\n");
+	  case DRAW_QUAD_SHADOW_NO_MESH:
+			printf("DRAW_QUAD_SHADOW_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_HALF_LUMINANCE:
-			printf("DRAW_QUAD_HALF_LUMINANCE\n");
+	  case DRAW_QUAD_HALF_LUMINANCE_NO_MESH:
+			printf("DRAW_QUAD_HALF_LUMINANCE_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_HALF_TRANSPARENT:
-			printf("DRAW_QUAD_HALF_TRANSPARENT\n");
+	  case DRAW_QUAD_HALF_TRANSPARENT_NO_MESH:
+			printf("DRAW_QUAD_HALF_TRANSPARENT_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_GOURAUD:
-			printf("DRAW_QUAD_GOURAUD\n");
+	  case DRAW_QUAD_GOURAUD_NO_MESH:
+			printf("DRAW_QUAD_GOURAUD_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_UNSUPPORTED:
-			printf("DRAW_QUAD_UNSUPPORTED\n");
+	  case DRAW_QUAD_UNSUPPORTED_NO_MESH:
+			printf("DRAW_QUAD_UNSUPPORTED_NO_MESH\n");
 		break;
-		case DRAW_QUAD_GOURAUD_HALF_LUMINANCE:
-			printf("DRAW_QUAD_GOURAUD_HALF_LUMINANCE\n");
+		case DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH:
+			printf("DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH\n");
 		break;
-	  case DRAW_QUAD_GOURAUD_HALF_TRANSPARENT:
-			printf("DRAW_QUAD_GOURAUD_HALF_TRANSPARENT\n");
+	  case DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH:
+			printf("DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH\n");
+		break;
+		case DRAW_POLY_MSB_SHADOW_MESH:
+			printf("DRAW_POLY_MSB_SHADOW_MESH\n");
+		break;
+	  case DRAW_POLY_REPLACE_MESH:
+			printf("DRAW_POLY_REPLACE_MESH\n");
+		break;
+	  case DRAW_POLY_SHADOW_MESH:
+			printf("DRAW_POLY_SHADOW_MESH\n");
+		break;
+	  case DRAW_POLY_HALF_LUMINANCE_MESH:
+			printf("DRAW_POLY_HALF_LUMINANCE_MESH\n");
+		break;
+	  case DRAW_POLY_HALF_TRANSPARENT_MESH:
+			printf("DRAW_POLY_HALF_TRANSPARENT_MESH\n");
+		break;
+	  case DRAW_POLY_GOURAUD_MESH:
+			printf("DRAW_POLY_GOURAUD_MESH\n");
+		break;
+	  case DRAW_POLY_UNSUPPORTED_MESH:
+			printf("DRAW_POLY_UNSUPPORTED_MESH\n");
+		break;
+	  case DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH:
+			printf("DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH\n");
+		break;
+	  case DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH:
+			printf("DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH\n");
+		break;
+	  case DRAW_QUAD_MSB_SHADOW_MESH:
+			printf("DRAW_QUAD_MSB_SHADOW_MESH\n");
+		break;
+	  case DRAW_QUAD_REPLACE_MESH:
+			printf("DRAW_QUAD_REPLACE_MESH\n");
+		break;
+	  case DRAW_QUAD_SHADOW_MESH:
+			printf("DRAW_QUAD_SHADOW_MESH\n");
+		break;
+	  case DRAW_QUAD_HALF_LUMINANCE_MESH:
+			printf("DRAW_QUAD_HALF_LUMINANCE_MESH\n");
+		break;
+	  case DRAW_QUAD_HALF_TRANSPARENT_MESH:
+			printf("DRAW_QUAD_HALF_TRANSPARENT_MESH\n");
+		break;
+	  case DRAW_QUAD_GOURAUD_MESH:
+			printf("DRAW_QUAD_GOURAUD_MESH\n");
+		break;
+	  case DRAW_QUAD_UNSUPPORTED_MESH:
+			printf("DRAW_QUAD_UNSUPPORTED_MESH\n");
+		break;
+		case DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH:
+			printf("DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH\n");
+		break;
+	  case DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH:
+			printf("DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH\n");
 		break;
 		default: printf("Not a vdp1 prog %d\n", progId);
 	}
 }
 
 static int getProgramLine(cmd_poly* cmd_pol, int type){
-	int progId = DRAW_POLY_MSB_SHADOW;
+	int progId = DRAW_POLY_MSB_SHADOW_NO_MESH;
 	if((type == DISTORTED) || (type == QUAD)) {
-		progId = DRAW_QUAD_MSB_SHADOW;
+		progId = DRAW_QUAD_MSB_SHADOW_NO_MESH;
 	}
-	if (cmd_pol->CMDPMOD & 0x8000) return progId;
-	else progId += 1 + (cmd_pol->CMDPMOD & 0x7);
-	return progId;
+	int delta = 0;
+	if ((cmd_pol->CMDPMOD & 0x8000) == 0)
+		delta += 1 + (cmd_pol->CMDPMOD & 0x7);
+
+	if (cmd_pol->CMDPMOD & 0x0100)
+		delta += DRAW_POLY_MSB_SHADOW_MESH - DRAW_POLY_MSB_SHADOW_NO_MESH;
+
+	return progId+delta;
 }
 
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	int progId = getProgramLine(cmd_pol, type);
 	trace_prog(progId);
-	if (progId == DRAW_POLY_UNSUPPORTED) return;
-	if (progId == DRAW_QUAD_UNSUPPORTED) return;
+	if (progId == DRAW_POLY_UNSUPPORTED_MESH) return;
+	if (progId == DRAW_POLY_UNSUPPORTED_NO_MESH) return;
+	if (progId == DRAW_QUAD_UNSUPPORTED_MESH) return;
+	if (progId == DRAW_QUAD_UNSUPPORTED_NO_MESH) return;
 
 	if (prg_vdp1[progId] == 0) {
 		prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
