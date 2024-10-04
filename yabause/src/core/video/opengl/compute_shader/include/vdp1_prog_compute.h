@@ -290,7 +290,15 @@ static const char vdp1_get_textured_f[] =
 
 static const char vdp1_get_pixel_msb_shadow_f[] =
 "vec4 getColoredPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n""{\n"
-"  uint color = getColor(pixcmd, dp, valid);\n"
+"  uint testcolor = getColor(pixcmd, dp, valid);\n"
+"  vec4 oldcol = imageLoad(outSurface, P);\n"
+"  uint color = uint(oldcol.r*255.0) + (uint(oldcol.g*255.0)<<8);\n"
+"  uint Rht = ((color >> 00) & 0x1F)>>1;\n"
+"  uint Ght = ((color >> 05) & 0x1F)>>1;\n"
+"  uint Bht = ((color >> 10) & 0x1F)>>1;\n"
+"  uint MSBht = 0x8000;\n"
+"  color = MSBht | Rht | (Ght<<05) | (Bht<<10);\n"
+"  return VDP1COLOR(color);\n"
 "  return VDP1COLOR(color);\n"
 "}\n";
 
@@ -303,12 +311,26 @@ static const char vdp1_get_pixel_replace_f[] =
 static const char vdp1_get_pixel_shadow_f[] =
 "vec4 getColoredPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n""{\n"
 "  uint color = getColor(pixcmd, dp, valid);\n"
+"  vec4 oldcol = imageLoad(outSurface, P);\n"
+"  uint oldcolor = uint(oldcol.r*255.0) + (uint(oldcol.g*255.0)<<8);\n"
+"  if (oldcolor & 0x8000) {\n"
+"   uint Rht = ((oldcolor >> 00) & 0x1F)>>1;\n"
+"   uint Ght = ((oldcolor >> 05) & 0x1F)>>1;\n"
+"   uint Bht = ((oldcolor >> 10) & 0x1F)>>1;\n"
+"   uint MSBht = oldcolor & 0x8000;\n"
+"   color = MSBht | Rht | (Ght<<05) | (Bht<<10);\n"
+"  }\n"
 "  return VDP1COLOR(color);\n"
 "}\n";
 
 static const char vdp1_get_pixel_half_luminance_f[] =
 "vec4 getColoredPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n""{\n"
 "  uint color = getColor(pixcmd, dp, valid);\n"
+"  uint Rht = ((color >> 00) & 0x1F)>>1;\n"
+"  uint Ght = ((color >> 05) & 0x1F)>>1;\n"
+"  uint Bht = ((color >> 10) & 0x1F)>>1;\n"
+"  uint MSBht = color & 0x8000;\n"
+"  color = MSBht | Rht | (Ght<<05) | (Bht<<10);\n"
 "  return VDP1COLOR(color);\n"
 "}\n";
 
@@ -344,6 +366,20 @@ static const char vdp1_get_pixel_gouraud_f[] =
 static const char vdp1_get_pixel_gouraud_half_luminance_f[] =
 "vec4 getColoredPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n""{\n"
 "  uint color = getColor(pixcmd, dp, valid);\n"
+"  //Gouraud\n"
+"  float Rg = float((color >> 00) & 0x1F)/31.0;\n"
+"  float Gg = float((color >> 05) & 0x1F)/31.0;\n"
+"  float Bg = float((color >> 10) & 0x1F)/31.0;\n"
+"  int MSBg = int(color & 0x8000);\n"
+"  Rg = clamp(Rg + mix(mix(pixcmd.G[0],pixcmd.G[12],pixcmd.dl), mix(pixcmd.G[4],pixcmd.G[8],pixcmd.dr), dp), 0.0, 1.0);\n"
+"  Gg = clamp(Gg + mix(mix(pixcmd.G[1],pixcmd.G[13],pixcmd.dl), mix(pixcmd.G[5],pixcmd.G[9],pixcmd.dr), dp), 0.0, 1.0);\n"
+"  Bg = clamp(Bg + mix(mix(pixcmd.G[2],pixcmd.G[14],pixcmd.dl), mix(pixcmd.G[6],pixcmd.G[10],pixcmd.dr), dp), 0.0, 1.0);\n"
+"  color = MSBg | (int(Rg*31.0)&0x1F) | ((int(Gg*31.0)&0x1F)<<05) | ((int(Bg*31.0)&0x1F)<<10);\n"
+"  uint Rht = ((color >> 00) & 0x1F)>>1;\n"
+"  uint Ght = ((color >> 05) & 0x1F)>>1;\n"
+"  uint Bht = ((color >> 10) & 0x1F)>>1;\n"
+"  uint MSBht = color & 0x8000;\n"
+"  color = MSBht | Rht | (Ght<<05) | (Bht<<10);\n"
 "  return VDP1COLOR(color);\n"
 "}\n";
 
@@ -351,6 +387,22 @@ static const char vdp1_get_pixel_gouraud_half_transparent_f[] =
 "vec4 getColoredPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n"
 "{\n"
 "  uint color = getColor(pixcmd, dp, valid);\n"
+"  //Gouraud\n"
+"  float Rg = float((color >> 00) & 0x1F)/31.0;\n"
+"  float Gg = float((color >> 05) & 0x1F)/31.0;\n"
+"  float Bg = float((color >> 10) & 0x1F)/31.0;\n"
+"  int MSBg = int(color & 0x8000);\n"
+"  Rg = clamp(Rg + mix(mix(pixcmd.G[0],pixcmd.G[12],pixcmd.dl), mix(pixcmd.G[4],pixcmd.G[8],pixcmd.dr), dp), 0.0, 1.0);\n"
+"  Gg = clamp(Gg + mix(mix(pixcmd.G[1],pixcmd.G[13],pixcmd.dl), mix(pixcmd.G[5],pixcmd.G[9],pixcmd.dr), dp), 0.0, 1.0);\n"
+"  Bg = clamp(Bg + mix(mix(pixcmd.G[2],pixcmd.G[14],pixcmd.dl), mix(pixcmd.G[6],pixcmd.G[10],pixcmd.dr), dp), 0.0, 1.0);\n"
+"  color = MSBg | (int(Rg*31.0)&0x1F) | ((int(Gg*31.0)&0x1F)<<05) | ((int(Bg*31.0)&0x1F)<<10);\n"
+"  vec4 oldcol = imageLoad(outSurface, P);\n"
+"  uint oldcolor = uint(oldcol.r*255.0) + (uint(oldcol.g*255.0)<<8);\n"
+"  uint Rht = (((color >> 00) & 0x1F) + ((oldcolor >> 00) & 0x1F))>>1;\n"
+"  uint Ght = (((color >> 05) & 0x1F) + ((oldcolor >> 05) & 0x1F))>>1;\n"
+"  uint Bht = (((color >> 10) & 0x1F) + ((oldcolor >> 10) & 0x1F))>>1;\n"
+"  uint MSBht = color & 0x8000;\n"
+"  color = MSBht | Rht | (Ght<<05) | (Bht<<10);\n"
 "  return VDP1COLOR(color);\n"
 "}\n";
 
