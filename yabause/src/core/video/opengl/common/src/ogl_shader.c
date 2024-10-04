@@ -1023,7 +1023,7 @@ void YglUpdateLineColorOffset(int id){
 }
 
 extern vdp2rotationparameter_struct  Vdp1ParaA;
-
+extern GLuint compute_test_tex;
 int YglBlitTexture(int* prioscreens, int* modescreens, int* isRGB, int * isBlur, int* isPerline, int* isShadow, int* lncl, GetFBFunc vdp1fb, int Win_s, int Win_s_mode, int Win0, int Win0_mode, int Win1, int Win1_mode, int Win_op, int* use_lncl_off, Vdp2 *varVdp2Regs) {
   int perLine = 0;
   int nbScreen = 6;
@@ -1251,7 +1251,7 @@ int YglBlitTexture(int* prioscreens, int* modescreens, int* isRGB, int * isBlur,
 
   if (vdp1fb != NULL) {
     glActiveTexture(GL_TEXTURE9);
-    glBindTexture(GL_TEXTURE_2D, vdp1fb(0));
+    glBindTexture(GL_TEXTURE_2D, compute_test_tex);
     glActiveTexture(GL_TEXTURE19);
     glBindTexture(GL_TEXTURE_2D, vdp1fb(1));
   }

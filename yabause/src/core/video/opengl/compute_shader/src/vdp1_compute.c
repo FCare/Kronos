@@ -18,16 +18,19 @@
 
 typedef struct {
 	u32 CMDPMOD;
+	u32 CMDSRCA;
+	u32 CMDSIZE;
 	s32 CMDXA;
 	s32 CMDYA;
 	s32 CMDXB;
 	s32 CMDYB;
-	u32 COLOR;
+	u32 CMDCOLR;
 	u32 valid;
 	float dl;
 	float dr;
 	float G[16];
-	u32 pad[7];
+	u32 flip;
+	u32 pad[4];
 } cmd_poly;
 
 extern vdp2rotationparameter_struct  Vdp1ParaA;
@@ -67,7 +70,7 @@ static GLuint ssbo_nbcmd_ = 0;
 static GLuint ssbo_vdp1access_ = 0;
 static GLuint prg_vdp1[NB_PRG] = {0};
 
-static GLuint compute_test_tex = 0;
+GLuint compute_test_tex = 0;
 static GLuint ssbo_cmd_line_list_ = 0;
 
 #ifdef VDP1RAM_CS_ASYNC
@@ -142,15 +145,150 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		NULL,
 		NULL
 	},
-	//DRAW_POLY
+	// DRAW_POLY_MSB_SHADOW
 	{
-		vdp1_draw_polygon_f,
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_POLY_REPLACE
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_POLY_SHADOW
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_POLY_HALF_LUMINANCE
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_POLY_HALF_TRANSPARENT
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+	// DRAW_POLY_GOURAUD
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+	// DRAW_POLY_UNSUPPORTED
+	{
+		NULL,
 		NULL,
 		NULL,
 		NULL,
 		NULL
 	},
-
+  // DRAW_POLY_GOURAUD_HALF_LUMINANCE
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_POLY_GOURAUD_HALF_TRANSPARENT
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_QUAD_MSB_SHADOW
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_QUAD_REPLACE
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_QUAD_SHADOW
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_QUAD_HALF_LUMINANCE
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_QUAD_HALF_TRANSPARENT
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+	// DRAW_QUAD_GOURAUD
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+	// DRAW_QUAD_UNSUPPORTED
+	{
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	},
+  // DRAW_QUAD_GOURAUD_HALF_LUMINANCE
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_line_f,
+		NULL
+	},
+  // DRAW_QUAD_GOURAUD_HALF_TRANSPARENT
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_line_f,
+		NULL
+	}
 };
 
 static int progMask = 0;
@@ -538,8 +676,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int intersectY = -1;
 	int requireCompute = 0;
 
-	if ((cmd->type == POLYGON) || (cmd->type == DISTORTED)) {
-		if (cmd->type == DISTORTED) cmd->COLOR[0] = 0xC610;
+	if ((cmd->type == POLYGON)||(cmd->type == DISTORTED)||(cmd->type == QUAD)) {
 		point *dataL, *dataR;
 #if 1
 		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
@@ -566,17 +703,19 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			for (i = 0; i != li; i++) {
 				a += ri;
 				idl = i;
-				printf("%d segment %dx%d => %dx%d\n", __LINE__, dataL[idl].x, dataL[idl].y, dataR[idr].x, dataR[idr].y);
 				cmd_pol[i] = (cmd_poly){
 					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
 					.CMDXA = dataL[idl].x,
 					.CMDYA = dataL[idl].y,
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
-					.COLOR = cmd->COLOR[0],
+					.CMDCOLR = cmd->CMDCOLR,
 					.valid = 1,
-					.dl = (float)idl/(float)li,
-					.dr = (float)idr/(float)ri
+					.dl = (float)idl/(float)(li-1),
+					.dr = (float)idr/(float)(ri-1),
+					.flip = cmd->flip
 				};
 				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 				if (abs(a) >= abs(li)) {
@@ -588,17 +727,19 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			for (i = 0; i != ri; i++) {
 				a += li;
 				idr = i;
-				printf("%d segment %dx%d => %dx%d\n", __LINE__, dataL[idl].x, dataL[idl].y, dataR[idr].x, dataR[idr].y);
 				cmd_pol[i] = (cmd_poly){
 					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
 					.CMDXA = dataL[idl].x,
 					.CMDYA = dataL[idl].y,
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
-					.COLOR = cmd->COLOR[0],
+					.CMDCOLR = cmd->CMDCOLR,
 					.valid = 1,
-					.dl = (float)idl/(float)li,
-					.dr = (float)idr/(float)ri
+					.dl = (float)idl/(float)(li-1),
+					.dr = (float)idr/(float)(ri-1),
+					.flip = cmd->flip
 				};
 				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 				if (abs(a) >= abs(ri)) {
@@ -735,8 +876,81 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
   return 0;
 }
 
+static void trace_prog(int progId) {
+	switch(progId) {
+		case DRAW_POLY_MSB_SHADOW:
+			printf("DRAW_POLY_MSB_SHADOW\n");
+		break;
+	  case DRAW_POLY_REPLACE:
+			printf("DRAW_POLY_REPLACE\n");
+		break;
+	  case DRAW_POLY_SHADOW:
+			printf("DRAW_POLY_SHADOW\n");
+		break;
+	  case DRAW_POLY_HALF_LUMINANCE:
+			printf("DRAW_POLY_HALF_LUMINANCE\n");
+		break;
+	  case DRAW_POLY_HALF_TRANSPARENT:
+			printf("DRAW_POLY_HALF_TRANSPARENT\n");
+		break;
+	  case DRAW_POLY_GOURAUD:
+			printf("DRAW_POLY_GOURAUD\n");
+		break;
+	  case DRAW_POLY_UNSUPPORTED:
+			printf("DRAW_POLY_UNSUPPORTED\n");
+		break;
+	  case DRAW_POLY_GOURAUD_HALF_LUMINANCE:
+			printf("DRAW_POLY_GOURAUD_HALF_LUMINANCE\n");
+		break;
+	  case DRAW_POLY_GOURAUD_HALF_TRANSPARENT:
+			printf("DRAW_POLY_GOURAUD_HALF_TRANSPARENT\n");
+		break;
+	  case DRAW_QUAD_MSB_SHADOW:
+			printf("DRAW_QUAD_MSB_SHADOW\n");
+		break;
+	  case DRAW_QUAD_REPLACE:
+			printf("DRAW_QUAD_REPLACE\n");
+		break;
+	  case DRAW_QUAD_SHADOW:
+			printf("DRAW_QUAD_SHADOW\n");
+		break;
+	  case DRAW_QUAD_HALF_LUMINANCE:
+			printf("DRAW_QUAD_HALF_LUMINANCE\n");
+		break;
+	  case DRAW_QUAD_HALF_TRANSPARENT:
+			printf("DRAW_QUAD_HALF_TRANSPARENT\n");
+		break;
+	  case DRAW_QUAD_GOURAUD:
+			printf("DRAW_QUAD_GOURAUD\n");
+		break;
+	  case DRAW_QUAD_UNSUPPORTED:
+			printf("DRAW_QUAD_UNSUPPORTED\n");
+		break;
+		case DRAW_QUAD_GOURAUD_HALF_LUMINANCE:
+			printf("DRAW_QUAD_GOURAUD_HALF_LUMINANCE\n");
+		break;
+	  case DRAW_QUAD_GOURAUD_HALF_TRANSPARENT:
+			printf("DRAW_QUAD_GOURAUD_HALF_TRANSPARENT\n");
+		break;
+		default: printf("Not a vdp1 prog %d\n", progId);
+	}
+}
+
+static int getProgramLine(cmd_poly* cmd_pol, int type){
+	int progId = DRAW_POLY_MSB_SHADOW;
+	if((type == DISTORTED) || (type == QUAD)) {
+		progId = DRAW_QUAD_MSB_SHADOW;
+	}
+	if (cmd_pol->CMDPMOD & 0x8000) return progId;
+	else progId += 1 + (cmd_pol->CMDPMOD & 0x7);
+	return progId;
+}
+
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
-	int progId = DRAW_POLY;
+	int progId = getProgramLine(cmd_pol, type);
+	trace_prog(progId);
+	if (progId == DRAW_POLY_UNSUPPORTED) return;
+	if (progId == DRAW_QUAD_UNSUPPORTED) return;
 
 	if (prg_vdp1[progId] == 0) {
 		prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
@@ -745,6 +959,9 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 
 	glBindImageTexture(0, compute_test_tex, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssbo_cmd_line_list_);
+
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_vdp1ram_[_Ygl->drawframe]);
+
 	glUniform2f(7, tex_ratiow, tex_ratioh);
 	glUniform2i(8, Vdp1Regs->systemclipX2, Vdp1Regs->systemclipY2);
 	glUniform4i(9, Vdp1Regs->userclipX1, Vdp1Regs->userclipY1, Vdp1Regs->userclipX2, Vdp1Regs->userclipY2);
@@ -762,6 +979,7 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
+	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 void vdp1_clear(int id, float *col, int* lim) {
@@ -851,8 +1069,8 @@ void vdp1_compute_init(int width, int height, float ratiow, float ratioh)
 	length = sizeof(vdp1_start_f_base) + 64;
 	snprintf(vdp1_start_f,length,vdp1_start_f_base,local_size_x,local_size_y);
 
-	length = sizeof(vdp1_draw_polygon_f_base) + 64;
-	snprintf(vdp1_draw_polygon_f,length,vdp1_draw_polygon_f_base,1,32);
+	length = sizeof(vdp1_draw_line_start_f_base) + 64;
+	snprintf(vdp1_draw_line_start_f,length,vdp1_draw_line_start_f_base,1,32);
 
   int am = sizeof(vdp1cmd_struct) % 16;
   tex_width = width;
