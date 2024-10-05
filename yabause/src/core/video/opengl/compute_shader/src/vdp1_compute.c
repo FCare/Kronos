@@ -819,7 +819,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int intersectX = -1;
 	int intersectY = -1;
 	int requireCompute = 0;
-
 	if ((cmd->type == POLYGON)||(cmd->type == DISTORTED)||(cmd->type == QUAD)) {
 		point *dataL, *dataR;
 #if 1
@@ -857,8 +856,8 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
 					.valid = 1,
-					.dl = (float)idl/(float)(li-1),
-					.dr = (float)idr/(float)(ri-1),
+					.dl = (li>1)?(float)idl/(float)(li-1):0.5,
+					.dr = (ri>1)?(float)idr/(float)(ri-1):0.5,
 					.flip = cmd->flip
 				};
 				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
@@ -881,8 +880,8 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
 					.valid = 1,
-					.dl = (float)idl/(float)(li-1),
-					.dr = (float)idr/(float)(ri-1),
+					.dl = (li>1)?(float)idl/(float)(li-1):0.5,
+					.dr = (ri>1)?(float)idr/(float)(ri-1):0.5,
 					.flip = cmd->flip
 				};
 				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
