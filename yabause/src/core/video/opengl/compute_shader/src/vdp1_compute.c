@@ -819,6 +819,41 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int intersectY = -1;
 	int requireCompute = 0;
 
+	if (_Ygl->wireframe_mode != 0) {
+		int pos = (cmd->CMDSRCA * 8) & 0x7FFFF;
+		switch(cmd->type ) {
+			case DISTORTED:
+			//By default use the central pixel code
+			switch ((cmd->CMDPMOD >> 3) & 0x7) {
+				case 0:
+				case 1:
+				  pos += (cmd->h/2) * cmd->w/2 + cmd->w/4;
+					break;
+				case 2:
+				case 3:
+				case 4:
+					pos += (cmd->h/2) * cmd->w + cmd->w/2;
+					break;
+				case 5:
+					pos += (cmd->h/2) * cmd->w*2 + cmd->w;
+					break;
+			}
+			cmd->COLOR[0] = cmdBuffer[_Ygl->drawframe][pos];
+			cmd->type = POLYLINE;
+			break;
+			case POLYGON:
+				cmd->type = POLYLINE;
+			break;
+			case QUAD:
+			case QUAD_POLY:
+				if ((abs(cmd->CMDXA - cmd->CMDXB) <= ((2*_Ygl->rwidth)/3)) && (abs(cmd->CMDYA - cmd->CMDYD) <= ((_Ygl->rheight)/2)))
+					cmd->type = POLYLINE;
+			break;
+			default:
+				break;
+		}
+	}
+
 	if ((cmd->type == POLYGON)||(cmd->type == DISTORTED)||(cmd->type == QUAD)) {
 		point *dataL, *dataR;
 
@@ -965,40 +1000,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		drawPolygonLine(cmd_pol, 1, cmd->type);
 		free(cmd_pol);
 	}
-
-	if (_Ygl->wireframe_mode != 0) {
-		int pos = (cmd->CMDSRCA * 8) & 0x7FFFF;
-		switch(cmd->type ) {
-			case DISTORTED:
-			//By default use the central pixel code
-			switch ((cmd->CMDPMOD >> 3) & 0x7) {
-				case 0:
-				case 1:
-				  pos += (cmd->h/2) * cmd->w/2 + cmd->w/4;
-					break;
-				case 2:
-				case 3:
-				case 4:
-					pos += (cmd->h/2) * cmd->w + cmd->w/2;
-					break;
-				case 5:
-					pos += (cmd->h/2) * cmd->w*2 + cmd->w;
-					break;
-			}
-			cmd->COLOR[0] = cmdBuffer[_Ygl->drawframe][pos];
-			cmd->type = POLYLINE;
-			break;
-			case POLYGON:
-				cmd->type = POLYLINE;
-			break;
-			case QUAD:
-			case QUAD_POLY:
-				if ((abs(cmd->CMDXA - cmd->CMDXB) <= ((2*_Ygl->rwidth)/3)) && (abs(cmd->CMDYA - cmd->CMDYD) <= ((_Ygl->rheight)/2)))
-					cmd->type = POLYLINE;
-			break;
-			default:
-				break;
-		}
 
 	if (clipcmd == 0) {
 		VIDCSGenerateBufferVdp1(cmd);
