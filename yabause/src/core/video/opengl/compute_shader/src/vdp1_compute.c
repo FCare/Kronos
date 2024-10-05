@@ -884,6 +884,88 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		free(dataR);
 	}
 
+	if (cmd->type == POLYLINE) {
+		cmd_poly *cmd_pol = (cmd_poly*)calloc(4, sizeof(cmd_poly));
+		cmd_pol[0] = (cmd_poly){
+			.CMDPMOD = cmd->CMDPMOD,
+			.CMDSRCA = cmd->CMDSRCA,
+			.CMDSIZE = cmd->CMDSIZE,
+			.CMDXA = cmd->CMDXA,
+			.CMDYA = cmd->CMDYA,
+			.CMDXB = cmd->CMDXB,
+			.CMDYB = cmd->CMDYB,
+			.CMDCOLR = cmd->CMDCOLR,
+			.dl = 0.5,
+			.dr = 0.5,
+			.flip = cmd->flip
+		};
+		memcpy(&cmd_pol[0].G[0], &cmd->G[0], 16*sizeof(float));
+		cmd_pol[1] = (cmd_poly){
+			.CMDPMOD = cmd->CMDPMOD,
+			.CMDSRCA = cmd->CMDSRCA,
+			.CMDSIZE = cmd->CMDSIZE,
+			.CMDXA = cmd->CMDXB,
+			.CMDYA = cmd->CMDYB,
+			.CMDXB = cmd->CMDXC,
+			.CMDYB = cmd->CMDYC,
+			.CMDCOLR = cmd->CMDCOLR,
+			.dl = 0.5,
+			.dr = 0.5,
+			.flip = cmd->flip
+		};
+		memcpy(&cmd_pol[1].G[0], &cmd->G[0], 16*sizeof(float));
+		cmd_pol[2] = (cmd_poly){
+			.CMDPMOD = cmd->CMDPMOD,
+			.CMDSRCA = cmd->CMDSRCA,
+			.CMDSIZE = cmd->CMDSIZE,
+			.CMDXA = cmd->CMDXC,
+			.CMDYA = cmd->CMDYC,
+			.CMDXB = cmd->CMDXD,
+			.CMDYB = cmd->CMDYD,
+			.CMDCOLR = cmd->CMDCOLR,
+			.dl = 0.5,
+			.dr = 0.5,
+			.flip = cmd->flip
+		};
+		memcpy(&cmd_pol[2].G[0], &cmd->G[0], 16*sizeof(float));
+		cmd_pol[3] = (cmd_poly){
+			.CMDPMOD = cmd->CMDPMOD,
+			.CMDSRCA = cmd->CMDSRCA,
+			.CMDSIZE = cmd->CMDSIZE,
+			.CMDXA = cmd->CMDXD,
+			.CMDYA = cmd->CMDYD,
+			.CMDXB = cmd->CMDXA,
+			.CMDYB = cmd->CMDYA,
+			.CMDCOLR = cmd->CMDCOLR,
+			.dl = 0.5,
+			.dr = 0.5,
+			.flip = cmd->flip
+		};
+		memcpy(&cmd_pol[3].G[0], &cmd->G[0], 16*sizeof(float));
+		drawPolygonLine(cmd_pol, 4, POLYLINE);
+		free(cmd_pol);
+	}
+
+	if (cmd->type == LINE) {
+		cmd_poly *cmd_pol = (cmd_poly*)calloc(1, sizeof(cmd_poly));
+		cmd_pol[0] = (cmd_poly){
+			.CMDPMOD = cmd->CMDPMOD,
+			.CMDSRCA = cmd->CMDSRCA,
+			.CMDSIZE = cmd->CMDSIZE,
+			.CMDXA = cmd->CMDXA,
+			.CMDYA = cmd->CMDYA,
+			.CMDXB = cmd->CMDXB,
+			.CMDYB = cmd->CMDYB,
+			.CMDCOLR = cmd->CMDCOLR,
+			.dl = 0.5,
+			.dr = 0.5,
+			.flip = cmd->flip
+		};
+		memcpy(&cmd_pol[0].G[0], &cmd->G[0], 16*sizeof(float));
+		drawPolygonLine(cmd_pol, 1, cmd->type);
+		free(cmd_pol);
+	}
+
 	if (_Ygl->wireframe_mode != 0) {
 		int pos = (cmd->CMDSRCA * 8) & 0x7FFFF;
 		switch(cmd->type ) {
@@ -917,7 +999,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			default:
 				break;
 		}
-	}
+
 	if (clipcmd == 0) {
 		VIDCSGenerateBufferVdp1(cmd);
 		if (_Ygl->meshmode != ORIGINAL_MESH) {
@@ -1136,7 +1218,7 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 }
 
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
-	int progId = getProgramLine(cmd_pol, type);
+	int progId = getProgramLine(&cmd_pol[0], type);
 	trace_prog(progId);
 	if (progId == DRAW_POLY_UNSUPPORTED_MESH) return;
 	if (progId == DRAW_POLY_UNSUPPORTED_NO_MESH) return;
