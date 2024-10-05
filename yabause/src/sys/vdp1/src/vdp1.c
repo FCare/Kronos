@@ -212,12 +212,14 @@ u32 FASTCALL Vdp1FrameBuffer16bReadLong(SH2_struct *context, u8* mem, u32 addr) 
    addr &= 0x3FFFF;
    //Bad limitation, FB shall be different size depending mode
    u32 pixIdx = addr>>1;
-   if (pixIdx/512 >= 256) return 0;
+   if (pixIdx/512 >= 256) {
+     return 0;
+   }
    u32* buf = getVDP1ReadFramebuffer();
    vdp1_clock -= 4;
    if (context != NULL) context->cycles += 4;
-   u8 val1 = T1ReadLong((u8*)buf, pixIdx*4) & 0xFFFF;
-   u8 val2 = T1ReadLong((u8*)buf, (pixIdx+1)*4) & 0xFFFF;
+   u16 val1 = T1ReadLong((u8*)buf, pixIdx*4) & 0xFFFF;
+   u16 val2 = T1ReadLong((u8*)buf, (pixIdx+1)*4) & 0xFFFF;
    return (val1<<16) | val2;
 }
 
