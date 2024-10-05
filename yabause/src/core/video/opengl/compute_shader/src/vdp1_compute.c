@@ -25,12 +25,11 @@ typedef struct {
 	s32 CMDXB;
 	s32 CMDYB;
 	u32 CMDCOLR;
-	u32 valid;
 	float dl;
 	float dr;
 	float G[16];
 	u32 flip;
-	u32 pad[4];
+	u32 pad[5];
 } cmd_poly;
 
 extern vdp2rotationparameter_struct  Vdp1ParaA;
@@ -819,24 +818,14 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int intersectX = -1;
 	int intersectY = -1;
 	int requireCompute = 0;
+
 	if ((cmd->type == POLYGON)||(cmd->type == DISTORTED)||(cmd->type == QUAD)) {
 		point *dataL, *dataR;
-#if 1
+
 		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
 		int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
-#else
-		int xA = 20;
-		int yA = 20;
-		int xB = 60;
-		int yB = 20;
-		int xC = 60;
-		int yC = 60;
-		int xD = 20;
-		int yD = 60;
-		int li = computeLinePoints(xA, yA, xD, yD, &dataL);
-		int ri = computeLinePoints(xB, yB, xC, yC, &dataR);
-#endif
-		int nbCmd = (MAX(li,ri) + 31) & ~31; //Align nbCmd on 32
+
+		int nbCmd = MAX(li,ri);
 		cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
 		int idl = 0;
 		int idr = 0;
@@ -855,7 +844,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.valid = 1,
 					.dl = (li>1)?(float)idl/(float)(li-1):0.5,
 					.dr = (ri>1)?(float)idr/(float)(ri-1):0.5,
 					.flip = cmd->flip
@@ -879,7 +867,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.valid = 1,
 					.dl = (li>1)?(float)idl/(float)(li-1):0.5,
 					.dr = (ri>1)?(float)idr/(float)(ri-1):0.5,
 					.flip = cmd->flip
@@ -1172,7 +1159,9 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 
 	for (int i = 0; i<nbLines; i+=32) {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, 32*sizeof(cmd_poly), (void*)&cmd_pol[i]);
+		int nbUpload = MIN(32,(nbLines - i));
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbUpload*sizeof(cmd_poly), (void*)&cmd_pol[i]);
+		glUniform1i(10, nbUpload);
 		glDispatchCompute(1, 1, 1); //might be better to launch only the right number of workgroup
 		ErrorHandle("glDispatchCompute");
 	}
