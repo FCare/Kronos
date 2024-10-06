@@ -797,6 +797,7 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 				y1 += ay;
 			}
 		}
+		(*data)[i++] = (point){.x=x2+ deltax, .y=y2};
 	} else {
 		if (ax != ay) dy = -dy;
 
@@ -808,8 +809,8 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 				x1 += ax;
 			}
 		}
+		(*data)[i++] = (point){.x=x2, .y=y2+ deltay};
 	}
-	(*data)[i++] = (point){.x=x2+ deltax, .y=y2+ deltay};
 	if (i > nbMaxPoint) {
 		printf("Error %d,%d %d,%d %d => %d\n", x1, y1, x2, y2, i, nbMaxPoint);
 		exit(-1);
