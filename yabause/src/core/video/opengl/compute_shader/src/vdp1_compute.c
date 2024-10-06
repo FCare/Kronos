@@ -29,7 +29,11 @@ typedef struct {
 	float dr;
 	float G[16];
 	u32 flip;
-	u32 pad[5];
+	s32 lextendx;
+	s32 lextendy;
+	s32 rextendx;
+	s32 rextendy;
+	u32 pad[1];
 } cmd_poly;
 
 extern vdp2rotationparameter_struct  Vdp1ParaA;
@@ -782,8 +786,9 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 	ay = (dy >= 0) ? 1 : -1;
 	int deltax = 0;
 	int deltay = 0;
-	if (dx != 0) deltax = ax*(tex_ratiow-1);
-	if (dy != 0) deltay = ay*(tex_ratioh-1);
+	// if (dx != 0) deltax = ax*(tex_ratiow-1);
+	// if (dy != 0) deltay = ay*(tex_ratioh-1);
+	printf("delta %d %d Y X= %d %d Y= %d %d\n", deltax, deltay, x1, x2,y1, y2);
 	int nbMaxPoint = MAX(abs(dx+deltax), abs(dy+deltay))+1;
 	*data = (point*)malloc(nbMaxPoint*sizeof(point));
 	if (abs(dx) > abs(dy)) {
@@ -811,6 +816,7 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 		}
 		(*data)[i++] = (point){.x=x2, .y=y2+ deltay};
 	}
+
 	if (i > nbMaxPoint) {
 		printf("Error %d,%d %d,%d %d => %d\n", x1, y1, x2, y2, i, nbMaxPoint);
 		exit(-1);
@@ -876,8 +882,27 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		cmd->CMDYC = (cmd->CMDYC*tex_ratioh);
 		cmd->CMDYD = (cmd->CMDYD*tex_ratioh);
 
+		if (cmd->CMDXD != cmd->CMDXA) {
+			if (cmd->CMDXD >= cmd->CMDXA) cmd->CMDXD += tex_ratiow - 1;
+			else cmd->CMDXA += tex_ratiow - 1;
+		}
+		if (cmd->CMDYD != cmd->CMDYA) {
+		if (cmd->CMDYD >= cmd->CMDYA) cmd->CMDYD += tex_ratioh - 1;
+		else cmd->CMDYA += tex_ratioh - 1;
+	}
+	if (cmd->CMDXC != cmd->CMDXB) {
+		if (cmd->CMDXC >= cmd->CMDXB) cmd->CMDXC += tex_ratiow - 1;
+		else cmd->CMDXB += tex_ratiow - 1;
+	}
+	if (cmd->CMDYC != cmd->CMDYB) {
+		if (cmd->CMDYC >= cmd->CMDYB) cmd->CMDYC += tex_ratioh - 1;
+		else cmd->CMDYB += tex_ratioh - 1;
+}
 		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
 		int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
+
+		for (int i = 0; i<li; i++) printf("Left points[%d] %d,%d (%d)\n", i, dataL[i].x, dataL[i].y, tex_ratiow);
+		for (int i = 0; i<ri; i++) printf("Right points[%d] %d,%d (%d)\n", i, dataR[i].x, dataR[i].y, tex_ratioh);
 
 		int nbCmd = MAX(li,ri);
 		cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
@@ -885,6 +910,9 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		int idr = 0;
 		int a = 0;
 		int i = 0;
+		int nextLextendy, nextLextendx = 0;
+		int nextRextendy, nextRextendx = 0;
+		int oldlx, oldrx, oldly, oldry = 0;
 		if(li>ri) {
 			for (i = 0; i != li; i++) {
 				a += ri;
@@ -901,12 +929,43 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.dl = (li>1)?((float)(idl/tex_ratioh))/(float)((li/tex_ratioh)-1):0.5,
 					.dr = (ri>1)?((float)(idr/tex_ratioh))/(float)((ri/tex_ratioh)-1):0.5,
 					.flip = cmd->flip,
+					.lextendx = nextLextendx,
+					.lextendy = nextLextendy,
+					.rextendx = nextRextendx,
+					.rextendy = nextRextendy
 				};
+				nextLextendy = nextLextendx = nextRextendy = nextRextendx = 0;
+				printf("%d => %d / %d => %d\n", dataL[idl].x, dataR[idr].x, dataL[idl].y, dataR[idr].y);
 				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+				if ((i!=0) && ((cmd_pol[i-1].CMDXA != dataL[idl].x) && (cmd_pol[i-1].CMDYA != dataL[idl].y)))
+				{
+					int ax = dataL[idl].x - cmd_pol[i-1].CMDXA;
+					int ay = dataL[idl].y - cmd_pol[i-1].CMDYA;
+					if (ax >= 0) ax = 1; else ax = -1;
+					if (ay >= 0) ay = 1; else ay = -1;
+					if (ax == ay) {
+						cmd_pol[i].lextendx=-ax;
+					} else {
+						cmd_pol[i].lextendy=-ay;
+					}
+				}
 
 				if (abs(a) >= abs(li)) {
 					a -= li;
 					idr++;
+					//Changement des deux coordonnees
+					if ((idr < ri) && (cmd_pol[i].CMDXB != dataR[idr].x) && (cmd_pol[i].CMDYB != dataR[idr].y))
+					{
+						int ax = dataR[idr].x - cmd_pol[i].CMDXB;
+						int ay = dataR[idr].y - cmd_pol[i].CMDYB;
+						if (ax >= 0) ax = 1; else ax = -1;
+						if (ay >= 0) ay = 1; else ay = -1;
+						if (ax == ay) {
+							cmd_pol[i].rextendx=-ax;
+						} else {
+							cmd_pol[i].rextendy=-ay;
+						}
+					}
 				}
 			}
 		} else {
@@ -925,13 +984,43 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.dl = (li>1)?((float)(idl/tex_ratioh))/(float)((li/tex_ratioh)-1):0.5,
 					.dr = (ri>1)?((float)(idr/tex_ratioh))/(float)((ri/tex_ratioh)-1):0.5,
 					.flip = cmd->flip,
+					.lextendx = nextLextendx,
+					.lextendy = nextLextendy,
+					.rextendx = nextRextendx,
+					.rextendy = nextRextendy
 				};
-				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			nextLextendy = nextLextendx = nextRextendy = nextRextendx = 0;
+			printf("%d => %d / %d => %d\n", dataL[idl].x, dataR[idr].x, dataL[idl].y, dataR[idr].y);
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 
-				if (abs(a) >= abs(ri)) {
-					a -= ri;
-					idl++;
+			if ((i!=0) && ((cmd_pol[i-1].CMDXB != dataR[idr].x) && (cmd_pol[i-1].CMDYB != dataR[idr].y)))
+			{
+				int ax = dataR[idr].x - cmd_pol[i-1].CMDXB;
+				int ay = dataR[idl].y - cmd_pol[i-1].CMDYB;
+				if (ax >= 0) ax = 1; else ax = -1;
+				if (ay >= 0) ay = 1; else ay = -1;
+				if (ax == ay) {
+					nextRextendx=-ax;
+				} else {
+					nextRextendy=-ay;
 				}
+			}
+			if (abs(a) >= abs(ri)) {
+				a -= ri;
+				idl++;
+				if ((idl < li) && (cmd_pol[i].CMDXA != dataL[idl].x) && (cmd_pol[i].CMDYA != dataL[idl].y))
+				{
+					int ax = dataL[idl].x - cmd_pol[i].CMDXB;
+					int ay = dataL[idl].y - cmd_pol[i].CMDYB;
+					if (ax >= 0) ax = 1; else ax = -1;
+					if (ay >= 0) ay = 1; else ay = -1;
+					if (ax == ay) {
+						nextLextendx=-ax;
+					} else {
+						nextLextendy=-ay;
+					}
+				}
+			}
 			}
 		}
 		drawPolygonLine(cmd_pol, i, cmd->type);
@@ -1256,7 +1345,7 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	int progId = getProgramLine(&cmd_pol[0], type);
-	// trace_prog(progId);
+	trace_prog(progId);
 	if (progId == DRAW_POLY_UNSUPPORTED_MESH) return;
 	if (progId == DRAW_POLY_UNSUPPORTED_NO_MESH) return;
 	if (progId == DRAW_QUAD_UNSUPPORTED_MESH) return;
