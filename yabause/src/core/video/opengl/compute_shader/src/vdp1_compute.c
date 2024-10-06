@@ -40,8 +40,8 @@ static int local_size_y = 8;
 
 static int tex_width;
 static int tex_height;
-static float tex_ratiow;
-static float tex_ratioh;
+static int tex_ratiow;
+static int tex_ratioh;
 static int struct_size;
 static int struct_line_size;
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type);
@@ -780,12 +780,16 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 	dy = y2 - y1;
 	ax = (dx >= 0) ? 1 : -1;
 	ay = (dy >= 0) ? 1 : -1;
-	int nbMaxPoint = MAX(abs(dx), abs(dy))+1;
+	int deltax = 0;
+	int deltay = 0;
+	if (dx != 0) deltax = ax*(tex_ratiow-1);
+	if (dy != 0) deltay = ay*(tex_ratioh-1);
+	int nbMaxPoint = MAX(abs(dx+deltax), abs(dy+deltay))+1;
 	*data = (point*)malloc(nbMaxPoint*sizeof(point));
 	if (abs(dx) > abs(dy)) {
 		if (ax != ay) dx = -dx;
 
-		for (i = 0; x1 != x2; x1 += ax, i++) {
+		for (i = 0; x1 != x2 + deltax; x1 += ax, i++) {
 			(*data)[i] = (point){.x=x1, .y=y1};
 			a += dy;
 			if (abs(a) >= abs(dx)) {
@@ -796,7 +800,7 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 	} else {
 		if (ax != ay) dy = -dy;
 
-		for (i = 0; y1 != y2; y1 += ay, i++) {
+		for (i = 0; y1 != y2+ deltay; y1 += ay, i++) {
       (*data)[i] = (point){.x=x1, .y=y1};
 			a += dx;
 			if (abs(a) >= abs(dy)) {
@@ -805,7 +809,11 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 			}
 		}
 	}
-	(*data)[i++] = (point){.x=x2, .y=y2};
+	(*data)[i++] = (point){.x=x2+ deltax, .y=y2+ deltay};
+	if (i > nbMaxPoint) {
+		printf("Error %d,%d %d,%d %d => %d\n", x1, y1, x2, y2, i, nbMaxPoint);
+		exit(-1);
+	}
 	return i;
 }
 
@@ -846,8 +854,9 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			break;
 			case QUAD:
 			case QUAD_POLY:
-				if ((abs(cmd->CMDXA - cmd->CMDXB) <= ((2*_Ygl->rwidth)/3)) && (abs(cmd->CMDYA - cmd->CMDYD) <= ((_Ygl->rheight)/2)))
+				// if ((abs(cmd->CMDXA - cmd->CMDXB) <= ((2*_Ygl->rwidth)/3)) && (abs(cmd->CMDYA - cmd->CMDYD) <= ((_Ygl->rheight)/2)))
 					cmd->type = POLYLINE;
+					cmd->CMDCOLR = 0xACE1;
 			break;
 			default:
 				break;
@@ -856,6 +865,15 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 
 	if ((cmd->type == POLYGON)||(cmd->type == DISTORTED)||(cmd->type == QUAD)) {
 		point *dataL, *dataR;
+
+		cmd->CMDXA = (cmd->CMDXA*tex_ratiow);
+		cmd->CMDXB = (cmd->CMDXB*tex_ratiow);
+		cmd->CMDXC = (cmd->CMDXC*tex_ratiow);
+		cmd->CMDXD = (cmd->CMDXD*tex_ratiow);
+		cmd->CMDYA = (cmd->CMDYA*tex_ratioh);
+		cmd->CMDYB = (cmd->CMDYB*tex_ratioh);
+		cmd->CMDYC = (cmd->CMDYC*tex_ratioh);
+		cmd->CMDYD = (cmd->CMDYD*tex_ratioh);
 
 		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
 		int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
@@ -879,11 +897,12 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.dl = (li>1)?(float)idl/(float)(li-1):0.5,
-					.dr = (ri>1)?(float)idr/(float)(ri-1):0.5,
-					.flip = cmd->flip
+					.dl = (li>1)?((float)(idl/tex_ratioh))/(float)((li/tex_ratioh)-1):0.5,
+					.dr = (ri>1)?((float)(idr/tex_ratioh))/(float)((ri/tex_ratioh)-1):0.5,
+					.flip = cmd->flip,
 				};
 				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+
 				if (abs(a) >= abs(li)) {
 					a -= li;
 					idr++;
@@ -902,11 +921,12 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.dl = (li>1)?(float)idl/(float)(li-1):0.5,
-					.dr = (ri>1)?(float)idr/(float)(ri-1):0.5,
-					.flip = cmd->flip
+					.dl = (li>1)?((float)(idl/tex_ratioh))/(float)((li/tex_ratioh)-1):0.5,
+					.dr = (ri>1)?((float)(idr/tex_ratioh))/(float)((ri/tex_ratioh)-1):0.5,
+					.flip = cmd->flip,
 				};
 				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+
 				if (abs(a) >= abs(ri)) {
 					a -= ri;
 					idl++;
@@ -920,6 +940,16 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	}
 
 	if (cmd->type == POLYLINE) {
+// A revoir l'epaisseur des lignes
+		cmd->CMDXA = (cmd->CMDXA*tex_ratiow);
+		cmd->CMDXB = (cmd->CMDXB*tex_ratiow);
+		cmd->CMDXC = (cmd->CMDXC*tex_ratiow);
+		cmd->CMDXD = (cmd->CMDXD*tex_ratiow);
+		cmd->CMDYA = (cmd->CMDYA*tex_ratioh);
+		cmd->CMDYB = (cmd->CMDYB*tex_ratioh);
+		cmd->CMDYC = (cmd->CMDYC*tex_ratioh);
+		cmd->CMDYD = (cmd->CMDYD*tex_ratioh);
+
 		cmd_poly *cmd_pol = (cmd_poly*)calloc(4, sizeof(cmd_poly));
 		cmd_pol[0] = (cmd_poly){
 			.CMDPMOD = cmd->CMDPMOD,
@@ -982,6 +1012,11 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	}
 
 	if (cmd->type == LINE) {
+		// A revoir l'epaisseur des lignes
+		cmd->CMDXA = (cmd->CMDXA*tex_ratiow);
+		cmd->CMDXB = (cmd->CMDXB*tex_ratiow);
+		cmd->CMDYA = (cmd->CMDYA*tex_ratioh);
+		cmd->CMDYB = (cmd->CMDYB*tex_ratioh);
 		cmd_poly *cmd_pol = (cmd_poly*)calloc(1, sizeof(cmd_poly));
 		cmd_pol[0] = (cmd_poly){
 			.CMDPMOD = cmd->CMDPMOD,
@@ -1220,7 +1255,7 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	int progId = getProgramLine(&cmd_pol[0], type);
-	trace_prog(progId);
+	// trace_prog(progId);
 	if (progId == DRAW_POLY_UNSUPPORTED_MESH) return;
 	if (progId == DRAW_POLY_UNSUPPORTED_NO_MESH) return;
 	if (progId == DRAW_QUAD_UNSUPPORTED_MESH) return;
@@ -1236,9 +1271,9 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_vdp1ram_[_Ygl->drawframe]);
 
-	glUniform2f(7, tex_ratiow, tex_ratioh);
-	glUniform2i(8, Vdp1Regs->systemclipX2, Vdp1Regs->systemclipY2);
-	glUniform4i(9, Vdp1Regs->userclipX1, Vdp1Regs->userclipY1, Vdp1Regs->userclipX2, Vdp1Regs->userclipY2);
+	glUniform2i(7, tex_ratiow, tex_ratioh);
+	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratiow-1, (Vdp1Regs->systemclipY2+1)*tex_ratioh-1);
+	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratiow, Vdp1Regs->userclipY1*tex_ratioh, (Vdp1Regs->userclipX2+1)*tex_ratiow-1, (Vdp1Regs->userclipY2+1)*tex_ratioh-1);
 
 	for (int i = 0; i<nbLines; i+=32) {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
@@ -1267,8 +1302,8 @@ void vdp1_clear(int id, float *col, int* lim) {
 	}
 	limits[0] = limits[0]*_Ygl->vdp1width/512;
 	limits[1] = limits[1]*_Ygl->vdp1height/256;
-	limits[2] = limits[2]*_Ygl->vdp1width/512;
-	limits[3] = limits[3]*_Ygl->vdp1height/256;
+	limits[2] = limits[2]*_Ygl->vdp1width/512+tex_ratiow-1;
+	limits[3] = limits[3]*_Ygl->vdp1height/256+tex_ratioh-1;
   glUseProgram(prg_vdp1[progId]);
 	glBindImageTexture(0, get_vdp1_tex(id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	glBindImageTexture(1, get_vdp1_mesh(id), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
@@ -1351,8 +1386,8 @@ void vdp1_compute_init(int width, int height, float ratiow, float ratioh)
   int am = sizeof(vdp1cmd_struct) % 16;
   tex_width = width;
   tex_height = height;
-	tex_ratiow = ratiow;
-	tex_ratioh = ratioh;
+	tex_ratiow = (int)ratiow;
+	tex_ratioh = (int)ratioh;
   struct_size = sizeof(vdp1cmd_struct);
   if (am != 0) {
     struct_size += 16 - am;
@@ -1470,7 +1505,7 @@ void vdp1_compute() {
   glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, ssbo_nbcmd_);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, ssbo_cmd_);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssbo_cmd_list_);
-	glUniform2f(7, tex_ratiow, tex_ratioh);
+	glUniform2f(7, (float)tex_ratiow, (float)tex_ratioh);
 	glUniform2i(8, Vdp1Regs->systemclipX2, Vdp1Regs->systemclipY2);
 	glUniform4i(9, Vdp1Regs->userclipX1, Vdp1Regs->userclipY1, Vdp1Regs->userclipX2, Vdp1Regs->userclipY2);
 

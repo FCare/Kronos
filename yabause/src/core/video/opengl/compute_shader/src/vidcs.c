@@ -799,20 +799,7 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8
   }
 
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
-  if (getBestMode(cmd) == DISTORTED) {
-    addCSCommands(cmd,DISTORTED);
-  } else {
-    cmd->type = QUAD;
-    if (cmd->CMDXA <= cmd->CMDXB) cmd->CMDXB += 1;
-    else cmd->CMDXB -= 1;
-    if (cmd->CMDXD <= cmd->CMDXC) cmd->CMDXC += 1;
-    else cmd->CMDXC -= 1;
-    if (cmd->CMDYB <= cmd->CMDYC) cmd->CMDYC += 1;
-    else cmd->CMDYC -= 1;
-    if (cmd->CMDYA <= cmd->CMDYD) cmd->CMDYD += 1;
-    else cmd->CMDYD -= 1;
-    vdp1_add(cmd,0);
-  }
+  addCSCommands(cmd,DISTORTED);
 
   return;
 }
