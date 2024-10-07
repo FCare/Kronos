@@ -780,17 +780,13 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 	dy = y2 - y1;
 	ax = (dx >= 0) ? 1 : -1;
 	ay = (dy >= 0) ? 1 : -1;
-	int deltax = 0;
-	int deltay = 0;
-	// if (dx != 0) deltax = ax*(tex_ratiow-1);
-	// if (dy != 0) deltay = ay*(tex_ratioh-1);
-	printf("delta %d %d Y X= %d %d Y= %d %d\n", deltax, deltay, x1, x2,y1, y2);
-	int nbMaxPoint = MAX(abs(dx+deltax), abs(dy+deltay))+1;
+	int nbMaxPoint = MAX(abs(dx), abs(dy))+1;
+
 	*data = (point*)malloc(nbMaxPoint*sizeof(point));
 	if (abs(dx) > abs(dy)) {
 		if (ax != ay) dx = -dx;
 
-		for (i = 0; x1 != x2 + deltax; x1 += ax, i++) {
+		for (i = 0; x1 != x2; x1 += ax, i++) {
 			(*data)[i] = (point){.x=x1, .y=y1};
 			a += dy;
 			if (abs(a) >= abs(dx)) {
@@ -798,11 +794,11 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 				y1 += ay;
 			}
 		}
-		(*data)[i++] = (point){.x=x2+ deltax, .y=y2};
+		(*data)[i++] = (point){.x=x2, .y=y2};
 	} else {
 		if (ax != ay) dy = -dy;
 
-		for (i = 0; y1 != y2+ deltay; y1 += ay, i++) {
+		for (i = 0; y1 != y2; y1 += ay, i++) {
       (*data)[i] = (point){.x=x1, .y=y1};
 			a += dx;
 			if (abs(a) >= abs(dy)) {
@@ -810,10 +806,10 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 				x1 += ax;
 			}
 		}
-		(*data)[i++] = (point){.x=x2, .y=y2+ deltay};
+		(*data)[i++] = (point){.x=x2, .y=y2};
 	}
 
-	if (i > nbMaxPoint) {
+	if (i != nbMaxPoint) {
 		printf("Error %d,%d %d,%d %d => %d\n", x1, y1, x2, y2, i, nbMaxPoint);
 		exit(-1);
 	}
