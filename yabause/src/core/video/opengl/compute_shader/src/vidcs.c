@@ -133,7 +133,6 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1DrawFB(void);
 void VIDCSReadColorOffset(void);
 extern void VIDCSRender(Vdp2 *varVdp2Regs);
-extern void VIDCSRenderVDP1(void);
 extern void VIDCSFinsihDraw(void);
 
  void VIDCSVdp1LocalCoordinate(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
@@ -144,7 +143,6 @@ extern void VIDCSSetSettingValueMode(int type, int value);
 extern void VIDCSSync();
 extern void VIDCSVdp2DispOff(void);
 extern int VIDCSGenFrameBuffer();
-extern void VIDCSGenerateBufferVdp1(vdp1cmd_struct* cmd);
 
 extern u32 FASTCALL Vdp1ReadPolygonColor(vdp1cmd_struct *cmd, Vdp2* varVdp2Regs);
 
@@ -169,7 +167,7 @@ VIDCSVdp1SystemClipping,
 VIDCSVdp1LocalCoordinate,
 VIDCSEraseWriteVdp1,
 VIDCSFrameChangeVdp1,
-VIDCSGenerateBufferVdp1,
+NULL,
 VIDCSVdp2Reset,
 VIDCSVdp2Draw,
 VIDCSGetGlSize,
@@ -177,7 +175,7 @@ VIDCSSetSettingValueMode,
 VIDCSSync,
 VIDCSVdp2DispOff,
 VIDCSRender,
-VIDCSRenderVDP1,
+NULL,
 VIDCSGenFrameBuffer,
 VIDCSFinsihDraw,
 VIDCSVdp1DrawFB,
@@ -607,8 +605,7 @@ int VIDCSInit(void)
   for (int i=0; i<SPRITE; i++)
     YglReset(_Ygl->vdp2levels[i]);
 
-  _Ygl->vdp1wratio = 1.0;
-  _Ygl->vdp1hratio = 1.0;
+  _Ygl->vdp1ratio = 1.0;
 
   _Ygl->vdp1wdensity = 1.0;
   _Ygl->vdp1hdensity = 1.0;
@@ -883,7 +880,6 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 }
 
 void VIDCSVdp1DrawFB(void) {
-  VIDCSRenderVDP1();
   vdp1_write();
 }
 
@@ -1986,7 +1982,7 @@ void VIDCSGetScale(float *xRatio, float *yRatio, int *xUp, int *yUp) {
 
   int width = (_Ygl->interlace == SINGLE_INTERLACE)?_Ygl->width*2:_Ygl->width;
   int Intw = (int)(floor((float)GlWidth/(float)width));
-  int Inth = (int)(floor((float)GlHeight/(256.0 * _Ygl->vdp1hratio)));
+  int Inth = (int)(floor((float)GlHeight/(256.0 * _Ygl->vdp1ratio)));
   if (_Ygl->interlace != NORMAL_INTERLACE) Inth >>= 1;
   int Int  = 1<<(_Ygl->interlace == NORMAL_INTERLACE);
   RATIOMODE modeScreen = _Ygl->stretch;

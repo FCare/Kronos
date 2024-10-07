@@ -660,8 +660,7 @@ typedef struct {
 
    int useLineColorOffset[2];
 
-   float vdp1wratio;
-   float vdp1hratio;
+   float vdp1ratio;
 
    float vdp1wdensity;
    float vdp1hdensity;

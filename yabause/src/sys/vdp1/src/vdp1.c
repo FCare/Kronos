@@ -1516,9 +1516,6 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
 
    FRAMELOG_CMD("Command is 0x%x @ 0x%x available cycles %d %d(%d)\n", command, regs->addr, vdp1_clock, yabsys.LineCount, yabsys.DecilineCount);
 
-   Vdp1External.updateVdp1Ram = 0;
-   vdp1Ram_update_start = 0x80000;
-   vdp1Ram_update_end = 0x0;
    Vdp1External.checkEDSR = 0;
 
    vdp1cmd_struct oldCmd;
@@ -3071,34 +3068,6 @@ void Vdp1HBlankIN(void)
       Vdp1EraseWrite(eraseId);
     }
     Vdp1External.manualerase = 0;
-  }
-  int needToCompose = 0;
-
-  if (nbCmdToProcess > 0) {
-    for (int i = 0; i<nbCmdToProcess; i++) {
-      if (cmdBufferBeingProcessed[i].ignitionLine == (yabsys.LineCount+1)) {
-        if (!((cmdBufferBeingProcessed[i].start_addr >= vdp1Ram_update_end) ||
-            (cmdBufferBeingProcessed[i].end_addr <= vdp1Ram_update_start))) {
-              needToCompose = 1;
-          if (Vdp1External.checkEDSR == 0) {
-            if (VIDCore->Vdp1RegenerateCmd != NULL) {
-              VIDCore->Vdp1RegenerateCmd(&cmdBufferBeingProcessed[i].cmd);
-            }
-          }
-        }
-        cmdBufferBeingProcessed[i].ignitionLine = -1;
-      }
-    }
-    nbCmdToProcess = 0;
-    if (needToCompose == 1) {
-      //We need to evaluate end line and not ignition line? It is improving doom if we better take care of the concurrency betwwen vdp1 update and command list"
-      vdp1Ram_update_start = 0x80000;
-      vdp1Ram_update_end = 0x0;
-      if (VIDCore != NULL) {
-        if (VIDCore->composeVDP1 != NULL) VIDCore->composeVDP1();
-      }
-      Vdp1Regs->COPR = Vdp1Regs->lCOPR;
-    }
   }
 
   int cyclesPerLine  = getVdp1CyclesPerLine();

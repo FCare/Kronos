@@ -386,7 +386,6 @@ static u32* getVDP1Framebuffer(int frame) {
   if (_Ygl->vdp1fb_read_buf[frame] == NULL) {
     //Pas bien ca
     //A faire par core video
-      if (frame == _Ygl->drawframe) vdp1_compute();
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT|GL_TEXTURE_UPDATE_BARRIER_BIT);
       _Ygl->vdp1fb_read_buf[frame] = vdp1_read(frame);
   }
@@ -509,7 +508,7 @@ void YglGenerate() {
 
   warning = 0;
   YglDestroy();
-  vdp1_compute_init( _Ygl->vdp1width, _Ygl->vdp1height, _Ygl->vdp1wratio,_Ygl->vdp1hratio);
+  vdp1_compute_init( _Ygl->vdp1width, _Ygl->vdp1height, _Ygl->vdp1ratio);
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
   glBindBuffer(GL_PIXEL_UNPACK_BUFFER, 0);
   glGenTextures(4, _Ygl->vdp1FrameBuff);
@@ -1000,7 +999,7 @@ int YglInit(int width, int height, unsigned int depth) {
 
   YglTM_vdp2 = YglTMInit(1024, 1024);
 
-  vdp1_compute_init(512.0f, 256.0f, _Ygl->vdp1wratio,_Ygl->vdp1hratio);
+  vdp1_compute_init(512.0f, 256.0f, _Ygl->vdp1ratio);
 
   _Ygl->vdp2buf = (u8*)malloc(512 * sizeof(int)* NB_VDP2_REG);
 
@@ -2169,8 +2168,7 @@ void YglChangeResolution(int w, int h) {
   _Ygl->vdp1height = 256*scale*_Ygl->vdp1hdensity;
 
   //upscale Ratio of effective original vdp1FB
-  _Ygl->vdp1wratio = (float)scale;
-  _Ygl->vdp1hratio = (float)scale;
+  _Ygl->vdp1ratio = (float)scale;
 
   rebuild_frame_buffer = 1;
 

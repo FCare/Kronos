@@ -35,7 +35,6 @@
 extern int GlHeight;
 extern int GlWidth;
 
-extern void vdp1_wait_regenerate(void);
 
 extern int DrawVDP2Screen(Vdp2 *varVdp2Regs, int id);
 
@@ -99,16 +98,9 @@ int VIDCSEraseWriteVdp1(int id) {
 }
 
 void VIDCSFinsihDraw(void) {
-  vdp1_wait_regenerate();
 }
 
 //////////////////////////////////////////////////////////////////////////////
-
-void VIDCSRenderVDP1(void) {
-  TRACE_RENDER("VIDCSRenderVDP1");
-  FRAMELOG("VIDCSRenderVDP1: drawframe =%d %d\n", _Ygl->drawframe, yabsys.LineCount);
-  vdp1_compute();
-}
 
 void VIDCSFrameChangeVdp1(){
   u32 current_drawframe = 0;
@@ -118,7 +110,6 @@ void VIDCSFrameChangeVdp1(){
     VIDCSEraseWriteVdp1(_Ygl->readframe);
     clearVDP1Framebuffer(_Ygl->readframe);
   }
-  VIDCSRenderVDP1();
   current_drawframe = _Ygl->drawframe;
   _Ygl->drawframe = _Ygl->readframe;
   _Ygl->readframe = current_drawframe;
