@@ -653,32 +653,32 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		cmd->CMDYD = (cmd->CMDYD*tex_ratio);
 
 //Standard Quad upscale
-	if (cmd->CMDXD != cmd->CMDXA) {
-		if (cmd->CMDXD >= cmd->CMDXA) cmd->CMDXD += tex_ratio - 1;
-		else cmd->CMDXA += tex_ratio - 1;
-	}
-	if (cmd->CMDYD != cmd->CMDYA) {
-		if (cmd->CMDYD >= cmd->CMDYA) cmd->CMDYD += tex_ratio - 1;
-		else cmd->CMDYA += tex_ratio - 1;
-	}
-	if (cmd->CMDXC != cmd->CMDXB) {
-		if (cmd->CMDXC >= cmd->CMDXB) cmd->CMDXC += tex_ratio - 1;
-		else cmd->CMDXB += tex_ratio - 1;
-	}
-	if (cmd->CMDYC != cmd->CMDYB) {
-		if (cmd->CMDYC >= cmd->CMDYB) cmd->CMDYC += tex_ratio - 1;
-		else cmd->CMDYB += tex_ratio - 1;
-  }
-
-	//Handle closed point
-	if ((cmd->CMDXD == cmd->CMDXA) && (cmd->CMDYD == cmd->CMDYA)) {
-		cmd->CMDXD += tex_ratio - 1;
-		cmd->CMDYD += tex_ratio = - 1;
-	}
-	if ((cmd->CMDXC == cmd->CMDXB) && (cmd->CMDYC == cmd->CMDYB)) {
-		cmd->CMDXC += tex_ratio - 1;
-		cmd->CMDYC += tex_ratio - 1;
-	}
+	// if (cmd->CMDXD != cmd->CMDXA) {
+	// 	if (cmd->CMDXD >= cmd->CMDXA) cmd->CMDXD += tex_ratio - 1;
+	// 	else cmd->CMDXA += tex_ratio - 1;
+	// }
+	// if (cmd->CMDYD != cmd->CMDYA) {
+	// 	if (cmd->CMDYD >= cmd->CMDYA) cmd->CMDYD += tex_ratio - 1;
+	// 	else cmd->CMDYA += tex_ratio - 1;
+	// }
+	// if (cmd->CMDXC != cmd->CMDXB) {
+	// 	if (cmd->CMDXC >= cmd->CMDXB) cmd->CMDXC += tex_ratio - 1;
+	// 	else cmd->CMDXB += tex_ratio - 1;
+	// }
+	// if (cmd->CMDYC != cmd->CMDYB) {
+	// 	if (cmd->CMDYC >= cmd->CMDYB) cmd->CMDYC += tex_ratio - 1;
+	// 	else cmd->CMDYB += tex_ratio - 1;
+  // }
+	//
+	// //Handle closed point
+	// if ((cmd->CMDXD == cmd->CMDXA) && (cmd->CMDYD == cmd->CMDYA)) {
+	// 	cmd->CMDXD += tex_ratio - 1;
+	// 	cmd->CMDYD += tex_ratio = - 1;
+	// }
+	// if ((cmd->CMDXC == cmd->CMDXB) && (cmd->CMDYC == cmd->CMDYB)) {
+	// 	cmd->CMDXC += tex_ratio - 1;
+	// 	cmd->CMDYC += tex_ratio - 1;
+	// }
 
 	//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
 		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
