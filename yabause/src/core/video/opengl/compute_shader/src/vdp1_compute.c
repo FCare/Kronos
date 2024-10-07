@@ -874,11 +874,12 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		cmd->CMDYC = (cmd->CMDYC*tex_ratioh);
 		cmd->CMDYD = (cmd->CMDYD*tex_ratioh);
 
-		if (cmd->CMDXD != cmd->CMDXA) {
-			if (cmd->CMDXD >= cmd->CMDXA) cmd->CMDXD += tex_ratiow - 1;
-			else cmd->CMDXA += tex_ratiow - 1;
-		}
-		if (cmd->CMDYD != cmd->CMDYA) {
+//Standard Quad upscale
+	if (cmd->CMDXD != cmd->CMDXA) {
+		if (cmd->CMDXD >= cmd->CMDXA) cmd->CMDXD += tex_ratiow - 1;
+		else cmd->CMDXA += tex_ratiow - 1;
+	}
+	if (cmd->CMDYD != cmd->CMDYA) {
 		if (cmd->CMDYD >= cmd->CMDYA) cmd->CMDYD += tex_ratioh - 1;
 		else cmd->CMDYA += tex_ratioh - 1;
 	}
@@ -890,6 +891,8 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		if (cmd->CMDYC >= cmd->CMDYB) cmd->CMDYC += tex_ratioh - 1;
 		else cmd->CMDYB += tex_ratioh - 1;
   }
+
+	//Handle closed point
 	if ((cmd->CMDXD == cmd->CMDXA) && (cmd->CMDYD == cmd->CMDYA)) {
 		cmd->CMDXD += tex_ratiow - 1;
 		cmd->CMDYD += tex_ratioh - 1;
@@ -898,6 +901,8 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		cmd->CMDXC += tex_ratiow - 1;
 		cmd->CMDYC += tex_ratioh - 1;
 	}
+
+	//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
 		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
 		int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
 
