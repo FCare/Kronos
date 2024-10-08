@@ -23,11 +23,12 @@ typedef struct {
 	s32 CMDXB;
 	s32 CMDYB;
 	u32 CMDCOLR;
+	u32 CMDCTRL;
 	float dl;
 	float dr;
 	float G[16];
 	u32 flip;
-	u32 pad[5];
+	u32 pad[4];
 } cmd_poly;
 
 extern vdp2rotationparameter_struct  Vdp1ParaA;
@@ -703,6 +704,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
+					.CMDCTRL = cmd->CMDCTRL,
 					.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
 					.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
 					.flip = cmd->flip,
@@ -726,6 +728,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
+					.CMDCTRL = cmd->CMDCTRL,
 					.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
 					.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
 					.flip = cmd->flip,
@@ -765,6 +768,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			.CMDXB = cmd->CMDXB,
 			.CMDYB = cmd->CMDYB,
 			.CMDCOLR = cmd->CMDCOLR,
+			.CMDCTRL = cmd->CMDCTRL,
 			.dl = 0.5,
 			.dr = 0.5,
 			.flip = cmd->flip
@@ -779,6 +783,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			.CMDXB = cmd->CMDXC,
 			.CMDYB = cmd->CMDYC,
 			.CMDCOLR = cmd->CMDCOLR,
+			.CMDCTRL = cmd->CMDCTRL,
 			.dl = 0.5,
 			.dr = 0.5,
 			.flip = cmd->flip
@@ -793,6 +798,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			.CMDXB = cmd->CMDXD,
 			.CMDYB = cmd->CMDYD,
 			.CMDCOLR = cmd->CMDCOLR,
+			.CMDCTRL = cmd->CMDCTRL,
 			.dl = 0.5,
 			.dr = 0.5,
 			.flip = cmd->flip
@@ -807,6 +813,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			.CMDXB = cmd->CMDXA,
 			.CMDYB = cmd->CMDYA,
 			.CMDCOLR = cmd->CMDCOLR,
+			.CMDCTRL = cmd->CMDCTRL,
 			.dl = 0.5,
 			.dr = 0.5,
 			.flip = cmd->flip
@@ -832,6 +839,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			.CMDXB = cmd->CMDXB,
 			.CMDYB = cmd->CMDYB,
 			.CMDCOLR = cmd->CMDCOLR,
+			.CMDCTRL = cmd->CMDCTRL,
 			.dl = 0.5,
 			.dr = 0.5,
 			.flip = cmd->flip
@@ -964,8 +972,17 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 		progId = DRAW_QUAD_MSB_SHADOW_NO_MESH;
 	}
 	int delta = 0;
-	if ((cmd_pol->CMDPMOD & 0x8000) == 0)
-		delta += 1 + (cmd_pol->CMDPMOD & 0x7);
+	if ((cmd_pol->CMDPMOD & 0x8000) == 0) {
+		delta += 1;
+		if (
+			// Non texured color RGB
+			((cmd_pol->CMDCTRL & 0x4)&&(cmd_pol->CMDCOLR & 0x800))
+			||
+			// Textured in RGB mode
+			(((cmd_pol->CMDPMOD >> 3) & 0x7u) == 5))
+			// Then color calculation is enabled
+			 delta += (cmd_pol->CMDPMOD & 0x7);
+	}
 
 	if (cmd_pol->CMDPMOD & 0x0100)
 		delta += DRAW_POLY_MSB_SHADOW_MESH - DRAW_POLY_MSB_SHADOW_NO_MESH;
