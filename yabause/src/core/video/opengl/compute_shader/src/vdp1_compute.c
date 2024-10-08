@@ -976,12 +976,7 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 		delta += 1;
 		if ((Vdp1Regs->TVMR & 0x1)==0) {
 			// Color calculation is working only on framebuffer 16 bits
-		  if (cmd_pol->CMDCTRL & 0x4) {
-				// for non textured color, it only works if RBG color
-				if (cmd_pol->CMDCOLR & 0x8000) {
-					delta += (cmd_pol->CMDPMOD & 0x7);
-				}
-			} else delta += (cmd_pol->CMDPMOD & 0x7);
+		  delta += (cmd_pol->CMDPMOD & 0x7);
 		}
 	}
 
