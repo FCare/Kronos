@@ -979,7 +979,7 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 			((cmd_pol->CMDCTRL & 0x4)&&(cmd_pol->CMDCOLR & 0x800))
 			||
 			// Textured in RGB mode
-			(((cmd_pol->CMDPMOD >> 3) & 0x7u) == 5))
+			(((cmd_pol->CMDPMOD >> 3) & 0x7u) == 5) || (((cmd_pol->CMDPMOD >> 3) & 0x7u) == 1))
 			// Then color calculation is enabled
 			 delta += (cmd_pol->CMDPMOD & 0x7);
 	}
