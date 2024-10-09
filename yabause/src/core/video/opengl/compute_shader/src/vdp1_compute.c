@@ -1359,11 +1359,12 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	glUseProgram(prg_vdp1[progId]);
 
 	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssbo_cmd_line_list_);
 
 	if (Vdp1External.updateVdp1Ram != 0) {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_vdp1ram_);
-		glBufferSubData(GL_SHADER_STORAGE_BUFFER, vdp1Ram_update_start, vdp1Ram_update_end-vdp1Ram_update_start, (void*)&Vdp1Ram[0]);
+		glBufferSubData(GL_SHADER_STORAGE_BUFFER, vdp1Ram_update_start, vdp1Ram_update_end-vdp1Ram_update_start, (void*)&Vdp1Ram[vdp1Ram_update_start]);
 		vdp1Ram_update_start = 0x80000;
 		vdp1Ram_update_end = 0x0;
 		Vdp1External.updateVdp1Ram = 0;

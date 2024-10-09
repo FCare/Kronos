@@ -1895,8 +1895,8 @@ int Vdp1LoadState(const void * stream, UNUSED int version, int size)
 
    // Read VDP1 ram
    MemStateRead((void *)Vdp1Ram, 0x80000, 1, stream);
-   vdp1Ram_update_start = 0x80000;
-   vdp1Ram_update_end = 0x0;
+   vdp1Ram_update_start = 0x0;
+   vdp1Ram_update_end = 0x80000;
 #ifdef IMPROVED_SAVESTATES
    MemStateRead((void *)back_framebuffer, 0x40000, 1, stream);
 
