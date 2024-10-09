@@ -511,7 +511,7 @@ static int generateComputeBuffer(int w, int h) {
 	}
 	glGenBuffers(1, &ssbo_cmd_line_list_);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
-	glBufferData(GL_SHADER_STORAGE_BUFFER, struct_line_size*32, NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_SHADER_STORAGE_BUFFER, struct_line_size*NB_LINE_MAX_PER_DRAW, NULL, GL_DYNAMIC_DRAW);
 
 	if (ssbo_vdp1access_ != 0) {
     glDeleteBuffers(1, &ssbo_vdp1access_);
@@ -1378,9 +1378,9 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratio-1, (Vdp1Regs->systemclipY2+1)*tex_ratio-1);
 	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);
 
-	for (int i = 0; i<nbLines; i+=32) {
+	for (int i = 0; i<nbLines; i+=NB_LINE_MAX_PER_DRAW) {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
-		int nbUpload = MIN(32,(nbLines - i));
+		int nbUpload = MIN(NB_LINE_MAX_PER_DRAW,(nbLines - i));
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbUpload*sizeof(cmd_poly), (void*)&cmd_pol[i]);
 		glUniform1i(10, nbUpload);
 		glDispatchCompute(nbUpload, 1, 1); //might be better to launch only the right number of workgroup
