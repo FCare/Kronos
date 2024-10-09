@@ -45,6 +45,7 @@ extern int GlHeight;
 extern int GlWidth;
 
 static YglVdp1CommonParam _ids[PG_MAX] = { 0 };
+extern void vdp1_compute_reset(void);
 
 static void Ygl_printShaderError( GLuint shader )
 {
@@ -2156,4 +2157,5 @@ void Ygl_prog_Destroy(void) {
       _prgid[i] = 0;
     }
   }
+  vdp1_compute_reset();
 }

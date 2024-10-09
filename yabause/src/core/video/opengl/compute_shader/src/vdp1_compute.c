@@ -1503,3 +1503,12 @@ int get_vdp1_tex(int id) {
 int get_vdp1_mesh(int id) {
 	return mesh_tex[id];
 }
+
+void vdp1_compute_reset(void) {
+	for(int i = 0; i<NB_PRG; i++) {
+		if(prg_vdp1[i] != 0) {
+			glDeleteProgram(prg_vdp1[i]);
+			prg_vdp1[i] = 0;
+		}
+	}
+}
