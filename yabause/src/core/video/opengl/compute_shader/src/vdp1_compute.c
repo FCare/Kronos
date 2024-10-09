@@ -547,21 +547,33 @@ typedef struct{
 	s32 x, y;
 } point;
 
-static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
+static int computeSmoothedLinePoints(int x1, int y1, int x2, int y2, point **data, int upscale) {
 	int i, a, ax, ay, dx, dy;
 	a = i = 0;
-	dx = x2 - x1;
-	dy = y2 - y1;
+	x1 *= upscale;
+	x2 *= upscale;
+	y1 *= upscale;
+	y2 *= upscale;
+	dx = (x2 - x1);
+	dy = (y2 - y1);
 	ax = (dx >= 0) ? 1 : -1;
 	ay = (dy >= 0) ? 1 : -1;
-	int nbMaxPoint = MAX(abs(dx), abs(dy))+1;
+	// dx += ax * upscale;
+	// dy += ay * upscale;
+	int nbMaxPoint = MAX(abs(dx), abs(dy)) + upscale;
+	// dx += ax*(upscale -1);
+	// dy += ay*(upscale -1);
+	// printf("%d %d (%d %d %d %d)\n", dx, dy, x1, x2, y1, y2);
 
 	*data = (point*)malloc(nbMaxPoint*sizeof(point));
-	if (abs(dx) > abs(dy)) {
+	if (abs(dx) >= abs(dy)) {
+		x2 += ax*(upscale -1);
+		// x2 += ax*(upscale -1);
 		if (ax != ay) dx = -dx;
 
 		for (i = 0; x1 != x2; x1 += ax, i++) {
 			(*data)[i] = (point){.x=x1, .y=y1};
+			// printf("%d P %d,%d\n", __LINE__, x1, y1);
 			a += dy;
 			if (abs(a) >= abs(dx)) {
 				a -= dx;
@@ -569,11 +581,14 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 			}
 		}
 		(*data)[i++] = (point){.x=x2, .y=y2};
+		// printf("%d P %d,%d\n", __LINE__, x2, y2);
 	} else {
+		y2 += ay*(upscale -1);
+		// y2 += ay*(upscale -1);
 		if (ax != ay) dy = -dy;
-
 		for (i = 0; y1 != y2; y1 += ay, i++) {
       (*data)[i] = (point){.x=x1, .y=y1};
+			// printf("%d P %d,%d\n", __LINE__, x1, y1);
 			a += dx;
 			if (abs(a) >= abs(dy)) {
 				a -= dy;
@@ -581,13 +596,367 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data) {
 			}
 		}
 		(*data)[i++] = (point){.x=x2, .y=y2};
+		// printf("%d P %d,%d\n", __LINE__, x2, y2);
 	}
 
 	if (i != nbMaxPoint) {
-		printf("Error %d,%d %d,%d %d => %d\n", x1, y1, x2, y2, i, nbMaxPoint);
+		printf("Error %d,%d => %d %d,%d => %d %d => %d\n", x1, x2, dx,y1, y2, dy, i, nbMaxPoint);
 		exit(-1);
 	}
 	return i;
+}
+
+static int computeLinePoints(int x1, int y1, int x2, int y2, point **data, int upscale) {
+	int i, a, ax, ay, dx, dy;
+	a = i = 0;
+	dx = (x2 - x1);
+	dy = (y2 - y1);
+	ax = (dx >= 0) ? 1 : -1;
+	ay = (dy >= 0) ? 1 : -1;
+	// dx += ax * upscale;
+	// dy += ay * upscale;
+	int nbMaxPoint = (MAX(abs(dx), abs(dy)) + 1)*upscale;
+	// x1 *= upscale;
+	// x2 *= upscale;
+	// y1 *= upscale;
+	// y2 *= upscale;
+	// dx *= upscale;
+	// dy *= upscale;
+	// dy += ay*(upscale -1);
+	// printf("%d %d (%d %d %d %d) %d\n", dx, dy, x1, x2, y1, y2, nbMaxPoint);
+
+	*data = (point*)malloc(nbMaxPoint*sizeof(point));
+	if (abs(dx) >= abs(dy)) {
+		// if (dx == 0) x2 += ax*upscale;
+		if (ax != ay) dx = -dx;
+		for (i = 0; x1 != x2; x1 += ax) {
+			// printf("Line\n");
+			// printf("X1 %d X2 %d\n", x1, x2);
+			for (int p=0; p<upscale; p++) {
+				(*data)[i++] = (point){.x=x1*upscale, .y=y1*upscale+ay*p};
+				// printf("%d P %d,%d\n", __LINE__, x1*upscale, y1*upscale+ay*p);
+			}
+			a += dy;
+			if (abs(a) >= abs(dx)) {
+				a -= dx;
+				y1 += ay;
+			}
+		}
+		for (int p=0; p< upscale; p++) {
+			(*data)[i++] = (point){.x=x2*upscale, .y=y2*upscale+ay*p};
+			// printf("%d P %d,%d\n", __LINE__, x2*upscale, y2*upscale+ay*p);
+		}
+	} else {
+		// if (dy == 0) y2 += ay*upscale;
+		if (ax != ay) dy = -dy;
+		for (i = 0; y1 != y2; y1 += ay) {
+			// printf("Line\n");
+			// printf("Y1 %d Y2 %d\n", y1, y2);
+			for (int p=0; p< upscale; p++) {
+				(*data)[i++] = (point){.x=x1*upscale+ax*p, .y=y1*upscale};
+				// printf("%d P %d,%d\n", __LINE__, x1*upscale+ax*p, y1*upscale);
+			}
+			a += dx;
+			if (abs(a) >= abs(dy)) {
+				a -= dy;
+				x1 += ax;
+			}
+		}
+		for (int p=0; p<upscale; p++) {
+			(*data)[i++] = (point){.x=x2*upscale+ax*p, .y=y2*upscale};
+			// printf("%d P %d,%d\n", __LINE__, x2*upscale+ax*p, y2*upscale);
+		}
+	}
+
+	if (i != nbMaxPoint) {
+		printf("Error %d,%d => %d %d,%d => %d %d => %d\n", x1, x2, dx,y1, y2, dy, i, nbMaxPoint);
+		exit(-1);
+	}
+	return i;
+}
+
+static void drawQuad(vdp1cmd_struct* cmd) {
+	point *dataL, *dataR;
+	// printf("Quad\n");
+	int li = computeSmoothedLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
+	int ri = computeSmoothedLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
+	int nbCmd = MAX(li,ri);
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
+	int idl = 0;
+	int idr = 0;
+	int a = 0;
+	int i = 0;
+	if(li>ri) {
+		for (i = 0; i != li; i++) {
+			a += ri;
+			idl = i;
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = dataL[idl].x,
+				.CMDYA = dataL[idl].y,
+				.CMDXB = dataR[idr].x,
+				.CMDYB = dataR[idr].y,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
+				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
+				.flip = cmd->flip,
+			};
+			// printf("P %d,%d => %d,%d\n",
+			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+			// );
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			if (abs(a) >= abs(li)) {
+				a -= li;
+				idr++;
+			}
+		}
+	} else {
+		for (i = 0; i != ri; i++) {
+			a += li;
+			idr = i;
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = dataL[idl].x,
+				.CMDYA = dataL[idl].y,
+				.CMDXB = dataR[idr].x,
+				.CMDYB = dataR[idr].y,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
+				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
+				.flip = cmd->flip,
+			};
+			// printf("P %d,%d => %d,%d\n",
+			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+			// );
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+
+			if (abs(a) >= abs(ri)) {
+				a -= ri;
+				idl++;
+			}
+		}
+	}
+	drawPolygonLine(cmd_pol, i, cmd->type);
+	free(cmd_pol);
+	free(dataL);
+	free(dataR);
+}
+
+void drawPoint(vdp1cmd_struct* cmd) {
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
+	for (int i = 0; i< tex_ratio; i++) {
+		cmd_pol[i] = (cmd_poly){
+			.CMDPMOD = cmd->CMDPMOD,
+			.CMDSRCA = cmd->CMDSRCA,
+			.CMDSIZE = cmd->CMDSIZE,
+			.CMDXA = cmd->CMDXA * tex_ratio,
+			.CMDYA = cmd->CMDYA * tex_ratio + i,
+			.CMDXB = cmd->CMDXB * tex_ratio,
+			.CMDYB = cmd->CMDYB * tex_ratio + i,
+			.CMDCOLR = cmd->CMDCOLR,
+			.CMDCTRL = cmd->CMDCTRL,
+			.dl = 0.5,
+			.dr = 0.5,
+			.flip = cmd->flip,
+		};
+		memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+	}
+	drawPolygonLine(cmd_pol, tex_ratio, cmd->type);
+	free(cmd_pol);
+}
+
+void drawQuadAsLine(vdp1cmd_struct* cmd) {
+	int maxX = MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD)));
+	int minX = MIN(cmd->CMDXA, MIN(cmd->CMDXB, MIN(cmd->CMDXC, cmd->CMDXD)));
+	int maxY = MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)));
+	int minY = MIN(cmd->CMDYA, MIN(cmd->CMDYB, MIN(cmd->CMDYC, cmd->CMDYD)));
+	int dx = maxX - minX;
+	int dy = maxY - minY;
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
+	if (dx >= dy) {
+		for (int i = 0; i< tex_ratio; i++) {
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = minX * tex_ratio,
+				.CMDYA = minY * tex_ratio + i,
+				.CMDXB = maxX * tex_ratio,
+				.CMDYB = maxY * tex_ratio + i,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = 0.0,
+				.dr = 1.0,
+				.flip = cmd->flip,
+			};
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+		}
+	} else {
+		for (int i = 0; i< tex_ratio; i++) {
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = minX * tex_ratio + i,
+				.CMDYA = minY * tex_ratio,
+				.CMDXB = maxX * tex_ratio + i,
+				.CMDYB = maxY * tex_ratio,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = 0.0,
+				.dr = 1.0,
+				.flip = cmd->flip,
+			};
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+		}
+	}
+	drawPolygonLine(cmd_pol, tex_ratio, cmd->type);
+	free(cmd_pol);
+}
+
+void drawHalfLine(vdp1cmd_struct* cmd) {
+	//One of the most complicated shape to scale.
+	//It is globally a line, with one of the point out of the line
+	// Draw as original size and duplicates lines
+	point *dataL, *dataR;
+	int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
+	int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
+	// printf("Half Line %d %d\n", li, ri);
+	//Draw as size one and duplicate lines depending the orientation of the line
+	int nbCmd = MAX(li,ri);
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
+	int idl = 0;
+	int idr = 0;
+	int a = 0;
+	int i = 0;
+	if(li>ri) {
+		for (i = 0; i != li; i++) {
+			a += ri;
+			idl = i;
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = dataL[idl].x,
+				.CMDYA = dataL[idl].y,
+				.CMDXB = dataR[idr].x,
+				.CMDYB = dataR[idr].y,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
+				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
+				.flip = cmd->flip,
+			};
+			// printf("P %d,%d => %d,%d\n",
+			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+			// );
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			if (abs(a) >= abs(li)) {
+				a -= li;
+				idr++;
+			}
+		}
+	} else {
+		for (i = 0; i != ri; i++) {
+			a += li;
+			idr = i;
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = dataL[idl].x,
+				.CMDYA = dataL[idl].y,
+				.CMDXB = dataR[idr].x,
+				.CMDYB = dataR[idr].y,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
+				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
+				.flip = cmd->flip,
+			};
+			// printf("P %d,%d => %d,%d\n",
+			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+			// );
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+
+			if (abs(a) >= abs(ri)) {
+				a -= ri;
+				idl++;
+			}
+		}
+	}
+	drawPolygonLine(cmd_pol, i, cmd->type);
+	free(cmd_pol);
+	free(dataL);
+	free(dataR);
+}
+
+int isPoint(vdp1cmd_struct* cmd) {
+	return (cmd->CMDXA == cmd->CMDXB) &&
+		 (cmd->CMDXC == cmd->CMDXD) &&
+		 (cmd->CMDXA == cmd->CMDXC);
+}
+
+int colinear(point a, point b) {
+	int lengtha = a.x*a.x + a.y*a.y;
+	int lengthb = b.x*b.x + b.y*b.y;
+	if ((lengtha == 0)||(lengthb == 0)) return 0;
+	return ((a.x*b.x+a.y*b.y)*(a.x*b.x+a.y*b.y) == lengtha*lengthb);
+}
+
+int isLine(vdp1cmd_struct* cmd) {
+	point v1 = (point){
+		.x = cmd->CMDXB - cmd->CMDXA,
+		.y = cmd->CMDYB - cmd->CMDYA
+	};
+	point v2 = (point){
+		.x = cmd->CMDXC - cmd->CMDXA,
+		.y = cmd->CMDYC - cmd->CMDYA
+	};
+	point v3 = (point){
+		.x = cmd->CMDXD - cmd->CMDXC,
+		.y = cmd->CMDYD - cmd->CMDYC
+	};
+	point v4 = (point){
+		.x = cmd->CMDXB - cmd->CMDXC,
+		.y = cmd->CMDYB - cmd->CMDYC
+	};
+	return (((colinear(v1, v2)==1) && (colinear(v3,v4)==1)) || ((colinear(v1, v4)==1) && (colinear(v2,v3)==1)));
+}
+
+int ishalfLine(vdp1cmd_struct* cmd) {
+	//We know that we are not a line, so return true in case of one colinear vector
+	point v1 = (point){
+		.x = cmd->CMDXB - cmd->CMDXA,
+		.y = cmd->CMDYB - cmd->CMDYA
+	};
+	point v2 = (point){
+		.x = cmd->CMDXD - cmd->CMDXA,
+		.y = cmd->CMDYD - cmd->CMDYA
+	};
+	point v3 = (point){
+		.x = cmd->CMDXD - cmd->CMDXC,
+		.y = cmd->CMDYD - cmd->CMDYC
+	};
+	point v4 = (point){
+		.x = cmd->CMDXB - cmd->CMDXC,
+		.y = cmd->CMDYB - cmd->CMDYC
+	};
+	if (colinear(v1, v2)==1) return 1;
+	if (colinear(v1, v4)==1) return 1;
+	if (colinear(v2, v3)==1) return 1;
+	if (colinear(v3, v4)==1) return 1;
+	return 0;
 }
 
 int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
@@ -642,109 +1011,92 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	}
 
 	if ((cmd->type == POLYGON)||(cmd->type == DISTORTED)||(cmd->type == QUAD)) {
-		point *dataL, *dataR;
+		//POINT
+		// cmd->CMDXA = 120;
+		// cmd->CMDXB = 120;
+		// cmd->CMDXC = 120;
+		// cmd->CMDXD = 120;
+		// cmd->CMDYA = 130;
+		// cmd->CMDYB = 130;
+		// cmd->CMDYC = 130;
+		// cmd->CMDYD = 130;
+		//QUAD
+		// cmd->CMDXA = 120;
+		// cmd->CMDXD = 150;
+		// cmd->CMDXC = 150;
+		// cmd->CMDXB = 120;
+		// cmd->CMDYA = 130;
+		// cmd->CMDYD = 130;
+		// cmd->CMDYC = 170;
+		// cmd->CMDYB = 170;
+		//LINE
+		// cmd->CMDXA = 120;
+		// cmd->CMDXB = 130;
+		// cmd->CMDXC = 140;
+		// cmd->CMDXD = 150;
+		// cmd->CMDYA = 130;
+		// cmd->CMDYB = 140;
+		// cmd->CMDYC = 150;
+		// cmd->CMDYD = 160;
+		//TRIANGLE
+		// cmd->CMDXA = 120;
+		// cmd->CMDXB = 120;
+		// cmd->CMDXC = 90;
+		// cmd->CMDXD = 150;
+		// cmd->CMDYA = 130;
+		// cmd->CMDYB = 130;
+		// cmd->CMDYC = 160;
+		// cmd->CMDYD = 160;
+		// CONCAVE
+		// cmd->CMDXA = 120;
+		// cmd->CMDXB = 90;
+		// cmd->CMDXC = 120;
+		// cmd->CMDXD = 150;
+		// cmd->CMDYA = 130;
+		// cmd->CMDYB = 160;
+		// cmd->CMDYC = 130;
+		// cmd->CMDYD = 160;
+		// SEGA RALLY
+		// cmd->CMDXA = 12;
+		// cmd->CMDXB = 17;
+		// cmd->CMDXC = 19;
+		// cmd->CMDXD = 14;
+		// cmd->CMDYA = 45;
+		// cmd->CMDYB = 45;
+		// cmd->CMDYC = 44;
+		// cmd->CMDYD = 45;
+		//AIGUILLE SEGA RALLY // Triangle
+		// cmd->CMDXA = 176-125;
+		// cmd->CMDXB = 176-112;
+		// cmd->CMDXC = 176-127;
+		// cmd->CMDXD = 176-127;
+		// cmd->CMDYA = 116+75;
+		// cmd->CMDYB = 116+46;
+		// cmd->CMDYC = 116+74;
+		// cmd->CMDYD = 116+74;
 
-		cmd->CMDXA = (cmd->CMDXA*tex_ratio);
-		cmd->CMDXB = (cmd->CMDXB*tex_ratio);
-		cmd->CMDXC = (cmd->CMDXC*tex_ratio);
-		cmd->CMDXD = (cmd->CMDXD*tex_ratio);
-		cmd->CMDYA = (cmd->CMDYA*tex_ratio);
-		cmd->CMDYB = (cmd->CMDYB*tex_ratio);
-		cmd->CMDYC = (cmd->CMDYC*tex_ratio);
-		cmd->CMDYD = (cmd->CMDYD*tex_ratio);
-
-//Standard Quad upscale
-	// if (cmd->CMDXD != cmd->CMDXA) {
-	// 	if (cmd->CMDXD >= cmd->CMDXA) cmd->CMDXD += tex_ratio - 1;
-	// 	else cmd->CMDXA += tex_ratio - 1;
-	// }
-	// if (cmd->CMDYD != cmd->CMDYA) {
-	// 	if (cmd->CMDYD >= cmd->CMDYA) cmd->CMDYD += tex_ratio - 1;
-	// 	else cmd->CMDYA += tex_ratio - 1;
-	// }
-	// if (cmd->CMDXC != cmd->CMDXB) {
-	// 	if (cmd->CMDXC >= cmd->CMDXB) cmd->CMDXC += tex_ratio - 1;
-	// 	else cmd->CMDXB += tex_ratio - 1;
-	// }
-	// if (cmd->CMDYC != cmd->CMDYB) {
-	// 	if (cmd->CMDYC >= cmd->CMDYB) cmd->CMDYC += tex_ratio - 1;
-	// 	else cmd->CMDYB += tex_ratio - 1;
-  // }
-	//
-	// //Handle closed point
-	// if ((cmd->CMDXD == cmd->CMDXA) && (cmd->CMDYD == cmd->CMDYA)) {
-	// 	cmd->CMDXD += tex_ratio - 1;
-	// 	cmd->CMDYD += tex_ratio = - 1;
-	// }
-	// if ((cmd->CMDXC == cmd->CMDXB) && (cmd->CMDYC == cmd->CMDYB)) {
-	// 	cmd->CMDXC += tex_ratio - 1;
-	// 	cmd->CMDYC += tex_ratio - 1;
-	// }
-
-	//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
-		int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
-		int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
-
-		int nbCmd = MAX(li,ri);
-		cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
-		int idl = 0;
-		int idr = 0;
-		int a = 0;
-		int i = 0;
-		if(li>ri) {
-			for (i = 0; i != li; i++) {
-				a += ri;
-				idl = i;
-				cmd_pol[i] = (cmd_poly){
-					.CMDPMOD = cmd->CMDPMOD,
-					.CMDSRCA = cmd->CMDSRCA,
-					.CMDSIZE = cmd->CMDSIZE,
-					.CMDXA = dataL[idl].x,
-					.CMDYA = dataL[idl].y,
-					.CMDXB = dataR[idr].x,
-					.CMDYB = dataR[idr].y,
-					.CMDCOLR = cmd->CMDCOLR,
-					.CMDCTRL = cmd->CMDCTRL,
-					.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
-					.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
-					.flip = cmd->flip,
-				};
-				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
-				if (abs(a) >= abs(li)) {
-					a -= li;
-					idr++;
-				}
-			}
-		} else {
-			for (i = 0; i != ri; i++) {
-				a += li;
-				idr = i;
-				cmd_pol[i] = (cmd_poly){
-					.CMDPMOD = cmd->CMDPMOD,
-					.CMDSRCA = cmd->CMDSRCA,
-					.CMDSIZE = cmd->CMDSIZE,
-					.CMDXA = dataL[idl].x,
-					.CMDYA = dataL[idl].y,
-					.CMDXB = dataR[idr].x,
-					.CMDYB = dataR[idr].y,
-					.CMDCOLR = cmd->CMDCOLR,
-					.CMDCTRL = cmd->CMDCTRL,
-					.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
-					.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
-					.flip = cmd->flip,
-				};
-				memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
-
-				if (abs(a) >= abs(ri)) {
-					a -= ri;
-					idl++;
-				}
-		 	}
+		//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
+		// drawLine(cmd);
+		if (isPoint(cmd))
+			 drawPoint(cmd);
+		else
+		if (isLine(cmd)){
+			// printf("Line detected %d,%d %d,%d %d,%d %d,%d\n",
+			// 	cmd->CMDXA,
+			// 	cmd->CMDYA,
+			// 	cmd->CMDXB,
+			// 	cmd->CMDYB,
+			// 	cmd->CMDXC,
+			// 	cmd->CMDYC,
+			// 	cmd->CMDXD,
+			// 	cmd->CMDYD
+			// );
+			drawQuadAsLine(cmd);
 		}
-		drawPolygonLine(cmd_pol, i, cmd->type);
-		free(cmd_pol);
-		free(dataL);
-		free(dataR);
+		else if (ishalfLine(cmd))
+			drawHalfLine(cmd);
+		else
+			drawQuad(cmd);
 	}
 
 	if (cmd->type == POLYLINE) {
@@ -1036,7 +1388,7 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
   glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+	// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 void vdp1_clear(int id, float *col, int* lim) {
