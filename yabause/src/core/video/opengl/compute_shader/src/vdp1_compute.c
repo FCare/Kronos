@@ -502,6 +502,9 @@ static int generateComputeBuffer(int w, int h) {
 	glGenBuffers(1, &ssbo_vdp1ram_);
 	glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_vdp1ram_);
 	glBufferData(GL_SHADER_STORAGE_BUFFER, 0x80000, NULL, GL_DYNAMIC_DRAW);
+	vdp1Ram_update_start = 0x0;
+	vdp1Ram_update_end = 0x80000;
+	Vdp1External.updateVdp1Ram = 1;
 
 	if (ssbo_cmd_line_list_ != 0) {
 		glDeleteBuffers(1, &ssbo_cmd_line_list_);
