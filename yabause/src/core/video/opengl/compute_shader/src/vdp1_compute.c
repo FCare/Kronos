@@ -700,8 +700,8 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
-				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
+				.dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio),
+				.dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio),
 				.flip = cmd->flip,
 			};
 			// printf("P %d,%d => %d,%d\n",
@@ -728,8 +728,8 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
-				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
+				.dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio),
+				.dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio),
 				.flip = cmd->flip,
 			};
 			// printf("P %d,%d => %d,%d\n",
@@ -1021,14 +1021,16 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 130;
 		// cmd->CMDYD = 130;
 		//QUAD
-		// cmd->CMDXA = 120;
-		// cmd->CMDXD = 150;
-		// cmd->CMDXC = 150;
-		// cmd->CMDXB = 120;
-		// cmd->CMDYA = 130;
-		// cmd->CMDYD = 130;
-		// cmd->CMDYC = 170;
-		// cmd->CMDYB = 170;
+		// cmd->CMDCTRL &= ~0xF;
+		// // cmd->CMDCOLR = 0x7FFF;
+		// cmd->CMDXA = 100;
+		// cmd->CMDXD = 100;
+		// cmd->CMDXC = 107;
+		// cmd->CMDXB = 107;
+		// cmd->CMDYA = 100;
+		// cmd->CMDYD = 105;
+		// cmd->CMDYC = 105;
+		// cmd->CMDYB = 100;
 		//LINE
 		// cmd->CMDXA = 120;
 		// cmd->CMDXB = 130;
