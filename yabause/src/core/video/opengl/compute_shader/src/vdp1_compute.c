@@ -55,7 +55,6 @@ static int generateComputeBuffer(int w, int h);
 static GLuint compute_tex[2] = {0};
 static GLuint mesh_tex[2] = {0};
 static GLuint ssbo_vdp1ram_ = 0;
-static GLuint ssbo_nbcmd_ = 0;
 static GLuint ssbo_vdp1access_ = 0;
 static GLuint prg_vdp1[NB_PRG] = {0};
 
