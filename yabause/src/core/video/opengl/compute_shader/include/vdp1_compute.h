@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define NB_LINE_MAX_PER_DRAW 32
+#define NB_LINE_MAX_PER_DRAW 64
 
 enum
 {
