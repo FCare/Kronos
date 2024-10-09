@@ -429,11 +429,11 @@ static char vdp1_draw_no_mesh_f[] =
 static const char vdp1_draw_line_f[] =
 "void main()\n"
 "{\n"
-" if (gl_LocalInvocationID.y >= nbLines) return;"
+" if (gl_GlobalInvocationID.x >= nbLines) return;"
 " vec4 finalColor = vec4(0.0);\n"
 " vec4 limit_f = vec4(vec2(usrClip.xy), vec2(min(usrClip.zw, sysClip)));\n"
 " ivec4 limit = ivec4(limit_f);\n"
-" cmdparameter_struct pixcmd = cmd[gl_LocalInvocationID.y];\n"
+" cmdparameter_struct pixcmd = cmd[gl_GlobalInvocationID.x];\n"
 " vec2 texcoord = vec2(0);\n"
 " ivec2 P0 = ivec2(pixcmd.CMDXA, pixcmd.CMDYA);\n"
 " ivec2 P1 = ivec2(pixcmd.CMDXB, pixcmd.CMDYB);\n"

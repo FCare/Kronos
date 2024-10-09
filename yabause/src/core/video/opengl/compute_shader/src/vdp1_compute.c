@@ -1383,7 +1383,7 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 		int nbUpload = MIN(32,(nbLines - i));
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbUpload*sizeof(cmd_poly), (void*)&cmd_pol[i]);
 		glUniform1i(10, nbUpload);
-		glDispatchCompute(1, 1, 1); //might be better to launch only the right number of workgroup
+		glDispatchCompute(nbUpload, 1, 1); //might be better to launch only the right number of workgroup
 		ErrorHandle("glDispatchCompute");
 	}
 	progMask = 0;
@@ -1477,7 +1477,7 @@ void vdp1_compute_init(int width, int height, float ratio)
 	snprintf(vdp1_clear_mesh_f,length,vdp1_clear_mesh_f_base,local_size_x,local_size_y);
 
 	length = sizeof(vdp1_draw_line_start_f_base) + 64;
-	snprintf(vdp1_draw_line_start_f,length,vdp1_draw_line_start_f_base,1,32);
+	snprintf(vdp1_draw_line_start_f,length,vdp1_draw_line_start_f_base,1,1);
 
   int am = sizeof(vdp1cmd_struct) % 16;
   tex_width = width;
