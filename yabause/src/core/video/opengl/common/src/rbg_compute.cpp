@@ -288,7 +288,7 @@ SHADER_VERSION_COMPUTE
 "  return vec4(float((temp >> 0) &0x1F)/31.0, float((temp >> 5) & 0x1Fu)/31.0, float((temp >> 10) &0x1F)/31.0,alpha_lncl);\n"
 "}\n";
 
-char prg_generate_rbg[ sizeof(prg_generate_rbg_base) + 64 ] = {};
+char prg_generate_rbg[ sizeof(prg_generate_rbg_base) + 64 ];
 
 const char prg_continue_rbg[] =
 //----------------------------------------------------------------------

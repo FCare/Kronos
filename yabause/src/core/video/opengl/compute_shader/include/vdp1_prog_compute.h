@@ -46,7 +46,7 @@ SHADER_VERSION_COMPUTE
 "  if (pix.a != 0.0) imageStore(outSurface,texel,vec4(pix.r, pix.g, 0.0, 0.0));\n"
 "}\n";
 
-static char vdp1_write_f[ sizeof(vdp1_write_f_base) + 64 ] = {};
+static char vdp1_write_f[ sizeof(vdp1_write_f_base) + 64 ];
 
 static const char vdp1_read_f_base[] =
 SHADER_VERSION_COMPUTE
@@ -70,7 +70,7 @@ SHADER_VERSION_COMPUTE
 "  Vdp1FB[idx] = val;\n"
 "}\n";
 
-static char vdp1_read_f[ sizeof(vdp1_read_f_base) + 64 ] = {};
+static char vdp1_read_f[ sizeof(vdp1_read_f_base) + 64 ];
 
 static const char vdp1_clear_f_base[] =
 SHADER_VERSION_COMPUTE
@@ -95,7 +95,7 @@ SHADER_VERSION_COMPUTE
 "  imageStore(outMesh, texel, vec4(0.0));\n"
 "}\n";
 
-static char vdp1_clear_f[ sizeof(vdp1_clear_f_base) + 64 ] = {};
+static char vdp1_clear_f[ sizeof(vdp1_clear_f_base) + 64 ];
 
 static const char vdp1_draw_line_start_f_base[] =
 SHADER_VERSION_COMPUTE
@@ -137,7 +137,7 @@ SHADER_VERSION_COMPUTE
 "  return vec4(float((color>>0)&0xFFu)/255.0,float((color>>8)&0xFFu)/255.0,0.0,0.0);\n"
 "}\n";
 
-static char vdp1_draw_line_start_f[ sizeof(vdp1_draw_line_start_f_base) + 64 ] = {};
+static char vdp1_draw_line_start_f[ sizeof(vdp1_draw_line_start_f_base) + 64 ];
 
 static const char vdp1_get_non_textured_f[] =
 "uint getColor(cmdparameter_struct pixcmd, float dp, out bool valid){\n"
@@ -556,7 +556,7 @@ SHADER_VERSION_COMPUTE
 "  imageStore(outMesh0, texel, vec4(0.0));\n"
 "  imageStore(outMesh1, texel, vec4(0.0));\n"
 "}\n";
-static char vdp1_clear_mesh_f[ sizeof(vdp1_clear_mesh_f_base) + 64 ] = {};
+static char vdp1_clear_mesh_f[ sizeof(vdp1_clear_mesh_f_base) + 64 ];
 
 #ifdef __cplusplus
 }
