@@ -772,6 +772,51 @@ void drawPoint(vdp1cmd_struct* cmd) {
 	drawPolygonLine(cmd_pol, tex_ratio, cmd->type);
 	free(cmd_pol);
 }
+void drawLine(vdp1cmd_struct* cmd, point A, point B) {
+	int dx = B.x - A.x;
+	int dy = B.y - A.y;
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
+	if (dx >= dy) {
+		for (int i = 0; i< tex_ratio; i++) {
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = A.x * tex_ratio,
+				.CMDYA = A.y * tex_ratio + i,
+				.CMDXB = B.x * tex_ratio,
+				.CMDYB = B.y * tex_ratio + i,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = 0.5,
+				.dr = 0.5,
+				.flip = cmd->flip,
+			};
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+		}
+	} else {
+		for (int i = 0; i< tex_ratio; i++) {
+			cmd_pol[i] = (cmd_poly){
+				.CMDPMOD = cmd->CMDPMOD,
+				.CMDSRCA = cmd->CMDSRCA,
+				.CMDSIZE = cmd->CMDSIZE,
+				.CMDXA = A.x * tex_ratio + i,
+				.CMDYA = A.y * tex_ratio,
+				.CMDXB = B.x* tex_ratio + i,
+				.CMDYB = B.y * tex_ratio,
+				.CMDCOLR = cmd->CMDCOLR,
+				.CMDCTRL = cmd->CMDCTRL,
+				.dl = 0.5,
+				.dr = 0.5,
+				.flip = cmd->flip,
+			};
+			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+		}
+	}
+	drawPolygonLine(cmd_pol, tex_ratio, cmd->type);
+	free(cmd_pol);
+}
+
 
 void drawQuadAsLine(vdp1cmd_struct* cmd) {
 	int maxX = MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD)));
@@ -1106,105 +1151,15 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	}
 
 	if (cmd->type == POLYLINE) {
-// A revoir l'epaisseur des lignes
-		cmd->CMDXA = (cmd->CMDXA*tex_ratio);
-		cmd->CMDXB = (cmd->CMDXB*tex_ratio);
-		cmd->CMDXC = (cmd->CMDXC*tex_ratio);
-		cmd->CMDXD = (cmd->CMDXD*tex_ratio);
-		cmd->CMDYA = (cmd->CMDYA*tex_ratio);
-		cmd->CMDYB = (cmd->CMDYB*tex_ratio);
-		cmd->CMDYC = (cmd->CMDYC*tex_ratio);
-		cmd->CMDYD = (cmd->CMDYD*tex_ratio);
-
-		cmd_poly *cmd_pol = (cmd_poly*)calloc(4, sizeof(cmd_poly));
-		cmd_pol[0] = (cmd_poly){
-			.CMDPMOD = cmd->CMDPMOD,
-			.CMDSRCA = cmd->CMDSRCA,
-			.CMDSIZE = cmd->CMDSIZE,
-			.CMDXA = cmd->CMDXA,
-			.CMDYA = cmd->CMDYA,
-			.CMDXB = cmd->CMDXB,
-			.CMDYB = cmd->CMDYB,
-			.CMDCOLR = cmd->CMDCOLR,
-			.CMDCTRL = cmd->CMDCTRL,
-			.dl = 0.5,
-			.dr = 0.5,
-			.flip = cmd->flip
-		};
-		memcpy(&cmd_pol[0].G[0], &cmd->G[0], 16*sizeof(float));
-		cmd_pol[1] = (cmd_poly){
-			.CMDPMOD = cmd->CMDPMOD,
-			.CMDSRCA = cmd->CMDSRCA,
-			.CMDSIZE = cmd->CMDSIZE,
-			.CMDXA = cmd->CMDXB,
-			.CMDYA = cmd->CMDYB,
-			.CMDXB = cmd->CMDXC,
-			.CMDYB = cmd->CMDYC,
-			.CMDCOLR = cmd->CMDCOLR,
-			.CMDCTRL = cmd->CMDCTRL,
-			.dl = 0.5,
-			.dr = 0.5,
-			.flip = cmd->flip
-		};
-		memcpy(&cmd_pol[1].G[0], &cmd->G[0], 16*sizeof(float));
-		cmd_pol[2] = (cmd_poly){
-			.CMDPMOD = cmd->CMDPMOD,
-			.CMDSRCA = cmd->CMDSRCA,
-			.CMDSIZE = cmd->CMDSIZE,
-			.CMDXA = cmd->CMDXC,
-			.CMDYA = cmd->CMDYC,
-			.CMDXB = cmd->CMDXD,
-			.CMDYB = cmd->CMDYD,
-			.CMDCOLR = cmd->CMDCOLR,
-			.CMDCTRL = cmd->CMDCTRL,
-			.dl = 0.5,
-			.dr = 0.5,
-			.flip = cmd->flip
-		};
-		memcpy(&cmd_pol[2].G[0], &cmd->G[0], 16*sizeof(float));
-		cmd_pol[3] = (cmd_poly){
-			.CMDPMOD = cmd->CMDPMOD,
-			.CMDSRCA = cmd->CMDSRCA,
-			.CMDSIZE = cmd->CMDSIZE,
-			.CMDXA = cmd->CMDXD,
-			.CMDYA = cmd->CMDYD,
-			.CMDXB = cmd->CMDXA,
-			.CMDYB = cmd->CMDYA,
-			.CMDCOLR = cmd->CMDCOLR,
-			.CMDCTRL = cmd->CMDCTRL,
-			.dl = 0.5,
-			.dr = 0.5,
-			.flip = cmd->flip
-		};
-		memcpy(&cmd_pol[3].G[0], &cmd->G[0], 16*sizeof(float));
-		drawPolygonLine(cmd_pol, 4, POLYLINE);
-		free(cmd_pol);
+		// drawPolyLine(cmd);
+		drawLine(cmd, (point){.x=cmd->CMDXA, .y=cmd->CMDYA}, (point){.x=cmd->CMDXB, .y=cmd->CMDYB});
+		drawLine(cmd, (point){.x=cmd->CMDXB, .y=cmd->CMDYB}, (point){.x=cmd->CMDXC, .y=cmd->CMDYC});
+		drawLine(cmd, (point){.x=cmd->CMDXC, .y=cmd->CMDYC}, (point){.x=cmd->CMDXD, .y=cmd->CMDYD});
+		drawLine(cmd, (point){.x=cmd->CMDXD, .y=cmd->CMDYD}, (point){.x=cmd->CMDXA, .y=cmd->CMDYA});
 	}
 
 	if (cmd->type == LINE) {
-		// A revoir l'epaisseur des lignes
-		cmd->CMDXA = (cmd->CMDXA*tex_ratio);
-		cmd->CMDXB = (cmd->CMDXB*tex_ratio);
-		cmd->CMDYA = (cmd->CMDYA*tex_ratio);
-		cmd->CMDYB = (cmd->CMDYB*tex_ratio);
-		cmd_poly *cmd_pol = (cmd_poly*)calloc(1, sizeof(cmd_poly));
-		cmd_pol[0] = (cmd_poly){
-			.CMDPMOD = cmd->CMDPMOD,
-			.CMDSRCA = cmd->CMDSRCA,
-			.CMDSIZE = cmd->CMDSIZE,
-			.CMDXA = cmd->CMDXA,
-			.CMDYA = cmd->CMDYA,
-			.CMDXB = cmd->CMDXB,
-			.CMDYB = cmd->CMDYB,
-			.CMDCOLR = cmd->CMDCOLR,
-			.CMDCTRL = cmd->CMDCTRL,
-			.dl = 0.5,
-			.dr = 0.5,
-			.flip = cmd->flip
-		};
-		memcpy(&cmd_pol[0].G[0], &cmd->G[0], 16*sizeof(float));
-		drawPolygonLine(cmd_pol, 1, cmd->type);
-		free(cmd_pol);
+	  drawLine(cmd, (point){.x=cmd->CMDXA, .y=cmd->CMDYA}, (point){.x=cmd->CMDXB, .y=cmd->CMDYB});
 	}
 
   return 0;
