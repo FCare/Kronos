@@ -115,6 +115,7 @@ static void abortVdp1() {
     // Abort the current command list
     Vdp1External.status &= ~VDP1_STATUS_MASK;
     Vdp1External.status |= VDP1_STATUS_IDLE;
+    endVdp1Render();
     CmdListInLoop = 0;
     vdp1_clock = 0;
     nbCmdToProcess = 0;
@@ -1499,15 +1500,18 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
      // CEF <- 0
      Vdp1Regs->COPR = 0;
      Vdp1Regs->lCOPR = 0;
+     startVdp1Render();
   }
   CmdListLimit = 0;
+  Vdp1External.status &= ~VDP1_STATUS_MASK;
+  Vdp1External.status |= VDP1_STATUS_RUNNING;
 
-   Vdp1External.status &= ~VDP1_STATUS_MASK;
-   Vdp1External.status |= VDP1_STATUS_RUNNING;
+
    if (regs->addr > 0x7FFFF) {
      FRAMELOG("Address Error\n");
       Vdp1External.status &= ~VDP1_STATUS_MASK;
       Vdp1External.status |= VDP1_STATUS_IDLE;
+      endVdp1Render();
       return; // address error
     }
 
@@ -1654,6 +1658,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
              checkClipCmd(&sysClipCmd, &usrClipCmd, &localCoordCmd, ram, regs);
              Vdp1External.status &= ~VDP1_STATUS_MASK;
              Vdp1External.status |= VDP1_STATUS_IDLE;
+             endVdp1Render();
              regs->COPR = (regs->addr & 0x7FFFF) >> 3;
              FRAMELOG("Clear EDSR\n");
              regs->EDSR = 0;
@@ -1719,6 +1724,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer)
        FRAMELOG("VDP1: Command Finished! count = %d @ %08X\n", nbCmdToProcess, regs->addr);
        Vdp1External.status &= ~VDP1_STATUS_MASK;
        Vdp1External.status |= VDP1_STATUS_IDLE;
+       endVdp1Render();
        regs->COPR = (regs->addr & 0x7FFFF) >> 3;
        regs->lCOPR = (regs->addr & 0x7FFFF) >> 3;
        FRAMELOG("Set EDSR\n");
@@ -1826,6 +1832,7 @@ static void Vdp1NoDraw(void) {
    Vdp1Regs->lCOPR = 0;
    Vdp1External.status &= ~VDP1_STATUS_MASK;
    Vdp1External.status |= VDP1_STATUS_IDLE;
+   endVdp1Render();
    Vdp1FakeDrawCommands(Vdp1Ram, Vdp1Regs);
 }
 

@@ -385,8 +385,6 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	}
 };
 
-static int progMask = 0;
-
 int ErrorHandle(const char* name)
 {
 #ifdef VDP1CDEBUG
@@ -972,9 +970,13 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int requireCompute = 0;
 
 	if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
+		endVdp1Render();
 		vdp1_write();
+		startVdp1Render();
 		_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] = -1;
 	}
+
+	if (clipcmd != 0)startVdp1Render();
 
 	if (_Ygl->wireframe_mode != 0) {
 		int pos = (cmd->CMDSRCA * 8) & 0x7FFFF;
@@ -1359,6 +1361,31 @@ void vdp1_update_banding(void) {
 	vdp1_compute_reset();
 }
 static int oldProg = -1;
+
+void startVdp1Render() {
+	glUseProgram(prg_vdp1[oldProg]);
+	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_cmd_line_list_);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_vdp1ram_);
+	glUniform2i(7, tex_ratio, tex_ratio);
+	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratio-1, (Vdp1Regs->systemclipY2+1)*tex_ratio-1);
+	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);
+}
+
+static void flushVdp1Render(int nbWork) {
+	if (nbWork>0) {
+		glDispatchCompute(nbWork, 1, 1); //might be better to launch only the right number of workgroup
+	}
+}
+
+void endVdp1Render() {
+	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+	glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	int progId = getProgramLine(&cmd_pol[0], type);
 	// trace_prog(progId);
@@ -1370,17 +1397,11 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	if (prg_vdp1[progId] == 0) {
 		prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
 	}
-	if ((oldProg != -1) && (oldProg != progId)) {
-		//CleanUp mesh texture
-		vdp1_clear_mesh();
+	if (oldProg != progId) {
+		// 	Might be some stuff to clean
+			oldProg = progId;
+			startVdp1Render();
 	}
-	oldProg = progId;
-
-	glUseProgram(prg_vdp1[progId]);
-
-	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
-
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_cmd_line_list_);
 
 	if (Vdp1External.updateVdp1Ram != 0) {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_vdp1ram_);
@@ -1389,27 +1410,15 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 		vdp1Ram_update_end = 0x0;
 		Vdp1External.updateVdp1Ram = 0;
 	}
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_vdp1ram_);
-
-	glUniform2i(7, tex_ratio, tex_ratio);
-	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratio-1, (Vdp1Regs->systemclipY2+1)*tex_ratio-1);
-	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);
 
 	for (int i = 0; i<nbLines; i+=NB_LINE_MAX_PER_DRAW) {
-		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		int nbUpload = MIN(NB_LINE_MAX_PER_DRAW,(nbLines - i));
+		// if ((buffer_pos + nbUpload) >= NB_LINE_MAX_PER_DRAW) flushVdp1Render();
+		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbUpload*sizeof(cmd_poly), (void*)&cmd_pol[i]);
-		glUniform1i(10, nbUpload);
-		glDispatchCompute(nbUpload, 1, 1); //might be better to launch only the right number of workgroup
-		ErrorHandle("glDispatchCompute");
+		flushVdp1Render(nbUpload);
 	}
-	progMask = 0;
 
-	glBindImageTexture(0, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-	glBindImageTexture(1, 0, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
-	glBindImageTexture(2, 0, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA8);
-  glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
 	// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
@@ -1508,7 +1517,6 @@ void vdp1_compute_init(int width, int height, float ratio)
   if (am != 0) {
     struct_line_size += 16 - am;
   }
-	progMask = 0;
   work_groups_x = _Ygl->vdp1width / local_size_x;
   work_groups_y = _Ygl->vdp1height / local_size_y;
   generateComputeBuffer(_Ygl->vdp1width, _Ygl->vdp1height);
@@ -1531,4 +1539,5 @@ void vdp1_compute_reset(void) {
 			prg_vdp1[i] = 0;
 		}
 	}
+	oldProg = -1;
 }

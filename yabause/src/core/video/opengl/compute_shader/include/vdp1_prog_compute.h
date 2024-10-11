@@ -127,7 +127,6 @@ SHADER_VERSION_COMPUTE
 "layout(location = 7) uniform ivec2 upscale;\n"
 "layout(location = 8) uniform ivec2 sysClip;\n"
 "layout(location = 9) uniform ivec4 usrClip;\n"
-"layout(location = 10) uniform int nbLines;\n"
 "bool clip(ivec2 P, ivec4 limit) {\n"
 "  if (any(lessThan(P, limit.xy))) return false;\n"
 "  if (any(greaterThan(P, limit.zw))) return false;\n"
@@ -496,7 +495,7 @@ static char vdp1_draw_no_mesh_f[] =
 static const char vdp1_draw_line_f[] =
 "void main()\n"
 "{\n"
-" if (gl_GlobalInvocationID.x >= nbLines) return;"
+// " if (gl_GlobalInvocationID.x >= gl_NumWorkGroups) return;"
 " cmdparameter_struct pixcmd = cmd[gl_GlobalInvocationID.x];\n"
 " ivec2 line = ivec2(pixcmd.CMDXB, pixcmd.CMDYB) - ivec2(pixcmd.CMDXA, pixcmd.CMDYA);\n"
 " float orientation = (abs(line.x) >= abs(line.y))?1.0:0.0;\n"

@@ -866,6 +866,7 @@ void VIDCSVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   regs->userclipY1 = cmd->CMDYA;
   regs->userclipX2 = cmd->CMDXC;
   regs->userclipY2 = cmd->CMDYC;
+  startVdp1Render();
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -877,6 +878,7 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   vdp1_add(cmd,1);
   regs->systemclipX2 = cmd->CMDXC;
   regs->systemclipY2 = cmd->CMDYC;
+  startVdp1Render();
 }
 
 void VIDCSVdp1DrawFB(void) {
