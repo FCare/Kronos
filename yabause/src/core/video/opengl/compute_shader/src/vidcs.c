@@ -2317,6 +2317,8 @@ void VIDCSSetSettingValueMode(int type, int value) {
   switch (type) {
   case VDP_SETTING_FILTERMODE:
     _Ygl->aamode = (AAMODE)value;
+    if (value < AA_ADAPTATIVE_FILTER)
+      value = AA_NONE;
     break;
   case VDP_SETTING_UPSCALMODE:
     _Ygl->upmode = (UPMODE)value;
