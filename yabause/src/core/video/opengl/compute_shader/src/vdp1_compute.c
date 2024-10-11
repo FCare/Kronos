@@ -976,7 +976,12 @@ int isLine(vdp1cmd_struct* cmd) {
 		.x = cmd->CMDXB - cmd->CMDXC,
 		.y = cmd->CMDYB - cmd->CMDYC
 	};
-	return (((colinear(v1, v2)==1) && (colinear(v3,v4)==1)) || ((colinear(v1, v4)==1) && (colinear(v2,v3)==1)));
+	if ((colinear(v1, v2)==1) && (colinear(v3,v4)==1)) return 1;
+	if ((colinear(v1, v4)==1) && (colinear(v2,v3)==1)) return 1;
+	if ((colinear(v1, v3)==1) && (cmd->CMDXA==cmd->CMDXC) && (cmd->CMDYA==cmd->CMDYC) && (cmd->CMDXB==cmd->CMDXD) && (cmd->CMDYB==cmd->CMDYD)) return 1;
+	if ((colinear(v1, v3)==1) && (cmd->CMDXA==cmd->CMDXD) && (cmd->CMDYA==cmd->CMDYD) && (cmd->CMDXB==cmd->CMDXC) && (cmd->CMDYB==cmd->CMDYC)) return 1;
+
+	return 0;
 }
 
 int ishalfLine(vdp1cmd_struct* cmd) {
@@ -1125,6 +1130,24 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYB = 116+46;
 		// cmd->CMDYC = 116+74;
 		// cmd->CMDYD = 116+74;
+		//DOOM Line
+		// cmd->CMDXA = 120;
+		// cmd->CMDXB = 176;
+		// cmd->CMDXC = 176;
+		// cmd->CMDXD = 120;
+		// cmd->CMDYA = 129;
+		// cmd->CMDYB = 129;
+		// cmd->CMDYC = 129;
+		// cmd->CMDYD = 129;
+		//DOOM Line
+		// cmd->CMDXA = 120;
+		// cmd->CMDXB = 176;
+		// cmd->CMDXC = 120;
+		// cmd->CMDXD = 176;
+		// cmd->CMDYA = 129;
+		// cmd->CMDYB = 129;
+		// cmd->CMDYC = 129;
+		// cmd->CMDYD = 129;
 
 		//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
 		// drawLine(cmd);
