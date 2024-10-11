@@ -1341,6 +1341,23 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 
 	return progId+delta;
 }
+
+void vdp1_update_banding(void) {
+	//Change char * reference et incvalide les progIds
+	a_prg_vdp1[DRAW_POLY_GOURAUD_NO_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_NO_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	vdp1_compute_reset();
+}
 static int oldProg = -1;
 void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	int progId = getProgramLine(&cmd_pol[0], type);
@@ -1374,7 +1391,6 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 	}
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_vdp1ram_);
 
-	glUniform1i(6, (_Ygl->bandingmode==IMPROVED_BANDING));
 	glUniform2i(7, tex_ratio, tex_ratio);
 	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratio-1, (Vdp1Regs->systemclipY2+1)*tex_ratio-1);
 	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);

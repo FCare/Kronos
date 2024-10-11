@@ -63,6 +63,9 @@ extern void vdp1_clear(int id, float *col, int* limits);
 extern u32* vdp1_get_directFB();
 extern void vdp1_setup(void);
 
+extern void vdp1_compute_reset(void);
+extern void vdp1_update_banding(void);
+
 #ifdef __cplusplus
 }
 #endif
