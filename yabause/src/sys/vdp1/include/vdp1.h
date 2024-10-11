@@ -136,14 +136,6 @@ typedef struct
   u32 pad[2];
 } vdp1cmd_struct;
 
-typedef struct{
-  vdp1cmd_struct cmd;
-  int ignitionLine;
-  int start_addr;
-  int end_addr;
-  int dirty;
-} vdp1cmdctrl_struct;
-
 typedef struct
 {
    int id;
@@ -184,8 +176,6 @@ typedef struct
 } VideoInterface_struct;
 
 extern VideoInterface_struct *VIDCore;
-
-extern vdp1cmdctrl_struct cmdBufferBeingProcessed[CMD_QUEUE_SIZE];
 
 extern u8 * Vdp1Ram;
 extern int vdp1Ram_update_start;
@@ -258,6 +248,9 @@ void Vdp1VBlankOUT(void);
 void Vdp1VBlankIN(void);
 void Vdp1VBlankIN_It(void);
 void Vdp1SwitchFrame(void);
+
+extern void startVdp1Render();
+extern void endVdp1Render();
 
 #ifdef __cplusplus
 }
