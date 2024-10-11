@@ -1341,6 +1341,7 @@ void vdp1_update_banding(void) {
 static int oldProg = -1;
 
 void startVdp1Render() {
+	if (oldProg == -1) return;
 	glUseProgram(prg_vdp1[oldProg]);
 	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_cmd_line_list_);
