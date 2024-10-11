@@ -1363,7 +1363,7 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 
 	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssbo_cmd_line_list_);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_cmd_line_list_);
 
 	if (Vdp1External.updateVdp1Ram != 0) {
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_vdp1ram_);
@@ -1372,8 +1372,9 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 		vdp1Ram_update_end = 0x0;
 		Vdp1External.updateVdp1Ram = 0;
 	}
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_vdp1ram_);
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_vdp1ram_);
 
+	glUniform1i(6, (_Ygl->bandingmode==IMPROVED_BANDING));
 	glUniform2i(7, tex_ratio, tex_ratio);
 	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratio-1, (Vdp1Regs->systemclipY2+1)*tex_ratio-1);
 	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);
