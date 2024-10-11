@@ -122,12 +122,12 @@ int VIDCSVdp1Reset(void);
 extern vdp2rotationparameter_struct  Vdp1ParaA;
 
 void VIDCSVdp1Draw();
-void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
-void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
-void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
-void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
-void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
-void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
+void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1DrawFB(void);
@@ -730,14 +730,14 @@ void VIDCSVdp1Draw()
 
   _Ygl->msb_shadow_count_[_Ygl->drawframe] = 0;
 
-  Vdp1DrawCommands(Vdp1Ram, Vdp1Regs, NULL);
+  Vdp1DrawCommands(Vdp1Ram, Vdp1Regs);
 
   _Ygl->vpd1_running = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
-void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer)
+void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   LOG_CMD("%d\n", __LINE__);
 
@@ -769,7 +769,7 @@ int getBestMode(vdp1cmd_struct* cmd) {
   return ret;
 }
 
-void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer)
+void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
 
   if (((cmd->CMDPMOD >> 3) & 0x7u) == 5) {
@@ -785,7 +785,7 @@ void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* b
   LOG_CMD("%d\n", __LINE__);
 }
 
-void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer)
+void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   LOG_CMD("%d\n", __LINE__);
 
@@ -801,7 +801,7 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8
   return;
 }
 
-void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer)
+void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
   // cmd->type = POLYGON;
@@ -825,7 +825,7 @@ void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_f
   return;
 }
 
-void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer)
+void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   LOG_CMD("%d\n", __LINE__);
 
@@ -838,7 +838,7 @@ void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_
 
 //////////////////////////////////////////////////////////////////////////////
 
-void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer)
+void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   LOG_CMD("%d\n", __LINE__);
 
@@ -866,7 +866,6 @@ void VIDCSVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   regs->userclipY1 = cmd->CMDYA;
   regs->userclipX2 = cmd->CMDXC;
   regs->userclipY2 = cmd->CMDYC;
-  startVdp1Render();
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -878,7 +877,6 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   vdp1_add(cmd,1);
   regs->systemclipX2 = cmd->CMDXC;
   regs->systemclipY2 = cmd->CMDYC;
-  startVdp1Render();
 }
 
 void VIDCSVdp1DrawFB(void) {

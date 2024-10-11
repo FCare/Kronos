@@ -148,12 +148,12 @@ typedef struct
    // VDP1 specific
    int (*Vdp1Reset)(void);
    void (*Vdp1Draw)();
-   void(*Vdp1NormalSpriteDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8* back_framebuffer);
-   void(*Vdp1ScaledSpriteDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8 * back_framebuffer);
-   void(*Vdp1DistortedSpriteDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8 * back_framebuffer);
-   void(*Vdp1PolygonDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8 * back_framebuffer);
-   void(*Vdp1PolylineDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8 * back_framebuffer);
-   void(*Vdp1LineDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs, u8 * back_framebuffer);
+   void(*Vdp1NormalSpriteDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+   void(*Vdp1ScaledSpriteDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+   void(*Vdp1DistortedSpriteDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+   void(*Vdp1PolygonDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+   void(*Vdp1PolylineDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+   void(*Vdp1LineDraw)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
    void(*Vdp1UserClipping)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
    void(*Vdp1SystemClipping)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
    void(*Vdp1LocalCoordinate)(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
@@ -202,7 +202,7 @@ void FASTCALL Vdp1FrameBuffer8bWriteLong(SH2_struct *context, u8*, u32, u32);
 
 extern void Vdp1SetRaster(int is352);
 
-void Vdp1DrawCommands(u8 * ram, Vdp1 * regs, u8* back_framebuffer);
+void Vdp1DrawCommands(u8 * ram, Vdp1 * regs);
 void Vdp1FakeDrawCommands(u8 * ram, Vdp1 * regs);
 
 extern Vdp1 * Vdp1Regs;
