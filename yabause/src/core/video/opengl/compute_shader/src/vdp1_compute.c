@@ -1338,12 +1338,24 @@ void vdp1_update_banding(void) {
 	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
 	vdp1_compute_reset();
 }
+
+void vdp1_update_mesh(void) {
+	for (int i=DRAW_POLY_MSB_SHADOW_NO_MESH; i<=DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH; i++) {
+		a_prg_vdp1[i][3] = (_Ygl->meshmode == IMPROVED_MESH)?vdp1_draw_no_mesh_improved_f:vdp1_draw_no_mesh_f;
+	}
+	for (int i=DRAW_POLY_MSB_SHADOW_MESH; i<=DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH; i++) {
+		a_prg_vdp1[i][3] = (_Ygl->meshmode == IMPROVED_MESH)?vdp1_draw_improved_mesh_f:vdp1_draw_mesh_f;
+	}
+	vdp1_compute_reset();
+}
+
 static int oldProg = -1;
 
 void startVdp1Render() {
 	if (oldProg == -1) return;
 	glUseProgram(prg_vdp1[oldProg]);
 	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+	if (_Ygl->meshmode == IMPROVED_MESH) glBindImageTexture(1, get_vdp1_mesh(_Ygl->drawframe), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_cmd_line_list_);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_vdp1ram_);
 	glUniform2i(7, tex_ratio, tex_ratio);

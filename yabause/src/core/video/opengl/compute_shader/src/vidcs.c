@@ -2305,6 +2305,12 @@ void VIDCSVdp2DispOff()
 {
 }
 
+void updateMeshMode(MESHMODE value) {
+  if (_Ygl->meshmode != value){
+    _Ygl->meshmode = value;
+    vdp1_update_mesh();
+  }
+}
 void updateBandingMode(BANDINGMODE value) {
   if (_Ygl->bandingmode != value){
     _Ygl->bandingmode = value;
@@ -2362,7 +2368,7 @@ void VIDCSSetSettingValueMode(int type, int value) {
     _Ygl->wireframe_mode = value;
   break;
   case VDP_SETTING_MESH_MODE:
-    _Ygl->meshmode = (MESHMODE)value;
+    updateMeshMode((MESHMODE)value);
   break;
   case VDP_SETTING_BANDING_MODE:
     updateBandingMode((BANDINGMODE)value);

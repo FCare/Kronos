@@ -120,6 +120,7 @@ SHADER_VERSION_COMPUTE
 "  int pad[4];\n"
 "};\n"
 "layout(rgba8, binding = 0) uniform image2D outSurface;\n"
+"layout(rgba8, binding = 1) uniform image2D outMeshSurface;\n"
 "layout(std430, binding = 2) readonly buffer VDP1RAM { uint Vdp1Ram[]; };\n"
 "layout(std430, binding = 3) readonly buffer CMD_LIST {\n"
 "  cmdparameter_struct cmd[];\n"
@@ -485,9 +486,29 @@ static char vdp1_draw_mesh_f[] =
 " else return vec4(0.0);\n"
 "}\n";
 
+static char vdp1_draw_improved_mesh_f[] =
+"vec4 getMeshedPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n"
+"{\n"
+" valid = true;\n"
+" vec4 ret = getColoredPixel(pixcmd, dp, P, valid);\n"
+" if (valid) {\n"
+"  ret.b = 1.0;\n"
+"  imageStore(outMeshSurface,P,ret);\n"
+"  }\n"
+" valid = false;\n"
+" return vec4(0.0);\n"
+"}\n";
+
 static char vdp1_draw_no_mesh_f[] =
 "vec4 getMeshedPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n"
 "{\n"
+" return getColoredPixel(pixcmd, dp, P, valid);\n"
+"}\n";
+
+static char vdp1_draw_no_mesh_improved_f[] =
+"vec4 getMeshedPixel(cmdparameter_struct pixcmd, float dp, ivec2 P, out bool valid)\n"
+"{\n"
+" imageStore(outMeshSurface,P,vec4(0.0));\n"
 " return getColoredPixel(pixcmd, dp, P, valid);\n"
 "}\n";
 

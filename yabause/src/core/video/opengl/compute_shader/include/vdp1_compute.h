@@ -65,6 +65,7 @@ extern void vdp1_setup(void);
 
 extern void vdp1_compute_reset(void);
 extern void vdp1_update_banding(void);
+extern void vdp1_update_mesh(void);
 
 #ifdef __cplusplus
 }
