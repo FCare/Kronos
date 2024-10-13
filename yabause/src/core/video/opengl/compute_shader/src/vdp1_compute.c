@@ -1358,7 +1358,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 			case QUAD_POLY:
 				  if ((abs(cmd->CMDXA - cmd->CMDXB) <= ((2*_Ygl->rwidth)/3)) && (abs(cmd->CMDYA - cmd->CMDYD) <= ((_Ygl->rheight)/2)))
 					cmd->type = POLYLINE;
-					cmd->CMDCOLR = 0xACE1;
 			break;
 			default:
 				break;
