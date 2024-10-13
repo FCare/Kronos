@@ -582,7 +582,7 @@ static const char vdp1_draw_line_no_end_f[] =
 " ivec2 delta = a.xy*upscale;\n"
 " P1.x = P1.x+delta.x;\n"
 " int veclong = P1.x-P0.x;\n"
-" if (gl_GlobalInvocationID.y > abs(veclong)) return;\n"
+" if (gl_GlobalInvocationID.y >= abs(veclong)) return;\n"
 " ivec2 greedyOffset = int((orientation == 0.0)^^(a.x == a.y))*ivec2(a.x, -a.y);\n"
 "	if (a.x != a.y) vector.x = -vector.x;\n"
 " int columns = int(gl_GlobalInvocationID.y);\n"

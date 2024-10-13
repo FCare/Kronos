@@ -1036,7 +1036,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 			}
 		}
 	}
-	drawPolygonLine(cmd_pol, i, nbPmax,cmd->type);
+	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio,cmd->type);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -1235,7 +1235,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 			}
 		}
 	}
-	drawPolygonLine(cmd_pol, i, nbPmax, cmd->type);
+	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio, cmd->type);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
