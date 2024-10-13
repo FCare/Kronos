@@ -36,6 +36,12 @@ extern vdp2rotationparameter_struct  Vdp1ParaA;
 static int local_size_x = 8;
 static int local_size_y = 8;
 
+#define USE_PER_POINT 1
+#if USE_PER_POINT
+#define NO_END_MAIN vdp1_draw_line_no_end_f
+#else
+#define NO_END_MAIN vdp1_draw_line_f
+#endif
 
 static int tex_width;
 static int tex_height;
@@ -390,7 +396,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_REPLACE_NO_MESH_NO_END
 	{
@@ -398,7 +404,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_replace_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_SHADOW_NO_MESH_NO_END
 	{
@@ -406,7 +412,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_HALF_LUMINANCE_NO_MESH_NO_END
 	{
@@ -414,7 +420,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
@@ -422,7 +428,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_GOURAUD_NO_MESH_NO_END
 	{
@@ -430,7 +436,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_UNSUPPORTED_NO_MESH_NO_END
 	{
@@ -446,7 +452,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
@@ -454,7 +460,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_MSB_SHADOW_NO_MESH_NO_END
 	{
@@ -462,7 +468,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_REPLACE_NO_MESH_NO_END
 	{
@@ -470,7 +476,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_replace_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_SHADOW_NO_MESH_NO_END
 	{
@@ -478,7 +484,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_HALF_LUMINANCE_NO_MESH_NO_END
 	{
@@ -486,7 +492,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
@@ -494,7 +500,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_GOURAUD_NO_MESH_NO_END
 	{
@@ -502,7 +508,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_UNSUPPORTED_NO_MESH_NO_END
 	{
@@ -518,7 +524,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
@@ -526,7 +532,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_no_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_MSB_SHADOW_MESH_NO_END
 	{
@@ -534,7 +540,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_REPLACE_MESH_NO_END
 	{
@@ -542,7 +548,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_replace_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_SHADOW_MESH_NO_END
 	{
@@ -550,7 +556,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_HALF_LUMINANCE_MESH_NO_END
 	{
@@ -558,7 +564,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_HALF_TRANSPARENT_MESH_NO_END
 	{
@@ -566,7 +572,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_GOURAUD_MESH_NO_END
 	{
@@ -574,7 +580,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_UNSUPPORTED_NO_MESH_NO_END
 	{
@@ -590,7 +596,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH_NO_END
 	{
@@ -598,7 +604,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_MSB_SHADOW_MESH_NO_END
 	{
@@ -606,7 +612,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_REPLACE_MESH_NO_END
 	{
@@ -614,7 +620,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_replace_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_SHADOW_MESH_NO_END
 	{
@@ -622,7 +628,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_HALF_LUMINANCE_MESH_NO_END
 	{
@@ -630,7 +636,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_HALF_TRANSPARENT_MESH_NO_END
 	{
@@ -638,7 +644,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_GOURAUD_MESH_NO_END
 	{
@@ -646,7 +652,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_UNSUPPORTED_MESH_NO_END
 	{
@@ -662,7 +668,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	},
 	// DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH_NO_END
 	{
@@ -670,7 +676,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		NO_END_MAIN
 	}
 };
 
@@ -1686,7 +1692,11 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type) 
 	if (progId == DRAW_QUAD_UNSUPPORTED_MESH) return;
 	if (progId == DRAW_QUAD_UNSUPPORTED_NO_MESH) return;
 
-	if (progId < DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END) nbPointsMax = 1;
+#if USE_PER_POINT
+	if (progId < DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END)
+#endif
+		nbPointsMax = 1;
+
 
 	if (prg_vdp1[progId] == 0) {
 		prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
