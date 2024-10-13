@@ -1451,6 +1451,16 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYB = 129;
 		// cmd->CMDYC = 129;
 		// cmd->CMDYD = 129;
+		// DOOM patch
+		// cmd->CMDCTRL &= ~0xF;
+		// cmd->CMDXA = 69;
+		// cmd->CMDXB = 69;
+		// cmd->CMDXC = 69;
+		// cmd->CMDXD = 69;
+		// cmd->CMDYA = 63;
+		// cmd->CMDYB = 121;
+		// cmd->CMDYC = 121;
+		// cmd->CMDYD = 63;
 
 		//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
 		// drawLine(cmd);
