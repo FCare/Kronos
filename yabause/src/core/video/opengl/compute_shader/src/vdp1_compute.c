@@ -1365,6 +1365,7 @@ void startVdp1Render() {
 
 static void flushVdp1Render(int nbWork) {
 	if (nbWork>0) {
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		glDispatchCompute(nbWork, 1, 1); //might be better to launch only the right number of workgroup
 	}
 }
