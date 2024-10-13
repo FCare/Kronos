@@ -209,7 +209,6 @@ u16 FASTCALL Vdp1FrameBuffer16bReadWord(SH2_struct *context, u8* mem, u32 addr) 
 //////////////////////////////////////////////////////////////////////////////
 
 u32 FASTCALL Vdp1FrameBuffer16bReadLong(SH2_struct *context, u8* mem, u32 addr) {
-  printf("FB R L @%x\n", addr);
    addr &= 0x3FFFF;
    //Bad limitation, FB shall be different size depending mode
    u32 pixIdx = addr>>1;
@@ -308,7 +307,6 @@ u16 FASTCALL Vdp1FrameBuffer8bReadWord(SH2_struct *context, u8* mem, u32 addr) {
 //////////////////////////////////////////////////////////////////////////////
 
 u32 FASTCALL Vdp1FrameBuffer8bReadLong(SH2_struct *context, u8* mem, u32 addr) {
-  printf("FB R L @%x\n", addr);
    addr &= 0x3FFFF;
    //Bad limitation, FB shall be different size depending mode
    u32 pixIdx = addr;
