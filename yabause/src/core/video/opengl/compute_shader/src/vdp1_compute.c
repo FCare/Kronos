@@ -1249,8 +1249,11 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 
 int isPoint(vdp1cmd_struct* cmd) {
 	return (cmd->CMDXA == cmd->CMDXB) &&
-		 (cmd->CMDXC == cmd->CMDXD) &&
-		 (cmd->CMDXA == cmd->CMDXC);
+		(cmd->CMDXC == cmd->CMDXD) &&
+		(cmd->CMDXA == cmd->CMDXC) &&
+		(cmd->CMDYA == cmd->CMDYB) &&
+		(cmd->CMDYC == cmd->CMDYD) &&
+		(cmd->CMDYA == cmd->CMDYC);
 }
 
 int colinear(point a, point b) {
