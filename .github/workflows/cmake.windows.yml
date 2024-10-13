@@ -5,6 +5,7 @@ on:
     branches: [ kronos-cmake_ci ]
   pull_request:
     branches: [ kronos-cmake_ci ]
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -21,6 +22,19 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '6.5.2'
+    - name: Download SDL2
+      uses: iamazy/download-action@main
+      with:
+        url: ''
+    - name: Install SDL2
+      run: |
+          Invoke-WebRequest -OutFile SDL2/SDL2.zip -Uri https://github.com/libsdl-org/SDL/releases/download/release-2.30.8/SDL2-2.30.8-win32-x64.zip
+          cd SDL2
+          Expand-Archive -Force SDL2.zip .\
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
@@ -32,7 +46,7 @@ jobs:
 
     #- name: Test
       #working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.  
+      # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       #run: ctest -C ${{env.BUILD_TYPE}}
-      
+
