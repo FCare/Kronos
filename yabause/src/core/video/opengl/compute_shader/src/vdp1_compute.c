@@ -42,7 +42,7 @@ static int tex_height;
 static int tex_ratio;
 static int struct_size;
 static int struct_line_size;
-void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type);
+void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type);
 
 static int work_groups_x;
 static int work_groups_y;
@@ -382,6 +382,295 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
 		vdp1_draw_line_f
+	},
+	//Same without end bit detection
+	// DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_REPLACE_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_SHADOW_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_HALF_LUMINANCE_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_HALF_TRANSPARENT_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_GOURAUD_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_UNSUPPORTED_NO_MESH_NO_END
+	{
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	},
+	// DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_MSB_SHADOW_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_REPLACE_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_SHADOW_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_HALF_LUMINANCE_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_HALF_TRANSPARENT_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_GOURAUD_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_UNSUPPORTED_NO_MESH_NO_END
+	{
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	},
+	// DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_no_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_MSB_SHADOW_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_REPLACE_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_SHADOW_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_HALF_LUMINANCE_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_HALF_TRANSPARENT_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_GOURAUD_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_UNSUPPORTED_NO_MESH_NO_END
+	{
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	},
+	// DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_non_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_MSB_SHADOW_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_msb_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_REPLACE_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_replace_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_SHADOW_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_shadow_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_HALF_LUMINANCE_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_HALF_TRANSPARENT_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_GOURAUD_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_UNSUPPORTED_MESH_NO_END
+	{
+		NULL,
+		NULL,
+		NULL,
+		NULL,
+		NULL
+	},
+	// DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_luminance_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
+	},
+	// DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH_NO_END
+	{
+		vdp1_draw_line_start_f,
+		vdp1_get_textured_f,
+		vdp1_get_pixel_gouraud_half_transparent_f,
+		vdp1_draw_mesh_f,
+		vdp1_draw_line_no_end_f
 	}
 };
 
@@ -678,6 +967,7 @@ static int computeLinePoints(int x1, int y1, int x2, int y2, point **data, int u
 static void drawQuad(vdp1cmd_struct* cmd) {
 	point *dataL, *dataR;
 	// printf("Quad\n");
+	int nbPmax = 0;
 	int li = computeSmoothedLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
 	int ri = computeSmoothedLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
 	int nbCmd = MAX(li,ri);
@@ -704,6 +994,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio),
 				.flip = cmd->flip,
 			};
+			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 			// printf("P %d,%d => %d,%d\n",
 			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
@@ -732,6 +1023,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio),
 				.flip = cmd->flip,
 			};
+			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 			// printf("P %d,%d => %d,%d\n",
 			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
@@ -744,7 +1036,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 			}
 		}
 	}
-	drawPolygonLine(cmd_pol, i, cmd->type);
+	drawPolygonLine(cmd_pol, i, nbPmax,cmd->type);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -769,7 +1061,7 @@ void drawPoint(vdp1cmd_struct* cmd) {
 		};
 		memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, cmd->type);
+	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, cmd->type);
 	free(cmd_pol);
 }
 void drawLine(vdp1cmd_struct* cmd, point A, point B) {
@@ -813,7 +1105,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 		}
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, cmd->type);
+	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type);
 	free(cmd_pol);
 }
 
@@ -863,7 +1155,7 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 		}
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, cmd->type);
+	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio, cmd->type);
 	free(cmd_pol);
 }
 
@@ -872,6 +1164,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 	//It is globally a line, with one of the point out of the line
 	// Draw as original size and duplicates lines
 	point *dataL, *dataR;
+	int nbPmax = 0;
 	int li = computeLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
 	int ri = computeLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
 	// printf("Half Line %d %d\n", li, ri);
@@ -904,6 +1197,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
 			// );
+			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 			if (abs(a) >= abs(li)) {
 				a -= li;
@@ -932,6 +1226,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
 			// );
+			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 
 			if (abs(a) >= abs(ri)) {
@@ -940,7 +1235,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 			}
 		}
 	}
-	drawPolygonLine(cmd_pol, i, cmd->type);
+	drawPolygonLine(cmd_pol, i, nbPmax, cmd->type);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -1318,6 +1613,11 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 
 	if (cmd_pol->CMDPMOD & 0x0100)
 		delta += DRAW_POLY_MSB_SHADOW_MESH - DRAW_POLY_MSB_SHADOW_NO_MESH;
+	if ((cmd_pol->CMDPMOD & 0x80)!=0) {
+		//It shoould take care of HSS bit too and upscale or shrink
+		delta += DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END - DRAW_POLY_MSB_SHADOW_NO_MESH;
+	}
+
 
 	return progId+delta;
 }
@@ -1363,10 +1663,10 @@ void startVdp1Render() {
 	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);
 }
 
-static void flushVdp1Render(int nbWork) {
+static void flushVdp1Render(int nbWork, int nbPoints) {
 	if (nbWork>0) {
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-		glDispatchCompute(nbWork, 1, 1); //might be better to launch only the right number of workgroup
+		glDispatchCompute(nbWork, nbPoints, 1); //might be better to launch only the right number of workgroup
 	}
 }
 
@@ -1378,13 +1678,15 @@ void endVdp1Render() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
+void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type) {
 	int progId = getProgramLine(&cmd_pol[0], type);
 	// trace_prog(progId);
 	if (progId == DRAW_POLY_UNSUPPORTED_MESH) return;
 	if (progId == DRAW_POLY_UNSUPPORTED_NO_MESH) return;
 	if (progId == DRAW_QUAD_UNSUPPORTED_MESH) return;
 	if (progId == DRAW_QUAD_UNSUPPORTED_NO_MESH) return;
+
+	if (progId < DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END) nbPointsMax = 1;
 
 	if (prg_vdp1[progId] == 0) {
 		prg_vdp1[progId] = createProgram(sizeof(a_prg_vdp1[progId]) / sizeof(char*), (const GLchar**)a_prg_vdp1[progId]);
@@ -1408,7 +1710,7 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, u32 type) {
 		// if ((buffer_pos + nbUpload) >= NB_LINE_MAX_PER_DRAW) flushVdp1Render();
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbUpload*sizeof(cmd_poly), (void*)&cmd_pol[i]);
-		flushVdp1Render(nbUpload);
+		flushVdp1Render(nbUpload, nbPointsMax);
 	}
 
 	// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
