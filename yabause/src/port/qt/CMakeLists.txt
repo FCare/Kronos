@@ -221,6 +221,7 @@ yab_port_success(kronos-qt)
 configure_file(kronos.desktop.in ${YAB_PORT_NAME}.desktop)
 
 if (WIN32)
+	set(QT_BINARY_DIR ${Qt5_Dir}\bin)
 	install(TARGETS kronos-qt DESTINATION "install")
 	if (SDL_FOUND)
 		get_filename_component(SDL_BINARY_DIR ${SDL_LIBRARY} PATH)
