@@ -48,11 +48,28 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}}
+      run: |
+        echo "Compiling"
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package
 
     #- name: Test
       #working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.  
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       #run: ctest -C ${{env.BUILD_TYPE}}
+    - name: Rename kronos package
+      id: rename
+      shell: bash
+      run: |
+        SHORT_SHA=$(echo ${{ github.sha }} | cut -c 1-7)
+        NAME=$(find build/ -maxdepth 1 -iname "kronos-*.exe")
+        mv $NAME kronos-win64-$SHORT_SHA.exe
+        echo "ReleaseFile=kronos-win64-$SHORT_SHA.exe" >> "$GITHUB_ENV"
+      env:
+        ReleaseFile: kronos-win64-$SHORT_SHA.exe
+    - name: Binary upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: kronos binaries
+        path: ${{env.ReleaseFile}}
       
