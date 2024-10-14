@@ -35,28 +35,6 @@ if (WIN32)
 		set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
 		set(CPACK_PACKAGE_INSTALL_REGISTRY_KEY "${CPACK_PACKAGE_NAME}${CPACK_PACKAGE_VERSION} (Win64)")
 	endif ()
-	 include(InstallRequiredSystemLibraries)
-    find_program(WINDEPLOYQT_EXECUTABLE windeployqt HINTS "${_qt_bin_dir}")
-
-    add_custom_command(TARGET kronos POST_BUILD
-                       COMMAND "${CMAKE_COMMAND}" -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/qtDeploy/"
-                       COMMAND "${CMAKE_COMMAND}" -E
-                               env PATH="${_qt_bin_dir}" "${WINDEPLOYQT_EXECUTABLE}"
-                               --verbose 0
-                               --no-compiler-runtime
-                               --no-angle
-                               --no-webkit2
-                               --no-quick-import
-                               --no-translations
-                               --dir "${CMAKE_CURRENT_BINARY_DIR}/qtDeploy/" $<TARGET_FILE:kronos>
-                       COMMENT "Deploying Qt..."
-    )
-
-    install(
-        DIRECTORY "${CMAKE_BINARY_DIR}/qtDeploy/"
-        DESTINATION .
-    )
-    set(CPACK_GENERATOR "ZIP;NSIS")
 endif ()
 
 include(CPack)
