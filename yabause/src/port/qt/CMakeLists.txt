@@ -7,36 +7,14 @@ option(YAB_USE_QT5 "Use Qt 5 if available." ON)
 option(YAB_USE_QT5_SPECIFIC "Use dedicated QT setup" OFF)
 
 if(YAB_USE_QT5)
-  SET(OLD_CMAKE_PREFIX_PATH ${CMAKE_PREFIX_PATH})
-  if(YAB_USE_QT5_SPECIFIC)
-    SET(CMAKE_PREFIX_PATH C:/Qt/Qt5.12.12/5.12.12/msvc2017_64/lib/cmake/Qt5)
-  endif()
   find_package(Qt5 COMPONENTS Widgets QUIET)
-  find_package(Qt5 COMPONENTS Multimedia REQUIRED QUIET)
   find_package(Qt5 COMPONENTS OpenGL REQUIRED QUIET)
-  if (WIN32)
-    find_package(Qt5Core)
-  endif()
-  if( YAB_WANT_OPENGL )
-    find_package(Qt5OpenGL)
-  endif()
-  include_directories(${Qt5Widgets_INCLUDE_DIRS})
-  add_definitions(${Qt5Widgets_DEFINITIONS})
-  SET(CMAKE_PREFIX_PATH ${OLD_CMAKE_PREFIX_PATH})
+  find_package(Qt5 COMPONENTS Multimedia REQUIRED QUIET)
+  add_definitions(-DHAVE_QT_MULTIMEDIA=1)
 endif()
 
 if(Qt5_FOUND)
     message(STATUS "Qt5 Found")
-
-    add_definitions(-DHAVE_QT_MULTIMEDIA=1)
-
-    # Since Qt5's cmake script doesn't set it, we will have to
-    SET(QT_BINARY_DIR "${_qt5Core_install_prefix}/bin")
-    if (MSYS2_BUILD)
-        SET(QT_PLUGINS_DIR "${_qt5Core_install_prefix}/share/qt5/plugins")
-    else()
-        SET(QT_PLUGINS_DIR "${_qt5Core_install_prefix}/plugins")
-    endif()
 
 else()
 	message(STATUS "NO Qt5_FOUND")
@@ -208,6 +186,9 @@ add_executable( kronos-qt WIN32
 	${kronos_qt_MOC_SOURCES} )
 
 if (Qt5_FOUND)
+target_link_libraries(kronos-qt Qt5::OpenGL)
+target_link_libraries(kronos-qt Qt5::Widgets)
+target_link_libraries(kronos-qt Qt5::Multimedia)
 include_directories(
 	.
 	${CMAKE_CURRENT_BINARY_DIR}
