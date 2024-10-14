@@ -222,10 +222,45 @@ configure_file(kronos.desktop.in ${YAB_PORT_NAME}.desktop)
 
 if (WIN32)
 	install(TARGETS kronos-qt DESTINATION ".")
-	
+	if (SDL_FOUND)
+		get_filename_component(SDL_BINARY_DIR ${SDL_LIBRARY} PATH)
+		install(DIRECTORY ${SDL_BINARY_DIR}/
+			DESTINATION "."
+			FILES_MATCHING PATTERN "SDL.dll")
+	endif ()
+	if (SDL2_FOUND)
+		if (NOT MSYS2_BUILD)
+			get_filename_component(SDL2_BINARY_DIR ${SDL2_LIBRARY} PATH)
+			install(DIRECTORY ${SDL2_BINARY_DIR}/
+				DESTINATION "."
+				FILES_MATCHING PATTERN "SDL2.dll")
+		else ()
+			install(FILES ${QT_BINARY_DIR}/SDL2.dll DESTINATION ".")
+		endif ()
+	endif ()
+
 	include(InstallRequiredSystemLibraries)
-    include(BundleUtilities)
-    fixup_bundle(kronos-qt)
+
+
+#	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../AUTHORS    DESTINATION "." RENAME AUTHORS.txt)
+#	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../ChangeLog  DESTINATION "." RENAME ChangeLog.txt)
+#	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../COPYING    DESTINATION "." RENAME COPYING.txt)
+#	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../README     DESTINATION "." RENAME README.txt)
+#	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../README.WIN DESTINATION "." RENAME README.WIN.txt)
+
+	if (MINGW)
+		get_filename_component( Mingw_Path ${CMAKE_CXX_COMPILER} PATH )
+		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64" OR "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "AMD64")
+			install(DIRECTORY ${Mingw_Path}/
+				DESTINATION "."
+				FILES_MATCHING PATTERN "libgcc_s_*.dll" PATTERN "libstdc++-*.dll" PATTERN "libwinpthread-*.dll")
+		else()
+			install(DIRECTORY ${Mingw_Path}/
+				DESTINATION "."
+				FILES_MATCHING PATTERN "libgcc_s_*.dll" PATTERN "mingwm10.dll")
+		endif()
+	endif ()
+
   if (MSVC)
     set (CMAKE_EXE_LINKER_FLAGS /SAFESEH:NO )
   endif (MSVC)
