@@ -226,17 +226,17 @@ if (WIN32)
 	if (SDL_FOUND)
 		get_filename_component(SDL_BINARY_DIR ${SDL_LIBRARY} PATH)
 		install(DIRECTORY ${SDL_BINARY_DIR}/
-			DESTINATION "lib"
+			DESTINATION "."
 			FILES_MATCHING PATTERN "SDL.dll")
 	endif ()
 	if (SDL2_FOUND)
 		if (NOT MSYS2_BUILD)
 			get_filename_component(SDL2_BINARY_DIR ${SDL2_LIBRARY} PATH)
 			install(DIRECTORY ${SDL2_BINARY_DIR}/
-				DESTINATION "lib"
+				DESTINATION "."
 				FILES_MATCHING PATTERN "SDL2.dll")
 		else ()
-			install(FILES ${QT_BINARY_DIR}/SDL2.dll DESTINATION "lib")
+			install(FILES ${QT_BINARY_DIR}/SDL2.dll DESTINATION ".")
 		endif ()
 	endif ()
 	if(Qt5_FOUND)
@@ -273,7 +273,7 @@ if (WIN32)
     install(
         DIRECTORY
         "${CMAKE_CURRENT_BINARY_DIR}/windeployqt/"
-        DESTINATION "lib"
+        DESTINATION "."
     )
     endif()
 
