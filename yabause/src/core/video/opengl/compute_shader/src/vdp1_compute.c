@@ -1071,8 +1071,8 @@ void drawPoint(vdp1cmd_struct* cmd) {
 	free(cmd_pol);
 }
 void drawLine(vdp1cmd_struct* cmd, point A, point B) {
-	int dx = B.x - A.x;
-	int dy = B.y - A.y;
+	int dx = abs(B.x - A.x);
+	int dy = abs(B.y - A.y);
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
 	if (dx >= dy) {
 		for (int i = 0; i< tex_ratio; i++) {
@@ -1366,6 +1366,17 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 				break;
 		}
 	}
+	// if (clipcmd == 0) {
+	// 	cmd->type = POLYLINE;
+	// 	cmd->CMDXA = 10;
+	// 	cmd->CMDXB = 90;
+	// 	cmd->CMDXC = 90;
+	// 	cmd->CMDXD = 10;
+	// 	cmd->CMDYA = 29;
+	// 	cmd->CMDYB = 29;
+	// 	cmd->CMDYC = 9;
+	// 	cmd->CMDYD = 9;
+	// }
 
 	if ((cmd->type == POLYGON)||(cmd->type == DISTORTED)||(cmd->type == QUAD)) {
 		//POINT
@@ -1487,7 +1498,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	}
 
 	if (cmd->type == POLYLINE) {
-		// drawPolyLine(cmd);
 		drawLine(cmd, (point){.x=cmd->CMDXA, .y=cmd->CMDYA}, (point){.x=cmd->CMDXB, .y=cmd->CMDYB});
 		drawLine(cmd, (point){.x=cmd->CMDXB, .y=cmd->CMDYB}, (point){.x=cmd->CMDXC, .y=cmd->CMDYC});
 		drawLine(cmd, (point){.x=cmd->CMDXC, .y=cmd->CMDYC}, (point){.x=cmd->CMDXD, .y=cmd->CMDYD});
