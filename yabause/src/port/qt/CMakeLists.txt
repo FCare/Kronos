@@ -240,10 +240,42 @@ if (WIN32)
 		endif ()
 	endif ()
 	if(Qt5_FOUND)
-    find_program(WINDEPLOYQT windeployqt HINTS "${_qt_bin_dir}")
-    configure_file("${CMAKE_CURRENT_SOURCE_DIR}/deploy-qt-windows.cmake.in" "${CMAKE_CURRENT_SOURCE_DIR}/deploy-qt-windows.cmake" @ONLY)
-    set(CPACK_PRE_BUILD_SCRIPTS ${CMAKE_CURRENT_SOURCE_DIR}/deploy-qt-windows.cmake)
+    get_target_property(_qt5_qmake_location Qt5::qmake IMPORTED_LOCATION)
+
+    execute_process(
+        COMMAND "${_qt5_qmake_location}" -query QT_INSTALL_PREFIX
+        RESULT_VARIABLE return_code
+        OUTPUT_VARIABLE qt5_install_prefix
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    set(imported_location "${qt5_install_prefix}/bin/windeployqt.exe")
+
+    if(EXISTS ${imported_location})
+        add_executable(Qt5::windeployqt IMPORTED)
+
+        set_target_properties(Qt5::windeployqt PROPERTIES
+            IMPORTED_LOCATION ${imported_location}
+        )
+    endif()
 	endif()
+
+  if(TARGET Qt5::windeployqt)
+    # execute windeployqt in a tmp directory after build
+    add_custom_command(TARGET kronos-qt
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E remove_directory "${CMAKE_CURRENT_BINARY_DIR}/windeployqt"
+        COMMAND set PATH=%PATH%$<SEMICOLON>${qt5_install_prefix}/bin
+        COMMAND Qt5::windeployqt --dir "${CMAKE_CURRENT_BINARY_DIR}/windeployqt" "$<TARGET_FILE_DIR:kronos-qt>/$<TARGET_FILE_NAME:kronos-qt>"
+    )
+
+    # copy deployment directory during installation
+    install(
+        DIRECTORY
+        "${CMAKE_CURRENT_BINARY_DIR}/windeployqt/"
+        DESTINATION "install"
+    )
+    endif()
 
 #	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../AUTHORS    DESTINATION "install" RENAME AUTHORS.txt)
 #	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../../ChangeLog  DESTINATION "install" RENAME ChangeLog.txt)
