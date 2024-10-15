@@ -1646,7 +1646,6 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 		delta += DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END - DRAW_POLY_MSB_SHADOW_NO_MESH;
 	}
 
-
 	return progId+delta;
 }
 
