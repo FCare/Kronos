@@ -904,12 +904,12 @@ static int Vdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs){
   cmd->CMDXA += regs->localX;
   cmd->CMDYA += regs->localY;
 
-  cmd->CMDXB = cmd->CMDXA + MAX(1,cmd->w-1);
+  cmd->CMDXB = cmd->CMDXA + MAX(1,cmd->w)-1;
   cmd->CMDYB = cmd->CMDYA;
-  cmd->CMDXC = cmd->CMDXA + MAX(1,cmd->w-1);
-  cmd->CMDYC = cmd->CMDYA + MAX(1,cmd->h-1);
+  cmd->CMDXC = cmd->CMDXA + MAX(1,cmd->w)-1;
+  cmd->CMDYC = cmd->CMDYA + MAX(1,cmd->h)-1;
   cmd->CMDXD = cmd->CMDXA;
-  cmd->CMDYD = cmd->CMDYA + MAX(1,cmd->h-1);
+  cmd->CMDYD = cmd->CMDYA + MAX(1,cmd->h)-1;
 
   yabsys.vdp1cycles+= getNormalCycles(cmd);
 
