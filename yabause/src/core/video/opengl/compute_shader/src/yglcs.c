@@ -260,7 +260,7 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
 #else
   //Libretro is taking care to the resize
   w = width;
-  h = _Ygl->height;
+  h = height;
   x = y = 0;
 #endif
    glViewport(0, 0, GlWidth, GlHeight);
@@ -428,8 +428,10 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
   srcTexture = _Ygl->original_fbotex[0];
 
    int scali = (int)(scale);
+#ifndef __LIBRETRO__
    glViewport(x, y, w, h);
    glScissor(x, y, w-scali, h-scali);
+#endif
    glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
    YglBlitFramebuffer(srcTexture, _Ygl->width, _Ygl->height, w, h);
 
