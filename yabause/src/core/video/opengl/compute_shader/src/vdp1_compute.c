@@ -36,7 +36,14 @@ extern vdp2rotationparameter_struct  Vdp1ParaA;
 static int local_size_x = 8;
 static int local_size_y = 8;
 
+//#define SEQUENTIAL_LINE
+
+#ifdef SEQUENTIAL_LINE
+#define USE_PER_POINT 0
+#else
 #define USE_PER_POINT 1
+#endif
+
 #if USE_PER_POINT
 #define NO_END_MAIN vdp1_draw_line_no_end_f
 #else
@@ -1688,8 +1695,19 @@ void startVdp1Render() {
 	glUniform2i(7, tex_ratio, tex_ratio);
 	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratio-1, (Vdp1Regs->systemclipY2+1)*tex_ratio-1);
 	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);
+	glUniform1i(10, 0);
+	glUniform1i(11, 0);
 }
 
+static void flushVdp1RenderSequential(int nbWork, int nbPoints) {
+	if (nbWork>0) {
+		for (int i=0; i<nbWork; i++) {
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+			glUniform1i(10, i);
+			glDispatchCompute(1, nbPoints, 1); //might be better to launch only the right number of workgroup
+		}
+	}
+}
 static void flushVdp1Render(int nbWork, int nbPoints) {
 	if (nbWork>0) {
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -1735,13 +1753,17 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type) 
 		vdp1Ram_update_end = 0x0;
 		Vdp1External.updateVdp1Ram = 0;
 	}
-
+	glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
 	for (int i = 0; i<nbLines; i+=NB_LINE_MAX_PER_DRAW) {
 		int nbUpload = MIN(NB_LINE_MAX_PER_DRAW,(nbLines - i));
 		// if ((buffer_pos + nbUpload) >= NB_LINE_MAX_PER_DRAW) flushVdp1Render();
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbUpload*sizeof(cmd_poly), (void*)&cmd_pol[i]);
-		flushVdp1Render(nbUpload, nbPointsMax);
+		#ifdef SEQUENTIAL_LINE
+		if (type == DISTORTED) flushVdp1RenderSequential(nbUpload, nbPointsMax);
+		else
+		#endif
+			flushVdp1Render(nbUpload, nbPointsMax);
 	}
 
 	// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
