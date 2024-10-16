@@ -1122,14 +1122,38 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 	free(cmd_pol);
 }
 
+int compareHorizontal(const void* a, const void* b) {
+    return (((point*)b)->x - ((point*)a)->x);
+}
+int compareVertical(const void* a, const void* b) {
+    return (((point*)b)->y - ((point*)a)->y);
+}
 
 void drawQuadAsLine(vdp1cmd_struct* cmd) {
-	int maxX = MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD)));
-	int minX = MIN(cmd->CMDXA, MIN(cmd->CMDXB, MIN(cmd->CMDXC, cmd->CMDXD)));
-	int maxY = MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)));
-	int minY = MIN(cmd->CMDYA, MIN(cmd->CMDYB, MIN(cmd->CMDYC, cmd->CMDYD)));
-	int dx = maxX - minX;
-	int dy = maxY - minY;
+	point list[4] = {
+		(point){
+			.x = cmd->CMDXA,
+			.y = cmd->CMDYA
+		},
+		(point){
+			.x = cmd->CMDXB,
+			.y = cmd->CMDYB
+		},
+		(point){
+			.x = cmd->CMDXC,
+			.y = cmd->CMDYC
+		},
+		(point){
+			.x = cmd->CMDXD,
+			.y = cmd->CMDYD
+		},
+	};
+
+	qsort(list, 4, sizeof(point), compareHorizontal);
+	if(list[0].x == list[3].x) qsort(list, 4, sizeof(point), compareVertical);
+
+	int dx = list[3].x - list[0].x;
+	int dy = list[3].y - list[0].y;
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
 	if (dx >= dy) {
 		for (int i = 0; i< tex_ratio; i++) {
@@ -1137,10 +1161,10 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDPMOD = cmd->CMDPMOD,
 				.CMDSRCA = cmd->CMDSRCA,
 				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = minX * tex_ratio,
-				.CMDYA = minY * tex_ratio + i,
-				.CMDXB = maxX * tex_ratio,
-				.CMDYB = maxY * tex_ratio + i,
+				.CMDXA = list[0].x * tex_ratio,
+				.CMDYA = list[0].y * tex_ratio + i,
+				.CMDXB = list[3].x * tex_ratio,
+				.CMDYB = list[3].y * tex_ratio + i,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
 				.dl = 0.0,
@@ -1155,10 +1179,10 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDPMOD = cmd->CMDPMOD,
 				.CMDSRCA = cmd->CMDSRCA,
 				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = minX * tex_ratio + i,
-				.CMDYA = minY * tex_ratio,
-				.CMDXB = maxX * tex_ratio + i,
-				.CMDYB = maxY * tex_ratio,
+				.CMDXA = list[0].x * tex_ratio + i,
+				.CMDYA = list[0].y * tex_ratio,
+				.CMDXB = list[3].x * tex_ratio + i,
+				.CMDYB = list[3].y * tex_ratio,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
 				.dl = 0.0,
