@@ -301,11 +301,8 @@ static const char vdp1_get_pixel_msb_shadow_f[] =
 "  uint testcolor = getColor(pixcmd, dp, valid);\n"
 "  vec4 oldcol = imageLoad(outSurface, P);\n"
 "  uint color = uint(oldcol.r*255.0) + (uint(oldcol.g*255.0)<<8);\n"
-"  uint Rht = ((color >> 00) & 0x1F)>>1;\n"
-"  uint Ght = ((color >> 05) & 0x1F)>>1;\n"
-"  uint Bht = ((color >> 10) & 0x1F)>>1;\n"
 "  uint MSBht = 0x8000;\n"
-"  color = MSBht | Rht | (Ght<<05) | (Bht<<10);\n"
+"  color = MSBht | color;\n"
 "  return VDP1COLOR(color);\n"
 "}\n";
 
