@@ -1123,10 +1123,10 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 }
 
 int compareHorizontal(const void* a, const void* b) {
-    return (((point*)b)->x - ((point*)a)->x);
+    return (((point*)b)->x >= ((point*)a)->x)?-1:1;
 }
 int compareVertical(const void* a, const void* b) {
-    return (((point*)b)->y - ((point*)a)->y);
+    return (((point*)b)->y >= ((point*)a)->y)?-1:1;
 }
 
 void drawQuadAsLine(vdp1cmd_struct* cmd) {
