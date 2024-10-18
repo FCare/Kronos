@@ -64,6 +64,7 @@ protected slots:
         void changeFilterMode(int id);
 				void changeVideoMode(int id);
         void changeUpscaleMode(int id);
+        void changeVdp1Mode(int id);
         void changeAspectRatio(int id);
 				void changeWireframe(int id);
 				void changeMeshMode(int id);

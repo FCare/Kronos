@@ -102,6 +102,10 @@ const Items mUpscaleFilterMode = Items()
 	<< Item("2", "4xBRZ")
 	<< Item("3", "6xBRZ");
 
+const Items mVdp1Mode = Items()
+	<< Item("0", "Performance")
+	<< Item("1", "Accuracy");
+
 const Items mPolygonGenerationMode = Items()
 	<< Item("0", "Triangles using perspective correction")
 	<< Item("1", "CPU Tesselation")
@@ -448,6 +452,10 @@ void UISettings::changeUpscaleMode(int id)
 {
     if (VIDCore != NULL) VIDCore->SetSettingValue(VDP_SETTING_UPSCALMODE, (mUpscaleFilterMode.at(id).id).toInt());
 }
+void UISettings::changeVdp1Mode(int id)
+{
+    if (VIDCore != NULL) VIDCore->SetSettingValue(VDP_SETTING_VDP1MODE, (mVdp1Mode.at(id).id).toInt());
+}
 
 void UISettings::changePolygonMode(int id)
 {
@@ -508,12 +516,6 @@ void UISettings::loadCores()
 	for ( int i = 0; CDCoreList[i] != NULL; i++ )
 		cbCdRom->addItem( QtYabause::translate( CDCoreList[i]->Name ), CDCoreList[i]->id );
 
-	// VDI Drivers
-	for ( int i = 0; VIDCoreList[i] != NULL; i++ )
-		cbVideoCore->addItem( QtYabause::translate( VIDCoreList[i]->Name ), VIDCoreList[i]->id );
-
-		connect(cbVideoCore, SIGNAL(currentIndexChanged(int)), this, SLOT(changeVideoMode(int)));
-
 #if YAB_PORT_OSD
 	// OSD Drivers
 	for ( int i = 0; OSDCoreList[i] != NULL; i++ )
@@ -528,6 +530,12 @@ void UISettings::loadCores()
 		cbFilterMode->addItem(QtYabause::translate(it.Name), it.id);
 
         connect(cbFilterMode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeFilterMode(int)));
+
+        //Upscale Mode
+        foreach(const Item& it, mVdp1Mode)
+				cbVdp1Mode->addItem(QtYabause::translate(it.Name), it.id);
+
+        connect(cbVdp1Mode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeVdp1Mode(int)));
 
         //Upscale Mode
         foreach(const Item& it, mUpscaleFilterMode)
@@ -719,20 +727,14 @@ void UISettings::loadSettings()
 	else
 		dteBaseTime->setDateTime( QDateTime(QDate(1998, 1, 1), QTime(12, 0, 0)) );
 
-	// video
-	if (s->value( "Video/VideoCore", QtYabause::defaultVIDCore().id ).toInt() != VIDCORE_CS) {
-		cbVideoCore->setCurrentIndex(cbVideoCore->findData(VIDCORE_CS));
-	} else {
-		cbVideoCore->setCurrentIndex( cbVideoCore->findData( s->value( "Video/VideoCore", QtYabause::defaultVIDCore().id ).toInt() ) );
-	}
-	changeVideoMode(cbVideoCore->currentIndex());
 #if YAB_PORT_OSD
 	cbOSDCore->setCurrentIndex( cbOSDCore->findData( s->value( "Video/OSDCore", QtYabause::defaultOSDCore().id ).toInt() ) );
 #endif
 	cbFullscreen->setChecked( s->value( "Video/Fullscreen", false ).toBool() );
 
 	cbFilterMode->setCurrentIndex(cbFilterMode->findData(s->value("Video/filter_type", mVideoFilterMode.at(0).id).toInt()));
-        cbUpscaleMode->setCurrentIndex(cbUpscaleMode->findData(s->value("Video/upscale_type", mUpscaleFilterMode.at(0).id).toInt()));
+  cbUpscaleMode->setCurrentIndex(cbUpscaleMode->findData(s->value("Video/upscale_type", mUpscaleFilterMode.at(0).id).toInt()));
+  cbVdp1Mode->setCurrentIndex(cbVdp1Mode->findData(s->value("Video/vdp1_perf", mVdp1Mode.at(0).id).toInt()));
 	cbPolygonGeneration->setCurrentIndex(cbPolygonGeneration->findData(s->value("Video/polygon_generation_mode", mPolygonGenerationMode.at(1).id).toInt()));
 	cbResolution->setCurrentIndex(cbResolution->findData(s->value("Video/resolution_mode", mResolutionMode.at(0).id).toInt()));
   cbAspectRatio->setCurrentIndex(cbAspectRatio->findData(s->value("Video/AspectRatio", mAspectRatio.at(0).id).toInt()));
@@ -832,7 +834,6 @@ void UISettings::saveSettings()
 	s->setValue( "autostart", cbAutostart->isChecked() );
 
 	// video
-	s->setValue( "Video/VideoCore", cbVideoCore->itemData( cbVideoCore->currentIndex() ).toInt() );
 #if YAB_PORT_OSD
 	s->setValue( "Video/OSDCore", cbOSDCore->itemData( cbOSDCore->currentIndex() ).toInt() );
 #endif
@@ -849,6 +850,7 @@ void UISettings::saveSettings()
 	s->setValue( "Video/Fullscreen", cbFullscreen->isChecked() );
 	s->setValue( "Video/filter_type", cbFilterMode->itemData(cbFilterMode->currentIndex()).toInt());
 	s->setValue( "Video/upscale_type", cbUpscaleMode->itemData(cbUpscaleMode->currentIndex()).toInt());
+	s->setValue( "Video/vdp1_perf", cbVdp1Mode->itemData(cbVdp1Mode->currentIndex()).toInt());
 	s->setValue( "Video/polygon_generation_mode", cbPolygonGeneration->itemData(cbPolygonGeneration->currentIndex()).toInt());
 	s->setValue("Video/resolution_mode", cbResolution->itemData(cbResolution->currentIndex()).toInt());
 

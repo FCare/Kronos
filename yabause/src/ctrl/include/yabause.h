@@ -61,6 +61,7 @@ typedef struct
    int skip_load;//skip loading in YabauseInit so tests can be run without a bios
    int video_filter_type;
    int video_upscale_type;
+   int vdp1_performance_mode;
    int polygon_generation_mode;
    int stretch;
    int meshmode;

@@ -374,8 +374,11 @@
          </property>
         </widget>
        </item>
-       <item row="0" column="0" colspan="3">
-        <widget class="QLabel" name="lVideoCore">
+       <item row="25" column="1">
+        <widget class="QComboBox" name="cbMeshModeFilter"/>
+       </item>
+       <item row="18" column="0">
+        <widget class="QLabel" name="Vdp1 Mode">
          <property name="font">
           <font>
            <weight>75</weight>
@@ -383,15 +386,18 @@
           </font>
          </property>
          <property name="text">
-          <string>Video Core</string>
+          <string>VDP1 Mode :</string>
          </property>
          <property name="textFormat">
           <enum>Qt::PlainText</enum>
          </property>
+         <property name="alignment">
+          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+         </property>
         </widget>
        </item>
-       <item row="25" column="1">
-        <widget class="QComboBox" name="cbMeshModeFilter"/>
+       <item row="18" column="1">
+        <widget class="QComboBox" name="cbVdp1Mode"/>
        </item>
        <item row="20" column="0">
         <widget class="QLabel" name="Embellishmentfilter">
@@ -430,9 +436,6 @@
           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
          </property>
         </widget>
-       </item>
-       <item row="1" column="0" colspan="3">
-        <widget class="QComboBox" name="cbVideoCore"/>
        </item>
        <item row="12" column="0">
         <widget class="QCheckBox" name="cbFullscreen">

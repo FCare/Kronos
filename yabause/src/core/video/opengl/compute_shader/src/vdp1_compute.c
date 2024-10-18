@@ -36,13 +36,7 @@ extern vdp2rotationparameter_struct  Vdp1ParaA;
 static int local_size_x = 8;
 static int local_size_y = 8;
 
-//#define SEQUENTIAL_LINE
-
-#ifdef SEQUENTIAL_LINE
-#define USE_PER_POINT 0
-#else
 #define USE_PER_POINT 1
-#endif
 
 #if USE_PER_POINT
 #define NO_END_MAIN vdp1_draw_line_no_end_f
@@ -55,7 +49,7 @@ static int tex_height;
 static int tex_ratio;
 static int struct_size;
 static int struct_line_size;
-void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type);
+void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, int overlap);
 
 static int work_groups_x;
 static int work_groups_y;
@@ -110,7 +104,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_MSB_SHADOW_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -126,7 +120,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_SHADOW_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -134,7 +128,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_HALF_LUMINANCE_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -142,7 +136,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_HALF_TRANSPARENT_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -166,7 +160,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -174,7 +168,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -182,7 +176,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_MSB_SHADOW_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -198,7 +192,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_SHADOW_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -206,7 +200,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_HALF_LUMINANCE_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -214,7 +208,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_HALF_TRANSPARENT_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -238,7 +232,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -246,7 +240,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -254,7 +248,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_MSB_SHADOW_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_mesh_f,
@@ -270,7 +264,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_SHADOW_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_mesh_f,
@@ -278,7 +272,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_HALF_LUMINANCE_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_mesh_f,
@@ -286,7 +280,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_HALF_TRANSPARENT_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_mesh_f,
@@ -310,7 +304,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_mesh_f,
@@ -318,7 +312,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
@@ -326,7 +320,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_MSB_SHADOW_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_mesh_f,
@@ -342,7 +336,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_SHADOW_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_mesh_f,
@@ -350,7 +344,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_HALF_LUMINANCE_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_mesh_f,
@@ -358,7 +352,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_HALF_TRANSPARENT_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_mesh_f,
@@ -382,24 +376,24 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
   // DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_f
+		vdp1_draw_line_no_end_f
 	},
   // DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_f
+		vdp1_draw_line_no_end_f
 	},
 	//Same without end bit detection
 	// DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -415,7 +409,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_SHADOW_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -423,7 +417,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_HALF_LUMINANCE_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -431,7 +425,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -455,7 +449,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -463,7 +457,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -471,7 +465,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_MSB_SHADOW_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -487,7 +481,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_SHADOW_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_no_mesh_f,
@@ -495,7 +489,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_HALF_LUMINANCE_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -503,7 +497,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -527,7 +521,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_no_mesh_f,
@@ -535,7 +529,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_no_mesh_f,
@@ -543,7 +537,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_MSB_SHADOW_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_mesh_f,
@@ -559,7 +553,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_SHADOW_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_mesh_f,
@@ -567,7 +561,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_HALF_LUMINANCE_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_mesh_f,
@@ -575,7 +569,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_HALF_TRANSPARENT_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_mesh_f,
@@ -599,7 +593,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_mesh_f,
@@ -607,7 +601,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_non_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
@@ -615,7 +609,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_MSB_SHADOW_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_msb_shadow_f,
 		vdp1_draw_mesh_f,
@@ -631,7 +625,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_SHADOW_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_shadow_f,
 		vdp1_draw_mesh_f,
@@ -639,7 +633,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_HALF_LUMINANCE_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_luminance_f,
 		vdp1_draw_mesh_f,
@@ -647,7 +641,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_HALF_TRANSPARENT_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_half_transparent_f,
 		vdp1_draw_mesh_f,
@@ -671,7 +665,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_mesh_f,
@@ -679,7 +673,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][5] = {
 	},
 	// DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH_NO_END
 	{
-		vdp1_draw_line_start_f,
+		vdp1_draw_line_start_f_rw,
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
@@ -1049,7 +1043,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 			}
 		}
 	}
-	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio,cmd->type);
+	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio,cmd->type, li!=ri);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -1074,7 +1068,7 @@ void drawPoint(vdp1cmd_struct* cmd) {
 		};
 		memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, cmd->type);
+	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, cmd->type,0);
 	free(cmd_pol);
 }
 void drawLine(vdp1cmd_struct* cmd, point A, point B) {
@@ -1118,7 +1112,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 		}
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type);
+	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type,0);
 	free(cmd_pol);
 }
 
@@ -1192,7 +1186,7 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
 		}
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio, cmd->type);
+	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio, cmd->type, 0);
 	free(cmd_pol);
 }
 
@@ -1272,7 +1266,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 			}
 		}
 	}
-	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio, cmd->type);
+	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio, cmd->type, 1);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -1712,7 +1706,10 @@ static int oldProg = -1;
 void startVdp1Render() {
 	if (oldProg == -1) return;
 	glUseProgram(prg_vdp1[oldProg]);
-	glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+	if (a_prg_vdp1[oldProg][0] == vdp1_draw_line_start_f_rw)
+		glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+	else
+		glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	if (_Ygl->meshmode == IMPROVED_MESH) glBindImageTexture(1, get_vdp1_mesh(_Ygl->drawframe), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_cmd_line_list_);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_vdp1ram_);
@@ -1726,15 +1723,17 @@ void startVdp1Render() {
 static void flushVdp1RenderSequential(int nbWork, int nbPoints) {
 	if (nbWork>0) {
 		for (int i=0; i<nbWork; i++) {
-			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 			glUniform1i(10, i);
 			glDispatchCompute(1, nbPoints, 1); //might be better to launch only the right number of workgroup
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		}
+		glUniform1i(10, 0);
 	}
 }
 static void flushVdp1Render(int nbWork, int nbPoints) {
 	if (nbWork>0) {
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		if (a_prg_vdp1[oldProg][0] == vdp1_draw_line_start_f_rw)
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		glDispatchCompute(nbWork, nbPoints, 1); //might be better to launch only the right number of workgroup
 	}
 }
@@ -1747,7 +1746,7 @@ void endVdp1Render() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type) {
+void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, int overlap) {
 	int progId = getProgramLine(&cmd_pol[0], type);
 	// trace_prog(progId);
 	if (progId == DRAW_POLY_UNSUPPORTED_MESH) return;
@@ -1783,11 +1782,11 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type) 
 		// if ((buffer_pos + nbUpload) >= NB_LINE_MAX_PER_DRAW) flushVdp1Render();
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, nbUpload*sizeof(cmd_poly), (void*)&cmd_pol[i]);
-		#ifdef SEQUENTIAL_LINE
-		if (type == DISTORTED) flushVdp1RenderSequential(nbUpload, nbPointsMax);
-		else
-		#endif
+		if ((type == DISTORTED)&&(overlap!=0)&&(_Ygl->vdp1PerfMode == ACCURACY)) {
+			flushVdp1RenderSequential(nbUpload, nbPointsMax);
+		} else {
 			flushVdp1Render(nbUpload, nbPointsMax);
+		}
 	}
 
 	// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
@@ -1875,6 +1874,9 @@ void vdp1_compute_init(int width, int height, float ratio)
 
 	length = sizeof(vdp1_draw_line_start_f_base) + 64;
 	snprintf(vdp1_draw_line_start_f,length,vdp1_draw_line_start_f_base,1,1);
+
+	length = sizeof(vdp1_draw_line_start_f_base_rw) + 64;
+	snprintf(vdp1_draw_line_start_f_rw,length,vdp1_draw_line_start_f_base_rw,1,1);
 
   int am = sizeof(vdp1cmd_struct) % 16;
   tex_width = width;

@@ -2321,6 +2321,9 @@ void updateBandingMode(BANDINGMODE value) {
 void VIDCSSetSettingValueMode(int type, int value) {
 
   switch (type) {
+  case VDP_SETTING_VDP1MODE:
+    _Ygl->vdp1PerfMode = (VDP1PERFMODE)value;
+    break;
   case VDP_SETTING_FILTERMODE:
     _Ygl->aamode = (AAMODE)value;
     if (value < AA_ADAPTATIVE_FILTER)
