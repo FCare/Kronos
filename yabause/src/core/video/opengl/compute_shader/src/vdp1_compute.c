@@ -1688,6 +1688,19 @@ void vdp1_update_banding(void) {
 	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
 	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
 	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+
+	a_prg_vdp1[DRAW_POLY_GOURAUD_NO_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_NO_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_f:vdp1_get_pixel_gouraud_extended_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_LUMINANCE_NO_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_LUMINANCE_NO_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_LUMINANCE_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_POLY_GOURAUD_HALF_TRANSPARENT_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_LUMINANCE_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
+	a_prg_vdp1[DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH_NO_END][2] = (_Ygl->bandingmode==ORIGINAL_BANDING)?vdp1_get_pixel_gouraud_half_luminance_f:vdp1_get_pixel_gouraud_extended_half_luminance_f;
 	vdp1_compute_reset();
 }
 
@@ -1696,6 +1709,12 @@ void vdp1_update_mesh(void) {
 		a_prg_vdp1[i][3] = (_Ygl->meshmode == IMPROVED_MESH)?vdp1_draw_no_mesh_improved_f:vdp1_draw_no_mesh_f;
 	}
 	for (int i=DRAW_POLY_MSB_SHADOW_MESH; i<=DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH; i++) {
+		a_prg_vdp1[i][3] = (_Ygl->meshmode == IMPROVED_MESH)?vdp1_draw_improved_mesh_f:vdp1_draw_mesh_f;
+	}
+	for (int i=DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END; i<=DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_NO_MESH_NO_END; i++) {
+		a_prg_vdp1[i][3] = (_Ygl->meshmode == IMPROVED_MESH)?vdp1_draw_no_mesh_improved_f:vdp1_draw_no_mesh_f;
+	}
+	for (int i=DRAW_POLY_MSB_SHADOW_MESH_NO_END; i<=DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH_NO_END; i++) {
 		a_prg_vdp1[i][3] = (_Ygl->meshmode == IMPROVED_MESH)?vdp1_draw_improved_mesh_f:vdp1_draw_mesh_f;
 	}
 	vdp1_compute_reset();
