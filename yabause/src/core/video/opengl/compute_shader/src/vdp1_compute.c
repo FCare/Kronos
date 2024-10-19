@@ -1418,14 +1418,6 @@ int ishalfLine(vdp1cmd_struct* cmd) {
 }
 
 int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
-	int minx = 1024;
-	int miny = 1024;
-	int maxx = 0;
-	int maxy = 0;
-
-	int intersectX = -1;
-	int intersectY = -1;
-	int requireCompute = 0;
 
 	if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
 		endVdp1Render();

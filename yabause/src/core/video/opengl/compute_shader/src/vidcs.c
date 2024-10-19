@@ -679,47 +679,6 @@ void waitVdp2DrawScreensEnd(int sync) {
   }
 }
 
-void addCSCommands(vdp1cmd_struct* cmd, int type)
-{
-  //Test game: Sega rally : The aileron at the start
-  int ADx = (cmd->CMDXD - cmd->CMDXA);
-  int ADy = (cmd->CMDYD - cmd->CMDYA);
-  int BCx = (cmd->CMDXC - cmd->CMDXB);
-  int BCy = (cmd->CMDYC - cmd->CMDYB);
-
-  int nbStepAD = sqrt(ADx*ADx + ADy*ADy);
-  int nbStepBC = sqrt(BCx*BCx + BCy*BCy);
-
-  int nbStep = MAX(nbStepAD, nbStepBC);
-
-  cmd->type = type;
-
-  cmd->nbStep = nbStep;
-  if(cmd->nbStep  != 0) {
-    // Ici faut voir encore les Ax doivent faire un de plus.
-    cmd->uAstepx = (float)ADx/(float)nbStep;
-    cmd->uAstepy = (float)ADy/(float)nbStep;
-    cmd->uBstepx = (float)BCx/(float)nbStep;
-    cmd->uBstepy = (float)BCy/(float)nbStep;
-  } else {
-    cmd->uAstepx = 0.0;
-    cmd->uAstepy = 0.0;
-    cmd->uBstepx = 0.0;
-    cmd->uBstepy = 0.0;
-  }
-#ifdef DEBUG_VDP1_CMD
-  YuiMsg("Add Distorted\n");
-  YuiMsg("\t[%d,%d]\n", cmd->CMDXA, cmd->CMDYA);
-  YuiMsg("\t[%d,%d]\n", cmd->CMDXB, cmd->CMDYB);
-  YuiMsg("\t[%d,%d]\n", cmd->CMDXC, cmd->CMDYC);
-  YuiMsg("\t[%d,%d]\n", cmd->CMDXD, cmd->CMDYD);
-  YuiMsg("\n\n");
-  YuiMsg("=> %d (%d %d %d %d => %d %d) %f %f %f %f\n", cmd->nbStep, ADx, ADy, BCx, BCy, nbStepAD, nbStepBC, cmd->uAstepx, cmd->uAstepy, cmd->uBstepx, cmd->uBstepy);
-  YuiMsg("==============\n");
-#endif
-  vdp1_add(cmd,0);
-}
-
 //////////////////////////////////////////////////////////////////////////////
 void VIDCSVdp1Draw()
 {
@@ -796,7 +755,8 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   }
 
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
-  addCSCommands(cmd,DISTORTED);
+  cmd->type = DISTORTED;
+  vdp1_add(cmd,0);
 
   return;
 }
@@ -806,22 +766,8 @@ void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
   // cmd->type = POLYGON;
   cmd->COLOR[0] = Vdp1ReadPolygonColor(cmd,&Vdp2Lines[0]);
-
-
-  if (getBestMode(cmd) == DISTORTED) {
-    addCSCommands(cmd,POLYGON);
-  } else {
-    if (cmd->CMDXA <= cmd->CMDXB) cmd->CMDXB += 1;
-    else cmd->CMDXB -= 1;
-    if (cmd->CMDXD <= cmd->CMDXC) cmd->CMDXC += 1;
-    else cmd->CMDXC -= 1;
-    if (cmd->CMDYB <= cmd->CMDYC) cmd->CMDYC += 1;
-    else cmd->CMDYC -= 1;
-    if (cmd->CMDYA <= cmd->CMDYD) cmd->CMDYD += 1;
-    else cmd->CMDYD -= 1;
-    cmd->type = QUAD_POLY;
-    vdp1_add(cmd,0);
-  }
+  cmd->type = POLYGON;
+  vdp1_add(cmd,0);
   return;
 }
 
