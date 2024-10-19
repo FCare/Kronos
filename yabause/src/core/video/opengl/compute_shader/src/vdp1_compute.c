@@ -1568,6 +1568,17 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYB = 121;
 		// cmd->CMDYC = 121;
 		// cmd->CMDYD = 63;
+		// SONIC 3D RED polygon
+		// cmd->CMDCTRL &= ~0xF;
+		// cmd->CMDXA = 320;
+		// cmd->CMDXB = 320;
+		// cmd->CMDXC = 9;
+		// cmd->CMDXD = 16;
+		// cmd->CMDYA = 192;
+		// cmd->CMDYB = 199;
+		// cmd->CMDYC = 199;
+		// cmd->CMDYD = 192;
+
 
 		//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
 		// drawLine(cmd);
