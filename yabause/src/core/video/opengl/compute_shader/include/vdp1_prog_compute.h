@@ -97,12 +97,7 @@ SHADER_VERSION_COMPUTE
 
 static char vdp1_clear_f[ sizeof(vdp1_clear_f_base) + 64 ];
 
-static const char vdp1_draw_line_start_f_base[] =
-SHADER_VERSION_COMPUTE
-"#ifdef GL_ES\n"
-"precision highp float;\n"
-"#endif\n"
-"layout(local_size_x = %d, local_size_y = %d) in;\n"
+static const char vdp1_draw_line_start_f[] =
 "struct cmdparameter_struct{ \n"
 "  uint CMDPMOD;\n"
 "  uint CMDSRCA;\n"
@@ -130,6 +125,7 @@ SHADER_VERSION_COMPUTE
 "layout(location = 9) uniform ivec4 usrClip;\n"
 "layout(location = 10) uniform int offset;\n"
 "layout(location = 11) uniform bool greedy;\n"
+"layout(location = 12) uniform int nbLines;\n"
 "bool clip(ivec2 P, ivec4 usrClip, ivec2 sysClip, uint CMDPMOD) {\n"
 " if (((CMDPMOD >> 9) & 0x3u) == 2u) {\n"
 "  //Draw inside\n"
@@ -146,12 +142,24 @@ SHADER_VERSION_COMPUTE
 "  return vec4(float((color>>0)&0xFFu)/255.0,float((color>>8)&0xFFu)/255.0,0.0,0.0);\n"
 "}\n";
 
-static const char vdp1_draw_line_start_f_base_rw[] =
+static const char vdp1_start_end_base[] =
 SHADER_VERSION_COMPUTE
 "#ifdef GL_ES\n"
 "precision highp float;\n"
 "#endif\n"
-"layout(local_size_x = %d, local_size_y = %d) in;\n"
+"layout(local_size_x = %d, local_size_y = %d) in;\n";
+
+static const char vdp1_start_no_end_base[] =
+SHADER_VERSION_COMPUTE
+"#ifdef GL_ES\n"
+"precision highp float;\n"
+"#endif\n"
+"layout(local_size_x = %d, local_size_y = %d) in;\n";
+
+static char vdp1_start_end[ sizeof(vdp1_start_end_base) + 64 ];
+static char vdp1_start_no_end[ sizeof(vdp1_start_no_end_base) + 64 ];
+
+static const char vdp1_draw_line_start_f_rw[] =
 "struct cmdparameter_struct{ \n"
 "  uint CMDPMOD;\n"
 "  uint CMDSRCA;\n"
@@ -179,6 +187,7 @@ SHADER_VERSION_COMPUTE
 "layout(location = 9) uniform ivec4 usrClip;\n"
 "layout(location = 10) uniform int offset;\n"
 "layout(location = 11) uniform bool greedy;\n"
+"layout(location = 12) uniform int nbLines;\n"
 "bool clip(ivec2 P, ivec4 usrClip, ivec2 sysClip, uint CMDPMOD) {\n"
 " if (((CMDPMOD >> 9) & 0x3u) == 2u) {\n"
 "  //Draw inside\n"
@@ -194,9 +203,6 @@ SHADER_VERSION_COMPUTE
 "vec4 VDP1COLOR(uint color) {\n"
 "  return vec4(float((color>>0)&0xFFu)/255.0,float((color>>8)&0xFFu)/255.0,0.0,0.0);\n"
 "}\n";
-
-static char vdp1_draw_line_start_f[ sizeof(vdp1_draw_line_start_f_base) + 64 ];
-static char vdp1_draw_line_start_f_rw[ sizeof(vdp1_draw_line_start_f_base_rw) + 64 ];
 
 static const char vdp1_get_non_textured_f[] =
 "uint getColor(cmdparameter_struct pixcmd, float dp, out bool valid){\n"
@@ -630,6 +636,7 @@ static const char vdp1_draw_line_no_end_f[] =
 "void main()\n"
 "{\n"
 // We can do a per pixel render when there is no end bit to detect
+" if ((gl_GlobalInvocationID.x+offset) >= nbLines) return;\n"
 " cmdparameter_struct pixcmd = cmd[gl_GlobalInvocationID.x+offset];\n"
 " ivec2 line = ivec2(pixcmd.CMDXB, pixcmd.CMDYB) - ivec2(pixcmd.CMDXA, pixcmd.CMDYA);\n"
 " float orientation = (abs(line.x) >= abs(line.y))?1.0:0.0;\n"
@@ -658,7 +665,9 @@ static const char vdp1_draw_line_no_end_f[] =
 " if (valid) {\n"
 "  float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
 "  vec4 pixout = getMeshedPixel(pixcmd, dp, PnOut, valid);\n"
-"  if (valid) imageStore(outSurface,PnOut,pixout);\n"
+"  if(valid) {"
+"   imageStore(outSurface,PnOut,pixout);\n"
+"  }"
 " }\n"
 //Greedy saturn effect\n"
 // Will happen if next point is on different Y
@@ -670,10 +679,13 @@ static const char vdp1_draw_line_no_end_f[] =
 "  if ((valid)&&(Pn.x != P1.x)&&greedy) {\n"
 "   float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
 "   vec4 pixout = getMeshedPixel(pixcmd, dp, PnOut, valid);\n"
-"   if (valid) imageStore(outSurface,PnOut,pixout);\n"
+"   if(valid) {"
+"    imageStore(outSurface,PnOut,pixout);\n"
+"   }"
 "  }\n"
 " }\n"
 "}\n";
+
 
 static const char vdp1_clear_mesh_f_base[] =
 SHADER_VERSION_COMPUTE
