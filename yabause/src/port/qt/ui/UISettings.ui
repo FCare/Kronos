@@ -299,25 +299,6 @@
        <item row="20" column="1">
         <widget class="QComboBox" name="cbFilterMode"/>
        </item>
-       <item row="23" column="0">
-        <widget class="QLabel" name="Tesselation">
-         <property name="font">
-          <font>
-           <weight>75</weight>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="text">
-          <string>Tesselation :</string>
-         </property>
-         <property name="textFormat">
-          <enum>Qt::PlainText</enum>
-         </property>
-         <property name="alignment">
-          <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-         </property>
-        </widget>
-       </item>
        <item row="4" column="0" colspan="3">
         <widget class="QComboBox" name="cbOSDCore"/>
        </item>
@@ -346,9 +327,6 @@
          </property>
         </widget>
        </item>
-       <item row="23" column="1">
-        <widget class="QComboBox" name="cbPolygonGeneration"/>
-       </item>
        <item row="28" column="1">
         <widget class="QComboBox" name="cbWireframeFilter"/>
        </item>
@@ -374,9 +352,6 @@
          </property>
         </widget>
        </item>
-       <item row="25" column="1">
-        <widget class="QComboBox" name="cbMeshModeFilter"/>
-       </item>
        <item row="18" column="0">
         <widget class="QLabel" name="Vdp1 Mode">
          <property name="font">
@@ -398,6 +373,9 @@
        </item>
        <item row="18" column="1">
         <widget class="QComboBox" name="cbVdp1Mode"/>
+       </item>
+       <item row="25" column="1">
+        <widget class="QComboBox" name="cbMeshModeFilter"/>
        </item>
        <item row="20" column="0">
         <widget class="QLabel" name="Embellishmentfilter">

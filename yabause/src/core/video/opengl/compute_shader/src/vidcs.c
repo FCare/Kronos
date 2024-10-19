@@ -2338,32 +2338,6 @@ void VIDCSSetSettingValueMode(int type, int value) {
        YglChangeResolution(_Ygl->rwidth, _Ygl->rheight);
     }
     break;
-  case VDP_SETTING_POLYGON_MODE:
-    if ((POLYGONMODE)value == GPU_TESSERATION && _Ygl->polygonmode != GPU_TESSERATION) {
-      int maj, min;
-      glGetIntegerv(GL_MAJOR_VERSION, &maj);
-      glGetIntegerv(GL_MINOR_VERSION, &min);
-#if defined(_OGL3_)
-      if ((maj >=4) && (min >=2)) {
-        if (glPatchParameteri) {
-          _Ygl->polygonmode = (POLYGONMODE)value;
-        } else {
-          YuiMsg("GPU tesselation is not possible - fallback on CPU tesselation\n");
-          _Ygl->polygonmode = CPU_TESSERATION;
-        }
-      } else {
-        YuiMsg("GPU tesselation is not possible - fallback on CPU tesselation\n");
-        _Ygl->polygonmode = CPU_TESSERATION;
-      }
-#else
-      _Ygl->polygonmode = CPU_TESSERATION;
-#endif
-    } else {
-
-
-      _Ygl->polygonmode = (POLYGONMODE)value;
-    }
-  break;
   case VDP_SETTING_ASPECT_RATIO:
     _Ygl->stretch = (RATIOMODE)value;
   break;
