@@ -227,7 +227,7 @@ static const char vdp1_get_textured_f[] =
 "{\n"
 "  uint color = 0;\n"
 "  ivec2 texSize = ivec2(((pixcmd.CMDSIZE >> 8) & 0x3F)<<3,pixcmd.CMDSIZE & 0xFF );\n"
-"  vec2 uv = vec2(dp, mix(pixcmd.dl, pixcmd.dr, dp));\n"
+"  vec2 uv = vec2(dp, float(gl_GlobalInvocationID.x+offset)/float(nbLines));\n"
 "  uint y = uint(floor(uv.y*(texSize.y)));\n"
 "  uint x = uint(floor(uv.x*(texSize.x)));\n"
 "  if ((pixcmd.flip & 0x1u) == 0x1u) x = (texSize.x-1) - x;\n"
