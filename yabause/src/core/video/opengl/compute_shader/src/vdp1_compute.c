@@ -1758,10 +1758,10 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 
 void vdp1_update_performance() {
 	int length = sizeof(vdp1_start_no_end_base) + 64;
-	if (_Ygl->vdp1PerfMode == ACCURACY)
-	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,1,1);
-	else
-	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
+	// if (_Ygl->vdp1PerfMode == ACCURACY)
+	//  snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,1,1);
+	// else
+	//  snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
 	vdp1_compute_reset();
 }
 
