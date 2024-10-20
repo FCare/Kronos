@@ -237,7 +237,7 @@ static const char vdp1_get_textured_f[] =
 "  uint dot;\n"
 "  bool SPD = ((pixcmd.CMDPMOD & 0x40u) != 0);\n"
 "  bool END = ((pixcmd.CMDPMOD & 0x80u) == 0);\n"
-"  valid = (nbEnd < 2);\n"
+"  valid = (nbEnd <= 2);\n"
 "  if (!valid) return 0x0;\n"
 "  switch ((pixcmd.CMDPMOD >> 3) & 0x7u)\n"
 "  {\n"
@@ -354,7 +354,7 @@ static const char vdp1_get_textured_f[] =
 "    default:\n"
 "      break;\n"
 "  }\n"
-" valid = valid && (nbEnd < 2);\n"
+" valid = valid && (nbEnd <= 2);\n"
 " return color;\n"
 "}\n";
 
