@@ -422,7 +422,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][6] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_luminance_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		vdp1_draw_line_f
 	},
   // DRAW_QUAD_GOURAUD_HALF_TRANSPARENT_MESH
 	{
@@ -431,7 +431,7 @@ static const GLchar * a_prg_vdp1[NB_PRG][6] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_line_no_end_f
+		vdp1_draw_line_f
 	},
 	//Same without end bit detection
 	// DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END
