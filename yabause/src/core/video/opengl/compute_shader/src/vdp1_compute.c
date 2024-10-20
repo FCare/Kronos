@@ -39,6 +39,9 @@ static int local_size_y = 8;
 #define WORKSIZE_L 8
 #define WORKSIZE_P 8
 
+#define WORKSIZE_L_ACCURACY 4
+#define WORKSIZE_P_ACCURACY 4
+
 #define USE_PER_POINT 1
 
 #if USE_PER_POINT
@@ -1758,10 +1761,10 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 
 void vdp1_update_performance() {
 	int length = sizeof(vdp1_start_no_end_base) + 64;
-	// if (_Ygl->vdp1PerfMode == ACCURACY)
-	//  snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,1,1);
-	// else
-	//  snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
+	if (_Ygl->vdp1PerfMode == ACCURACY)
+	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L_ACCURACY,WORKSIZE_P_ACCURACY);
+	else
+	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
 	vdp1_compute_reset();
 }
 
@@ -1902,6 +1905,9 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, 
 			}
 		} else {
 			if ((cmd_pol->CMDPMOD & 0x80)!=0) {
+				if (_Ygl->vdp1PerfMode == ACCURACY)
+					flushVdp1Render((nbUpload+WORKSIZE_L_ACCURACY-1)/WORKSIZE_L_ACCURACY, (nbPointsMax+WORKSIZE_P_ACCURACY-1)/WORKSIZE_P_ACCURACY); //might be better to launch only the right number of workgroup
+				else
 				flushVdp1Render((nbUpload+WORKSIZE_L-1)/WORKSIZE_L, (nbPointsMax+WORKSIZE_P-1)/WORKSIZE_P); //might be better to launch only the right number of workgroup
 			} else {
 				flushVdp1Render(nbUpload, nbPointsMax);
@@ -1996,7 +2002,10 @@ void vdp1_compute_init(int width, int height, float ratio)
 	snprintf(vdp1_start_end,length,vdp1_start_end_base,1,1);
 
 	length = sizeof(vdp1_start_no_end_base) + 64;
-	snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
+	if (_Ygl->vdp1PerfMode == ACCURACY)
+	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L_ACCURACY,WORKSIZE_P_ACCURACY);
+	else
+	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
 
   int am = sizeof(vdp1cmd_struct) % 16;
   tex_width = width;
