@@ -9,6 +9,7 @@ build/
 **/*build/*
 *.a
 *.so
+*.o
 *.swp
 yabause/.vs/slnx.sqlite
 yabause/.vs/yabause/v15/Browse.VC.db
@@ -30,3 +31,9 @@ yabause/src/perfetto
 *.opendb
 *.json
 *.sqlite
+yabause/src/core/m68k/musashi/m68kmake
+yabause/src/core/m68k/musashi/m68kopac.c
+yabause/src/core/m68k/musashi/m68kopdm.c
+yabause/src/core/m68k/musashi/m68kopnz.c
+yabause/src/core/m68k/musashi/m68kops.c
+yabause/src/core/m68k/musashi/m68kops.h
