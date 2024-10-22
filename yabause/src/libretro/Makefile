@@ -299,9 +299,6 @@ INCFLAGS := $(foreach dir,$(INCLUDE_DIRS),-I$(dir))
 WARNINGS := -Wno-unused-value
 FLAGS += $(INCFLAGS) $(ENDIANNESS_DEFINES) $(WARNINGS)
 
-CXXFLAGS += $(FLAGS) -std=gnu++17
-CFLAGS += $(FLAGS) -std=gnu17
-
 all: $(TARGET)
 
 full: generate-files $(TARGET)
@@ -324,23 +321,23 @@ endif
 
 %.S.o: %.S
 	@echo Compiling $@
-	@$(CC_AS) $(CFLAGS) -c $^ -o $@
+	@$(CC_AS) $(FLAGS) -std=gnu17 $(CFLAGS) -c $^ -o $@
 
 %.s.o: %.s
 	@echo Compiling $@
-	@$(CC_AS) $(CFLAGS) -c $^ -o $@
+	@$(CC_AS) $(FLAGS) -std=gnu17 $(CFLAGS) -c $^ -o $@
 
 %.cpp.o: %.cpp
 	@echo Compiling $@
-	@$(CXX) -c -o $@ $< $(CXXFLAGS)
+	@$(CXX) -c -o $@ $< $(FLAGS) -std=gnu++17 $(CXXFLAGS)
 
 %.c.o: %.c
 	@echo Compiling $@
-	@$(CC) -c -o $@ $< $(CFLAGS)
+	@$(CC) -c -o $@ $< $(FLAGS) -std=gnu17 $(CFLAGS)
 
 $(C68KEXEC_OBJECT): $(C68KEXEC_SOURCE)
 	@echo Compiling $@
-	@$(CC) -c -o $@ $< $(CFLAGS) -O0
+	@$(CC) -c -o $@ $< $(FLAGS) -O0
 
 clean:
 	rm -f $(TARGET) $(OBJECTS) $(SOURCE_DIR)/core/m68k/musashi/$(M68KMAKE_EXE)
