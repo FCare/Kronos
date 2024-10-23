@@ -1074,34 +1074,47 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 	int idr = 0;
 	int a = 0;
 	int i = 0;
+	int add = 0;
 	if(li>ri) {
 		for (i = 0; i != li; i++) {
 			a += ri;
 			idl = i;
-			float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
-			float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = dataL[idl].x,
-				.CMDYA = dataL[idl].y,
-				.CMDXB = dataR[idr].x,
-				.CMDYB = dataR[idr].y,
-				.CMDCOLR = cmd->CMDCOLR,
-				.flip = cmd->flip,
-			};
-			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-			// printf("P %d,%d => %d,%d\n",
-			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
-			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
-			// );
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
+			 || (dataL[idl].x < (Vdp1Regs->systemclipX2+1)*tex_ratio)
+			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
+			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)*tex_ratio))
+			 &&
+				 ((dataL[idl].y >= 0)
+			 || (dataL[idl].x >= 0)
+			 || (dataR[idr].y >= 0)
+			 || (dataR[idr].x >= 0)))
+			{
+				float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
+				float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
+				cmd_pol[add] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
+					.CMDXA = dataL[idl].x,
+					.CMDYA = dataL[idl].y,
+					.CMDXB = dataR[idr].x,
+					.CMDYB = dataR[idr].y,
+					.CMDCOLR = cmd->CMDCOLR,
+					.flip = cmd->flip,
+				};
+				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
+				// printf("P %d,%d => %d,%d\n",
+				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+				// );
+				cmd_pol[add].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+				cmd_pol[add].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+				cmd_pol[add].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+				cmd_pol[add].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+				cmd_pol[add].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+				cmd_pol[add].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+				add++;
+			}
 			if (abs(a) >= abs(li)) {
 				a -= li;
 				idr++;
@@ -1111,31 +1124,42 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		for (i = 0; i != ri; i++) {
 			a += li;
 			idr = i;
-			float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
-			float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = dataL[idl].x,
-				.CMDYA = dataL[idl].y,
-				.CMDXB = dataR[idr].x,
-				.CMDYB = dataR[idr].y,
-				.CMDCOLR = cmd->CMDCOLR,
-				.flip = cmd->flip,
-			};
-			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-			// printf("P %d,%d => %d,%d\n",
-			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
-			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
-			// );
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
-
+			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
+			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1)*tex_ratio))
+			 &&((dataL[idl].x < (Vdp1Regs->systemclipX2+1)*tex_ratio)
+			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)*tex_ratio))
+			 &&
+			   ((dataL[idl].x >= 0)
+			 || (dataR[idr].x >= 0))
+			 &&((dataL[idl].y >= 0)
+			 || (dataR[idr].y >= 0)))
+			{
+				float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
+				float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
+				cmd_pol[add] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
+					.CMDXA = dataL[idl].x,
+					.CMDYA = dataL[idl].y,
+					.CMDXB = dataR[idr].x,
+					.CMDYB = dataR[idr].y,
+					.CMDCOLR = cmd->CMDCOLR,
+					.flip = cmd->flip,
+				};
+				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
+				// printf("P %d,%d => %d,%d\n",
+				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+				// );
+				cmd_pol[add].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+				cmd_pol[add].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+				cmd_pol[add].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+				cmd_pol[add].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+				cmd_pol[add].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+				cmd_pol[add].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+				add++;
+			}
 			if (abs(a) >= abs(ri)) {
 				a -= ri;
 				idl++;
@@ -1150,7 +1174,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio,cmd->type, li!=ri, A, B);
+	drawPolygonLine(cmd_pol, add, nbPmax+tex_ratio,cmd->type, li!=ri, A, B);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -1341,34 +1365,47 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 	int idr = 0;
 	int a = 0;
 	int i = 0;
+	int add = 0;
 	if(li>ri) {
 		for (i = 0; i != li; i++) {
 			a += ri;
 			idl = i;
-			float dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5;
-			float dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5;
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = dataL[idl].x,
-				.CMDYA = dataL[idl].y,
-				.CMDXB = dataR[idr].x,
-				.CMDYB = dataR[idr].y,
-				.CMDCOLR = cmd->CMDCOLR,
-				.flip = cmd->flip,
-			};
-			// printf("P %d,%d => %d,%d\n",
-			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
-			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
-			// );
-			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
+			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1)*tex_ratio))
+			 &&((dataL[idl].x < (Vdp1Regs->systemclipX2+1)*tex_ratio)
+			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)*tex_ratio))
+			 &&
+				 ((dataL[idl].x >= 0)
+			 || (dataR[idr].x >= 0))
+			 &&((dataL[idl].y >= 0)
+			 || (dataR[idr].y >= 0)))
+			{
+				float dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5;
+				float dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5;
+				cmd_pol[i] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
+					.CMDXA = dataL[idl].x,
+					.CMDYA = dataL[idl].y,
+					.CMDXB = dataR[idr].x,
+					.CMDYB = dataR[idr].y,
+					.CMDCOLR = cmd->CMDCOLR,
+					.flip = cmd->flip,
+				};
+				// printf("P %d,%d => %d,%d\n",
+				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+				// );
+				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
+				cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+				cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+				cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+				cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+				cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+				cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+				add++;
+			}
 			if (abs(a) >= abs(li)) {
 				a -= li;
 				idr++;
@@ -1378,30 +1415,42 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 		for (i = 0; i != ri; i++) {
 			a += li;
 			idr = i;
-			float dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5;
-			float dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5;
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = dataL[idl].x,
-				.CMDYA = dataL[idl].y,
-				.CMDXB = dataR[idr].x,
-				.CMDYB = dataR[idr].y,
-				.CMDCOLR = cmd->CMDCOLR,
-				.flip = cmd->flip,
-			};
-			// printf("P %d,%d => %d,%d\n",
-			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
-			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
-			// );
-			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
+			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1)*tex_ratio))
+			 &&((dataL[idl].x < (Vdp1Regs->systemclipX2+1)*tex_ratio)
+			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)*tex_ratio))
+			 &&
+				 ((dataL[idl].x >= 0)
+			 || (dataR[idr].x >= 0))
+			 &&((dataL[idl].y >= 0)
+			 || (dataR[idr].y >= 0)))
+			{
+				float dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5;
+				float dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5;
+				cmd_pol[i] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
+					.CMDXA = dataL[idl].x,
+					.CMDYA = dataL[idl].y,
+					.CMDXB = dataR[idr].x,
+					.CMDYB = dataR[idr].y,
+					.CMDCOLR = cmd->CMDCOLR,
+					.flip = cmd->flip,
+				};
+				// printf("P %d,%d => %d,%d\n",
+				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+				// );
+				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
+				cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+				cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+				cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+				cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+				cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+				cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+				add++;
+			}
 
 			if (abs(a) >= abs(ri)) {
 				a -= ri;
@@ -1417,7 +1466,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, i, nbPmax+tex_ratio, cmd->type, 1,A,B);
+	drawPolygonLine(cmd_pol, add, nbPmax+tex_ratio, cmd->type, 1,A,B);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -1631,6 +1680,15 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYB = 45;
 		// cmd->CMDYC = 44;
 		// cmd->CMDYD = 45;
+		// SEGA RALLY
+		// cmd->CMDXA = 79 + 176;
+		// cmd->CMDXB = -21 + 176;
+		// cmd->CMDXC = 512 + 176;
+		// cmd->CMDXD = 391 + 176;
+		// cmd->CMDYA = 44 + 128;
+		// cmd->CMDYB = 304 + 128;
+		// cmd->CMDYC = 310 + 128;
+		// cmd->CMDYD = 86 + 128;
 		//AIGUILLE SEGA RALLY // Triangle
 		// cmd->CMDXA = 176-125;
 		// cmd->CMDXB = 176-112;
@@ -1986,29 +2044,34 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, 
 		Vdp1External.updateVdp1Ram = 0;
 	}
 	glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
+	A.x = MIN(A.x, MIN(Vdp1Regs->userclipX2+1, Vdp1Regs->systemclipX2));
+	A.y = MIN(A.y, MIN(Vdp1Regs->userclipY2+1, Vdp1Regs->systemclipY2));
+	B.x = MIN(B.x, MIN(Vdp1Regs->userclipX2+1, Vdp1Regs->systemclipX2));
+	B.y = MIN(B.y, MIN(Vdp1Regs->userclipY2+1, Vdp1Regs->systemclipY2));
+	A.x = MAX(A.x, MAX(Vdp1Regs->userclipX1, 0));
+	A.y = MAX(A.y, MAX(Vdp1Regs->userclipY1, 0));
+	B.x = MAX(B.x, MAX(Vdp1Regs->userclipX1, 0));
+	B.y = MAX(B.y, MAX(Vdp1Regs->userclipY1, 0));
+
+	A.x *= tex_ratio;
+	A.y *= tex_ratio;
+	B.x *= tex_ratio;
+	B.y *= tex_ratio;
+
+	int dx = abs(B.x-A.x)+tex_ratio;
+	int dy = abs(B.y-A.y)+tex_ratio;
+	point Bound = (point){
+		.x = MIN(A.x, B.x),
+		.y = MIN(A.y, B.y)
+	};
+	glUniform2i(13, Bound.x, Bound.y);
 	for (int i = 0; i<nbLines; i+=NB_LINE_MAX_PER_DRAW) {
 		int drawNbLines = MIN(NB_LINE_MAX_PER_DRAW,(nbLines - i));
 		// if ((buffer_pos + nbUpload) >= NB_LINE_MAX_PER_DRAW) flushVdp1Render();
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, drawNbLines*sizeof(cmd_poly), (void*)&cmd_pol[i]);
 		glUniform1i(12, drawNbLines);
-		int dx = abs(B.x-A.x)+tex_ratio;
-		int dy = abs(B.y-A.y)+tex_ratio;
-		if (A.x < 0) {
-			dx -= A.x;
-			A.x = 0;
-		}
-		if (A.y < 0) {
-			dy -= A.y;
-			A.y = 0;
-		}
-		if (dx < 0) dx = 0;
-		if (dy < 0) dy = 0;
-		point Bound = (point){
-			.x = MIN(A.x, B.x),
-			.y = MIN(A.y, B.y)
-		};
-		glUniform2i(13, Bound.x, Bound.y);
+
 
 		if ((type == DISTORTED)&&(overlap!=0)&&(_Ygl->vdp1PerfMode == ACCURACY)) {
 			if ((cmd_pol->CMDPMOD & 0x80)!=0) {
