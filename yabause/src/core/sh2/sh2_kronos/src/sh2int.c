@@ -149,7 +149,7 @@ static u16 FASTCALL FetchVram(SH2_struct *context, u32 addr)
   return SH2MappedMemoryReadWord(context, addr);
 }
 
-static const int const cacheMask[9] = {
+static const int cacheMask[9] = {
   0x3FFFF, //Bios
   0x7FFFF, //LowWram
   0x1FFFFF, //CS0
@@ -161,7 +161,7 @@ static const int const cacheMask[9] = {
   0x7FFFF //Undecoded
 };
 
-static const int const cacheSize[9] = {
+static const int cacheSize[9] = {
   0x40000, //Bios
   0x80000, //LowWram
   0x200000, //CS0

@@ -197,7 +197,7 @@ void resetSyncVideo(void) {
 #define VBLANKOUT_IT_STEP (15)
 #define VBLANKOUT_STEP    (16)
 
-static const u32 const cycles[DECILINE_STEP][2][2] = {
+static const u32 cycles[DECILINE_STEP][2][2] = {
   {{12,12},{1,1}}, //HBlankout //Start of displayed line
   {{128,128},{4,5}},
   {{128,128},{5,4}},
