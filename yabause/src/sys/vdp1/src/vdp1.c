@@ -2041,37 +2041,37 @@ u32 Vdp1DebugGetCommandAddr(u32 number) {
 char *Vdp1DebugGetCommandRaw(u32 addr)
 {
    u16 command;
-   if (addr != 0xFFFFFFFF)
-   {
-      char *out = (char*)malloc(128*sizeof(char));
-      command = T1ReadWord(Vdp1Ram, addr);
+   char *out;
 
-      if (command & 0x8000) {
-        snprintf(out, 128, "END");
-        return out;
-      }
-
-       // Next, determine where to go next
-       switch ((command & 0x3000) >> 12) {
-       case 0: // NEXT, jump to following table
-          snprintf(out, 128, "NEXT 0x%x", addr+0x20);
-          return out;
-       case 1: // ASSIGN, jump to CMDLINK
-          snprintf(out, 128, "ASSIGN 0x%x", T1ReadWord(Vdp1Ram, addr + 2) * 8);
-          return out;
-          break;
-       case 2: // CALL, call a subroutine
-          snprintf(out, 128, "CALL 0x%x", T1ReadWord(Vdp1Ram, addr + 2) * 8);
-          return out;
-          break;
-       case 3: // RETURN, return from subroutine
-          snprintf(out, 128, "RETURN");
-          return out;
-          break;
-       }
-   }
-   else
+   if (addr == 0xFFFFFFFF)
       return NULL;
+
+   out = (char*)malloc(128*sizeof(char));
+   command = T1ReadWord(Vdp1Ram, addr);
+
+   if (command & 0x8000) {
+     snprintf(out, 128, "END");
+     return out;
+   }
+
+   // Next, determine where to go next
+   switch ((command & 0x3000) >> 12) {
+   case 0: // NEXT, jump to following table
+      snprintf(out, 128, "NEXT 0x%x", addr+0x20);
+      return out;
+   case 1: // ASSIGN, jump to CMDLINK
+      snprintf(out, 128, "ASSIGN 0x%x", T1ReadWord(Vdp1Ram, addr + 2) * 8);
+      return out;
+      break;
+   case 2: // CALL, call a subroutine
+      snprintf(out, 128, "CALL 0x%x", T1ReadWord(Vdp1Ram, addr + 2) * 8);
+      return out;
+      break;
+   case 3: // RETURN, return from subroutine
+      snprintf(out, 128, "RETURN");
+      return out;
+      break;
+   }
 }
 
 char *Vdp1DebugGetCommandNumberName(u32 addr)
