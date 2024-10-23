@@ -33,7 +33,7 @@ typedef struct {
 	u32 pad[1];
 } cmd_poly;
 
-#define MIX(A, B, C) (((float)(C) * (float)(A)+(float)(1.0-C) * (float)(B)))
+#define MIX(A, B, C) (((float)(1.0-C) * (float)(A)+(float)(C) * (float)(B)))
 extern vdp2rotationparameter_struct  Vdp1ParaA;
 
 static int local_size_x = 8;
