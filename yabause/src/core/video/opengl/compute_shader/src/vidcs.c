@@ -4345,7 +4345,7 @@ static pixel_t *VIDCSGetVdp2ScreenExtract(u32 screen, int * w, int * h)
     }
     return pixels;
   }
-  if (screen = 0xFF)
+  if (screen == 0xFF)
   {
     //Get full framebuffer
     pixel_t* pixels = (pixel_t*)malloc(_Ygl->width*_Ygl->height * sizeof(pixel_t));
