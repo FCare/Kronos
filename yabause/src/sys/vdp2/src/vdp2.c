@@ -85,7 +85,7 @@ static void vdp2RamAccessCheck(SH2_struct *context, u32 addr){
     if(Vdp2External.AC_VRAM[bank][i] == 0xE) BlockedAccess = 0;
   }
 
-  if ((context != NULL) && (yabsys.LineCount < yabsys.VBlankLineCount) && (Vdp2Regs->TVSTAT & 0x0004 == 0)) {
+  if ((context != NULL) && (yabsys.LineCount < yabsys.VBlankLineCount) && (Vdp2Regs->TVSTAT & 0x0004) == 0) {
     // Visible area, cpu shall have a valid time slot, otherwise it is blocked
     if (BlockedAccess) {
       SH2SetCPUConcurrency(context, VDP2_RAM_A0_LOCK << bank);
