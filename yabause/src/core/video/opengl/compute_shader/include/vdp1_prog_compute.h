@@ -123,7 +123,9 @@ static const char vdp1_draw_line_start_f[] =
 "layout(location = 10) uniform int offset;\n"
 "layout(location = 11) uniform bool greedy;\n"
 "layout(location = 12) uniform int nbLines;\n"
-"layout(location = 13) uniform ivec2 bound;\n"
+"layout(location = 13) uniform int nbLineDraw;\n"
+"layout(location = 14) uniform ivec2 bound;\n"
+"layout(location = 15) uniform int nbLineOffset;\n"
 
 "shared uint endIndex[256];\n"
 
@@ -177,7 +179,9 @@ static const char vdp1_draw_line_start_f_rw[] =
 "layout(location = 10) uniform int offset;\n"
 "layout(location = 11) uniform bool greedy;\n"
 "layout(location = 12) uniform int nbLines;\n"
-"layout(location = 13) uniform ivec2 bound;\n"
+"layout(location = 13) uniform int nbLineDraw;\n"
+"layout(location = 14) uniform ivec2 bound;\n"
+"layout(location = 15) uniform int nbLineOffset;\n"
 
 "shared uint endIndex[256];\n"
 
@@ -677,8 +681,8 @@ static const char vdp1_draw_poly_test[] =
 " ivec2 P = ivec2(gl_GlobalInvocationID.xy)+bound;\n"
 " bool valid = clip(P,usrClip, sysClip, cmd[0].CMDPMOD);\n"
 " if (!valid) return;\n"
-" for (int l = 0; l < nbLines; l++) {"
-"  int idx = nbLines-1 - l;\n"
+" for (int l = 0; l < nbLineDraw; l++) {"
+"  int idx = nbLineDraw-1 - l;\n"
 "  cmdparameter_struct pixcmd = cmd[idx];\n"
 "  if (P.x < min(pixcmd.CMDXA,pixcmd.CMDXB)) continue;\n"
 "  if (P.x > max(pixcmd.CMDXA,pixcmd.CMDXB)+(upscale.x - 1)) continue;\n"
@@ -710,7 +714,7 @@ static const char vdp1_draw_poly_test[] =
 "  }\n"
 "  if (isOnLine || isOnGreedy) {\n"
 "   float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float(idx/upscale.y)/float(nbLines/upscale.y)), P, valid);\n"
+"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float((idx+nbLineOffset)/upscale.y)/float(nbLines/upscale.y)), P, valid);\n"
 "   if(valid) {\n"
 "    imageStore(outSurface,P,pixout);\n"
 "    return;\n"

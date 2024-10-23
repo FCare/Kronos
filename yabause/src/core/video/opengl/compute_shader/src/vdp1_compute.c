@@ -1681,12 +1681,14 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, 
 		.x = MIN(A.x, B.x),
 		.y = MIN(A.y, B.y)
 	};
-	glUniform2i(13, Bound.x, Bound.y);
+	glUniform2i(14, Bound.x, Bound.y);
+	glUniform1i(12, nbLines);
 	for (int i = 0; i<nbLines; i+=NB_LINE_MAX_PER_DRAW) {
 		int drawNbLines = MIN(NB_LINE_MAX_PER_DRAW,(nbLines - i));
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, drawNbLines*sizeof(cmd_poly), (void*)&cmd_pol[i]);
-		glUniform1i(12, drawNbLines);
+		glUniform1i(13, drawNbLines);
+		glUniform1i(15, (i/NB_LINE_MAX_PER_DRAW)*NB_LINE_MAX_PER_DRAW);
 		flushVdp1Render((dx+WORKSIZE_L-1)/WORKSIZE_L, (dy+WORKSIZE_P-1)/WORKSIZE_P); //might be better to launch only the right number of workgroup
 	}
 }
