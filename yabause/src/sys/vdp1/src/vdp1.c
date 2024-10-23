@@ -2058,20 +2058,21 @@ char *Vdp1DebugGetCommandRaw(u32 addr)
    switch ((command & 0x3000) >> 12) {
    case 0: // NEXT, jump to following table
       snprintf(out, 128, "NEXT 0x%x", addr+0x20);
-      return out;
+      break;
    case 1: // ASSIGN, jump to CMDLINK
       snprintf(out, 128, "ASSIGN 0x%x", T1ReadWord(Vdp1Ram, addr + 2) * 8);
-      return out;
       break;
    case 2: // CALL, call a subroutine
       snprintf(out, 128, "CALL 0x%x", T1ReadWord(Vdp1Ram, addr + 2) * 8);
-      return out;
       break;
    case 3: // RETURN, return from subroutine
       snprintf(out, 128, "RETURN");
-      return out;
       break;
+   default:
+      free(out);
+      out = NULL;
    }
+   return out;
 }
 
 char *Vdp1DebugGetCommandNumberName(u32 addr)
