@@ -102,10 +102,6 @@ const Items mUpscaleFilterMode = Items()
 	<< Item("2", "4xBRZ")
 	<< Item("3", "6xBRZ");
 
-const Items mVdp1Mode = Items()
-	<< Item("0", "Performance")
-	<< Item("1", "Accuracy");
-
 const Items mResolutionMode = Items()
 	<< Item("1", "SD (original resolution of the Saturn)")
 	<< Item("8", "Full HD")
@@ -421,10 +417,6 @@ void UISettings::changeUpscaleMode(int id)
 {
     if (VIDCore != NULL) VIDCore->SetSettingValue(VDP_SETTING_UPSCALMODE, (mUpscaleFilterMode.at(id).id).toInt());
 }
-void UISettings::changeVdp1Mode(int id)
-{
-    if (VIDCore != NULL) VIDCore->SetSettingValue(VDP_SETTING_VDP1MODE, (mVdp1Mode.at(id).id).toInt());
-}
 
 void UISettings::on_cbCartridge_currentIndexChanged( int id )
 {
@@ -494,12 +486,6 @@ void UISettings::loadCores()
 		cbFilterMode->addItem(QtYabause::translate(it.Name), it.id);
 
         connect(cbFilterMode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeFilterMode(int)));
-
-        //Upscale Mode
-        foreach(const Item& it, mVdp1Mode)
-				cbVdp1Mode->addItem(QtYabause::translate(it.Name), it.id);
-
-        connect(cbVdp1Mode, SIGNAL(currentIndexChanged(int)), this, SLOT(changeVdp1Mode(int)));
 
         //Upscale Mode
         foreach(const Item& it, mUpscaleFilterMode)
@@ -692,7 +678,6 @@ void UISettings::loadSettings()
 
 	cbFilterMode->setCurrentIndex(cbFilterMode->findData(s->value("Video/filter_type", mVideoFilterMode.at(0).id).toInt()));
   cbUpscaleMode->setCurrentIndex(cbUpscaleMode->findData(s->value("Video/upscale_type", mUpscaleFilterMode.at(0).id).toInt()));
-  cbVdp1Mode->setCurrentIndex(cbVdp1Mode->findData(s->value("Video/vdp1_perf", mVdp1Mode.at(0).id).toInt()));
 	cbResolution->setCurrentIndex(cbResolution->findData(s->value("Video/resolution_mode", mResolutionMode.at(0).id).toInt()));
   cbAspectRatio->setCurrentIndex(cbAspectRatio->findData(s->value("Video/AspectRatio", mAspectRatio.at(0).id).toInt()));
 	cbWireframeFilter->setCurrentIndex(cbWireframeFilter->findData(s->value("Video/Wireframe", mWireframe.at(0).id).toInt()));
@@ -807,7 +792,6 @@ void UISettings::saveSettings()
 	s->setValue( "Video/Fullscreen", cbFullscreen->isChecked() );
 	s->setValue( "Video/filter_type", cbFilterMode->itemData(cbFilterMode->currentIndex()).toInt());
 	s->setValue( "Video/upscale_type", cbUpscaleMode->itemData(cbUpscaleMode->currentIndex()).toInt());
-	s->setValue( "Video/vdp1_perf", cbVdp1Mode->itemData(cbVdp1Mode->currentIndex()).toInt());
 	s->setValue("Video/resolution_mode", cbResolution->itemData(cbResolution->currentIndex()).toInt());
 
 	s->setValue( "General/ClockSync", cbClockSync->isChecked() );

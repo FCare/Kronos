@@ -42,18 +42,6 @@ static int local_size_y = 8;
 #define WORKSIZE_L 8
 #define WORKSIZE_P 8
 
-#define WORKSIZE_L_ACCURACY 4
-#define WORKSIZE_P_ACCURACY 4
-
-#define USE_PER_POINT 0
-
-#if USE_PER_POINT
-// #define NO_END_MAIN vdp1_draw_line_no_end_f
-#define NO_END_MAIN vdp1_draw_poly_test
-#else
-#define NO_END_MAIN vdp1_draw_line_f
-#endif
-
 static int tex_width;
 static int tex_height;
 static int tex_ratio;
@@ -438,15 +426,6 @@ static const GLchar * a_prg_vdp1[NB_PRG][6] = {
 		vdp1_get_textured_f,
 		vdp1_get_pixel_gouraud_half_transparent_f,
 		vdp1_draw_mesh_f,
-		vdp1_draw_poly_test
-	},
-	// DRAW_TEST
-	{
-		vdp1_start_no_end,
-		vdp1_draw_line_start_f,
-		vdp1_get_non_textured_f,
-		vdp1_get_pixel_replace_f,
-		vdp1_draw_no_mesh_f,
 		vdp1_draw_poly_test
 	}
 };
@@ -1584,11 +1563,6 @@ static int getProgramLine(cmd_poly* cmd_pol, int type){
 }
 
 void vdp1_update_performance() {
-	int length = sizeof(vdp1_start_no_end_base) + 64;
-	if (_Ygl->vdp1PerfMode == ACCURACY)
-	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L_ACCURACY,WORKSIZE_P_ACCURACY);
-	else
-	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
 	vdp1_compute_reset();
 }
 
@@ -1720,32 +1694,11 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, 
 	glUniform2i(13, Bound.x, Bound.y);
 	for (int i = 0; i<nbLines; i+=NB_LINE_MAX_PER_DRAW) {
 		int drawNbLines = MIN(NB_LINE_MAX_PER_DRAW,(nbLines - i));
-		// if ((buffer_pos + nbUpload) >= NB_LINE_MAX_PER_DRAW) flushVdp1Render();
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, drawNbLines*sizeof(cmd_poly), (void*)&cmd_pol[i]);
 		glUniform1i(12, drawNbLines);
-
-
-		if ((type == DISTORTED)&&(overlap!=0)&&(_Ygl->vdp1PerfMode == ACCURACY)) {
-			if ((cmd_pol->CMDPMOD & 0x80)!=0) {
-				flushVdp1RenderSequential(dx,dy); //might be better to launch only the right number of workgroup
-			} else {
-				flushVdp1RenderSequential(dx, dy);
-			}
-		} else {
-			// if ((cmd_pol->CMDPMOD & 0x80)!=0) {
-				// if (_Ygl->vdp1PerfMode == ACCURACY)
-				// 	flushVdp1Render((dx+WORKSIZE_L_ACCURACY-1)/WORKSIZE_L_ACCURACY, (dy+WORKSIZE_P_ACCURACY-1)/WORKSIZE_P_ACCURACY); //might be better to launch only the right number of workgroup
-				// else
-					flushVdp1Render((dx+WORKSIZE_L-1)/WORKSIZE_L, (dy+WORKSIZE_P-1)/WORKSIZE_P); //might be better to launch only the right number of workgroup
-			// } else {
-			// 	printf("END CODE\n");
-			// 	flushVdp1Render(dx, dy);
-			// }
-		}
+		flushVdp1Render((dx+WORKSIZE_L-1)/WORKSIZE_L, (dy+WORKSIZE_P-1)/WORKSIZE_P); //might be better to launch only the right number of workgroup
 	}
-
-	// glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 void vdp1_clear(int id, float *col, int* lim) {
@@ -1830,12 +1783,6 @@ void vdp1_compute_init(int width, int height, float ratio)
 
 	length = sizeof(vdp1_start_end_base) + 64;
 	snprintf(vdp1_start_end,length,vdp1_start_end_base,WORKSIZE_L,WORKSIZE_P);
-
-	length = sizeof(vdp1_start_no_end_base) + 64;
-	if (_Ygl->vdp1PerfMode == ACCURACY)
-	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L_ACCURACY,WORKSIZE_P_ACCURACY);
-	else
-	 snprintf(vdp1_start_no_end,length,vdp1_start_no_end_base,WORKSIZE_L,WORKSIZE_P);
 
   int am = sizeof(vdp1cmd_struct) % 16;
   tex_width = width;

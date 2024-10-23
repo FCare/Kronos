@@ -2263,21 +2263,10 @@ void updateBandingMode(BANDINGMODE value) {
     vdp1_update_banding();
   }
 }
-void updatePerformanceMode(VDP1PERFMODE value) {
-  if (_Ygl->vdp1PerfMode != value){
-    _Ygl->vdp1PerfMode = value;
-    vdp1_update_performance();
-  }
-}
-
-
 
 void VIDCSSetSettingValueMode(int type, int value) {
 
   switch (type) {
-  case VDP_SETTING_VDP1MODE:
-    updatePerformanceMode((VDP1PERFMODE)value);
-    break;
   case VDP_SETTING_FILTERMODE:
     _Ygl->aamode = (AAMODE)value;
     if (value < AA_ADAPTATIVE_FILTER)

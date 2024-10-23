@@ -400,12 +400,6 @@ typedef enum
 
 typedef enum
 {
-  PERFORMANCE = 0,
-  ACCURACY = 1
-} VDP1PERFMODE;
-
-typedef enum
-{
   UP_NONE = 0,
   UP_HQ4X,
   UP_4XBRZ,
@@ -452,8 +446,7 @@ typedef enum {
     VDP_SETTING_MESH_MODE,
     VDP_SETTING_BANDING_MODE,
     VDP_SETTING_COMPUTE_SHADER,
-    VDP_SETTING_WIREFRAME,
-    VDP_SETTING_VDP1MODE
+    VDP_SETTING_WIREFRAME
 } enSettings;
 
 
@@ -619,7 +612,6 @@ typedef struct {
    int wireframe_mode;
    RATIOMODE stretch;
    RESOLUTION_MODE resolution_mode;
-   VDP1PERFMODE vdp1PerfMode;
    GLsync sync;
    GLuint default_fbo;
    int vpd1_running;

@@ -149,16 +149,7 @@ SHADER_VERSION_COMPUTE
 "precision highp float;\n"
 "#endif\n"
 "layout(local_size_x = %d, local_size_y = %d) in;\n";
-
-static const char vdp1_start_no_end_base[] =
-SHADER_VERSION_COMPUTE
-"#ifdef GL_ES\n"
-"precision highp float;\n"
-"#endif\n"
-"layout(local_size_x = %d, local_size_y = %d) in;\n";
-
 static char vdp1_start_end[ sizeof(vdp1_start_end_base) + 64 ];
-static char vdp1_start_no_end[ sizeof(vdp1_start_no_end_base) + 64 ];
 
 static const char vdp1_draw_line_start_f_rw[] =
 "struct cmdparameter_struct{ \n"
@@ -669,111 +660,6 @@ static char vdp1_draw_no_mesh_improved_f[] =
 " imageStore(outMeshSurface,P,vec4(0.0));\n"
 " return getColoredPixel(pixcmd, uv, P, valid);\n"
 "}\n";
-
-
-static const char vdp1_draw_line_f[] =
-"void main()\n"
-"{\n"
-// " if (gl_GlobalInvocationID.x >= gl_NumWorkGroups) return;"
-" cmdparameter_struct pixcmd = cmd[gl_GlobalInvocationID.x+offset];\n"
-" if (gl_GlobalInvocationID.y > 0) return;\n"
-" ivec2 line = ivec2(pixcmd.CMDXB, pixcmd.CMDYB) - ivec2(pixcmd.CMDXA, pixcmd.CMDYA);\n"
-" float orientation = (abs(line.x) > abs(line.y))?1.0:0.0;\n"
-" mat2 trans = mat2(orientation, 1.0-orientation, 1.0-orientation, orientation);\n"
-" mat2 transrev = trans;\n"
-" ivec2 P0 = ivec2(trans*vec2(pixcmd.CMDXA, pixcmd.CMDYA));\n"
-" ivec2 P1 = ivec2(trans*vec2(pixcmd.CMDXB, pixcmd.CMDYB));\n"
-" ivec2 P = P0;\n"
-" ivec2 vector = P1-P0;\n"
-" ivec3 a = ivec3(sign(vector), 0);\n"
-" if (a.x == 0) a.x = 1;\n"
-" if (a.y == 0) a.y = 1;\n"
-" ivec2 delta = a.xy*upscale;\n"
-" P1.x = P1.x+delta.x;\n"
-" int veclong = P1.x-P0.x;\n"
-" ivec2 greedyOffset = int((orientation == 0.0)^^(a.x == a.y))*ivec2(a.x, -a.y);\n"
-"	if (a.x != a.y) vector.x = -vector.x;\n"
-" for (; P.x != P1.x; P.x += a.x) {\n"
-"  //Draw pixels\n"
-"  ivec2 Pn = P;\n"
-"  ivec2 PnOut = ivec2(transrev*vec2(Pn));\n"
-"  bool valid = clip(PnOut,usrClip, sysClip, pixcmd.CMDPMOD);\n"
-"  if (valid) {\n"
-"   float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"   vec4 pixout = getMeshedPixel(pixcmd, dp, PnOut, valid);\n"
-"   if (valid) imageStore(outSurface,PnOut,pixout);\n"
-"  }\n"
-"  a.z += vector.y;\n"
-"  if (abs(a.z) >= abs(vector.x)) {\n"
-"   a.z -= vector.x;\n"
-"   P.y += a.y;\n"
-//Greedy saturn effect\n"
-"   ivec2 Pn = P + greedyOffset;\n"
-"   ivec2 PnOut = ivec2(transrev*vec2(Pn));\n"
-"   valid = clip(PnOut, usrClip, sysClip, pixcmd.CMDPMOD);\n"
-"   if ((valid)&&(Pn.x != P1.x)&& greedy) {\n"
-"    float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"    vec4 pixout = getMeshedPixel(pixcmd, dp, PnOut, valid);\n"
-"    if (valid) imageStore(outSurface,PnOut,pixout);\n"
-"   }\n"
-"  }\n"
-" }\n"
-"}\n";
-
-static const char vdp1_draw_line_no_end_f[] =
-"void main()\n"
-"{\n"
-// We can do a per pixel render when there is no end bit to detect
-" if ((gl_GlobalInvocationID.x+offset) >= nbLines) return;\n"
-" cmdparameter_struct pixcmd = cmd[gl_GlobalInvocationID.x+offset];\n"
-" ivec2 line = ivec2(pixcmd.CMDXB, pixcmd.CMDYB) - ivec2(pixcmd.CMDXA, pixcmd.CMDYA);\n"
-" float orientation = (abs(line.x) > abs(line.y))?1.0:0.0;\n"
-" mat2 trans = mat2(orientation, 1.0-orientation, 1.0-orientation, orientation);\n"
-" mat2 transrev = trans;\n"
-" ivec2 P0 = ivec2(trans*vec2(pixcmd.CMDXA, pixcmd.CMDYA));\n"
-" ivec2 P1 = ivec2(trans*vec2(pixcmd.CMDXB, pixcmd.CMDYB));\n"
-" ivec2 Pn = P0;\n"
-" ivec2 vector = P1-P0;\n"
-" ivec3 a = ivec3(sign(vector), 0);\n"
-" if (a.x == 0) a.x = 1;\n"
-" if (a.y == 0) a.y = 1;\n"
-" ivec2 delta = a.xy*upscale;\n"
-" P1.x = P1.x+delta.x;\n"
-" int veclong = P1.x-P0.x;\n"
-" if (gl_GlobalInvocationID.y >= abs(veclong)) return;\n"
-" ivec2 greedyOffset = int((orientation == 0.0)^^(a.x == a.y))*ivec2(a.x, -a.y);\n"
-"	if (a.x != a.y) vector.x = -vector.x;\n"
-" int columns = int(gl_GlobalInvocationID.y);\n"
-" Pn.x += a.x*columns;\n"
-" int row = int(gl_GlobalInvocationID.y*vector.y)/vector.x;\n"
-" Pn.y += a.y*row;\n"
-" //Draw pixels\n"
-" ivec2 PnOut = ivec2(transrev*vec2(Pn));\n"
-" bool valid = clip(PnOut,usrClip, sysClip, pixcmd.CMDPMOD);\n"
-" if (valid) {\n"
-"  float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"  vec4 pixout = getMeshedPixel(pixcmd, dp, PnOut, valid);\n"
-"  if(valid) {"
-"   imageStore(outSurface,PnOut,pixout);\n"
-"  }"
-" }\n"
-//Greedy saturn effect\n"
-// Will happen if next point is on different Y
-" if (row != (int((gl_GlobalInvocationID.y+1)*vector.y)/vector.x)) {\n"
-"  Pn.y += a.y;\n"
-"  Pn += greedyOffset;\n"
-"  ivec2 PnOut = ivec2(transrev*vec2(Pn));\n"
-"  valid = clip(PnOut,usrClip, sysClip, pixcmd.CMDPMOD);\n"
-"  if ((valid)&&(Pn.x != P1.x)&&greedy) {\n"
-"   float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"   vec4 pixout = getMeshedPixel(pixcmd, dp, PnOut, valid);\n"
-"   if(valid) {"
-"    imageStore(outSurface,PnOut,pixout);\n"
-"   }"
-"  }\n"
-" }\n"
-"}\n";
-
 
 static const char vdp1_draw_poly_test[] =
 "void main()\n"
