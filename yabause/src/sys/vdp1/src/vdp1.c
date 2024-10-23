@@ -625,7 +625,7 @@ static void Vdp1TryDraw(void) {
     FRAMELOG("Will drawn on frame %d\n",_Ygl->drawframe);
   }
   oldNeedVdp1draw = needVdp1draw;
-  if ((needVdp1draw == 1)) {
+  if (needVdp1draw == 1) {
     CmdListInLoop = 0;
     needVdp1draw = Vdp1Draw();
   }
