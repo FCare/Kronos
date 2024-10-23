@@ -107,10 +107,9 @@ static const char vdp1_draw_line_start_f[] =
 "  int CMDXB;\n" //OK
 "  int CMDYB;\n" //OK
 "  uint CMDCOLR;\n" //Ok=>Tjrs la meme
-"  uint CMDCTRL;\n" //Pas utilisé
 "  float G[6];\n"
 "  int flip;\n" //Ok - 2 bits
-"  int pad[16];\n"
+"  int pad[17];\n"
 "};\n"
 "layout(rgba8, binding = 0) writeonly uniform image2D outSurface;\n"
 "layout(rgba8, binding = 1) writeonly uniform image2D outMeshSurface;\n"

@@ -28,10 +28,9 @@ typedef struct {
 	s32 CMDXB;
 	s32 CMDYB;
 	u32 CMDCOLR;
-	u32 CMDCTRL;
 	float G[6];
 	u32 flip;
-	u32 pad[16];
+	u32 pad[17];
 } cmd_poly;
 
 #define MIX(A, B, C) (((float)(C) * (float)(A)+(float)(1.0-C) * (float)(B)))
@@ -1090,7 +1089,6 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.CMDXB = dataR[idr].x,
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
@@ -1124,7 +1122,6 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.CMDXB = dataR[idr].x,
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
@@ -1173,7 +1170,6 @@ void drawPoint(vdp1cmd_struct* cmd) {
 			.CMDXB = cmd->CMDXB * tex_ratio,
 			.CMDYB = cmd->CMDYB * tex_ratio + i,
 			.CMDCOLR = cmd->CMDCOLR,
-			.CMDCTRL = cmd->CMDCTRL,
 			.flip = cmd->flip,
 		};
 		cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
@@ -1211,7 +1207,6 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 				.CMDXB = B.x * tex_ratio,
 				.CMDYB = B.y * tex_ratio + i,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
@@ -1234,7 +1229,6 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 				.CMDXB = B.x* tex_ratio + i,
 				.CMDYB = B.y * tex_ratio,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
@@ -1295,7 +1289,6 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDXB = list[3].x * tex_ratio,
 				.CMDYB = list[3].y * tex_ratio + i,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
@@ -1318,7 +1311,6 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDXB = list[3].x * tex_ratio + i,
 				.CMDYB = list[3].y * tex_ratio,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
@@ -1364,7 +1356,6 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 				.CMDXB = dataR[idr].x,
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			// printf("P %d,%d => %d,%d\n",
@@ -1398,7 +1389,6 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 				.CMDXB = dataR[idr].x,
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
-				.CMDCTRL = cmd->CMDCTRL,
 				.flip = cmd->flip,
 			};
 			// printf("P %d,%d => %d,%d\n",
@@ -1596,7 +1586,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 130;
 		// cmd->CMDYD = 130;
 		//QUAD
-		// cmd->CMDCTRL &= ~0xF;
 		// cmd->CMDCOLR = 0x7FFF;
 		// cmd->CMDXA = 100;
 		// cmd->CMDXD = 100;
@@ -1670,7 +1659,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 129;
 		// cmd->CMDYD = 129;
 		// DOOM patch
-		// cmd->CMDCTRL &= ~0xF;
 		// cmd->CMDXA = 69;
 		// cmd->CMDXB = 69;
 		// cmd->CMDXC = 69;
@@ -1680,7 +1668,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 121;
 		// cmd->CMDYD = 63;
 		// SONIC 3D RED polygon
-		// cmd->CMDCTRL &= ~0xF;
 		// cmd->CMDXA = 320;
 		// cmd->CMDXB = 320;
 		// cmd->CMDXC = 9;
