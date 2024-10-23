@@ -29,13 +29,12 @@ typedef struct {
 	s32 CMDYB;
 	u32 CMDCOLR;
 	u32 CMDCTRL;
-	float dl;
-	float dr;
-	float G[16];
+	float G[6];
 	u32 flip;
-	u32 pad[4];
+	u32 pad[16];
 } cmd_poly;
 
+#define MIX(A, B, C) (((float)(C) * (float)(A)+(float)(1.0-C) * (float)(B)))
 extern vdp2rotationparameter_struct  Vdp1ParaA;
 
 static int local_size_x = 8;
@@ -1080,6 +1079,8 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		for (i = 0; i != li; i++) {
 			a += ri;
 			idl = i;
+			float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
+			float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
 				.CMDSRCA = cmd->CMDSRCA,
@@ -1090,8 +1091,6 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio),
-				.dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio),
 				.flip = cmd->flip,
 			};
 			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
@@ -1099,7 +1098,12 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
 			// );
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 			if (abs(a) >= abs(li)) {
 				a -= li;
 				idr++;
@@ -1109,6 +1113,8 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		for (i = 0; i != ri; i++) {
 			a += li;
 			idr = i;
+			float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
+			float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
 				.CMDSRCA = cmd->CMDSRCA,
@@ -1119,8 +1125,6 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio),
-				.dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio),
 				.flip = cmd->flip,
 			};
 			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
@@ -1128,7 +1132,12 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 			// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
 			// );
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 
 			if (abs(a) >= abs(ri)) {
 				a -= ri;
@@ -1153,6 +1162,8 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 void drawPoint(vdp1cmd_struct* cmd) {
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
 	for (int i = 0; i< tex_ratio; i++) {
+		float dl = 0.5;
+		float dr = 0.5;
 		cmd_pol[i] = (cmd_poly){
 			.CMDPMOD = cmd->CMDPMOD,
 			.CMDSRCA = cmd->CMDSRCA,
@@ -1163,11 +1174,14 @@ void drawPoint(vdp1cmd_struct* cmd) {
 			.CMDYB = cmd->CMDYB * tex_ratio + i,
 			.CMDCOLR = cmd->CMDCOLR,
 			.CMDCTRL = cmd->CMDCTRL,
-			.dl = 0.5,
-			.dr = 0.5,
 			.flip = cmd->flip,
 		};
-		memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+		cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+		cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+		cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+		cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+		cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+		cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 	}
 	point A = (point){
 		.x= MIN(cmd->CMDXA, MIN(cmd->CMDXB, MIN(cmd->CMDXC, cmd->CMDXD))),
@@ -1185,6 +1199,8 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 	int dy = abs(B.y - A.y);
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
 	if (dx >= dy) {
+		float dl = 0.5;
+		float dr = 0.5;
 		for (int i = 0; i< tex_ratio; i++) {
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
@@ -1196,13 +1212,18 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 				.CMDYB = B.y * tex_ratio + i,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = 0.5,
-				.dr = 0.5,
 				.flip = cmd->flip,
 			};
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 		}
 	} else {
+		float dl = 0.5;
+		float dr = 0.5;
 		for (int i = 0; i< tex_ratio; i++) {
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
@@ -1214,11 +1235,14 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 				.CMDYB = B.y * tex_ratio,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = 0.5,
-				.dr = 0.5,
 				.flip = cmd->flip,
 			};
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 		}
 	}
 	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type,0,A,B);
@@ -1259,6 +1283,8 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 	int dy = list[3].y - list[0].y;
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
 	if (dx >= dy) {
+		float dl = 0.0;
+		float dr = 1.0;
 		for (int i = 0; i< tex_ratio; i++) {
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
@@ -1270,13 +1296,18 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDYB = list[3].y * tex_ratio + i,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = 0.0,
-				.dr = 1.0,
 				.flip = cmd->flip,
 			};
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 		}
 	} else {
+		float dl = 0.0;
+		float dr = 1.0;
 		for (int i = 0; i< tex_ratio; i++) {
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
@@ -1288,11 +1319,14 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDYB = list[3].y * tex_ratio,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = 0.0,
-				.dr = 1.0,
 				.flip = cmd->flip,
 			};
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 		}
 	}
 	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio, cmd->type, 0,list[0],list[3]);
@@ -1319,6 +1353,8 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 		for (i = 0; i != li; i++) {
 			a += ri;
 			idl = i;
+			float dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5;
+			float dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5;
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
 				.CMDSRCA = cmd->CMDSRCA,
@@ -1329,8 +1365,6 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
-				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
 				.flip = cmd->flip,
 			};
 			// printf("P %d,%d => %d,%d\n",
@@ -1338,7 +1372,12 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
 			// );
 			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 			if (abs(a) >= abs(li)) {
 				a -= li;
 				idr++;
@@ -1348,6 +1387,8 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 		for (i = 0; i != ri; i++) {
 			a += li;
 			idr = i;
+			float dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5;
+			float dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5;
 			cmd_pol[i] = (cmd_poly){
 				.CMDPMOD = cmd->CMDPMOD,
 				.CMDSRCA = cmd->CMDSRCA,
@@ -1358,8 +1399,6 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 				.CMDYB = dataR[idr].y,
 				.CMDCOLR = cmd->CMDCOLR,
 				.CMDCTRL = cmd->CMDCTRL,
-				.dl = (li>1)?((float)(idl/tex_ratio))/(float)((li/tex_ratio)-1):0.5,
-				.dr = (ri>1)?((float)(idr/tex_ratio))/(float)((ri/tex_ratio)-1):0.5,
 				.flip = cmd->flip,
 			};
 			// printf("P %d,%d => %d,%d\n",
@@ -1367,7 +1406,12 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 			// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
 			// );
 			nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-			memcpy(&cmd_pol[i].G[0], &cmd->G[0], 16*sizeof(float));
+			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 
 			if (abs(a) >= abs(ri)) {
 				a -= ri;
