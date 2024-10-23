@@ -30,7 +30,7 @@ typedef struct {
 	u32 CMDCOLR;
 	float G[6];
 	u32 flip;
-	u32 pad[17];
+	u32 pad[1];
 } cmd_poly;
 
 #define MIX(A, B, C) (((float)(C) * (float)(A)+(float)(1.0-C) * (float)(B)))
