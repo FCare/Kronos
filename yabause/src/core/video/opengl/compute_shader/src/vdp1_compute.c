@@ -1614,16 +1614,6 @@ void startVdp1Render() {
 	glUniform1i(12, 0);
 }
 
-static void flushVdp1RenderSequential(int nbWork, int nbPoints) {
-	if (nbWork>0) {
-		for (int i=0; i<nbWork*tex_ratio; i++) {
-			glUniform1i(10, i);
-			glDispatchCompute(1, nbPoints, 1); //might be better to launch only the right number of workgroup
-			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
-		}
-		glUniform1i(10, 0);
-	}
-}
 static void flushVdp1Render(int nbWork, int nbPoints) {
 	if (nbWork>0) {
 		// if (a_prg_vdp1[oldProg][0] == vdp1_draw_line_start_f_rw)
