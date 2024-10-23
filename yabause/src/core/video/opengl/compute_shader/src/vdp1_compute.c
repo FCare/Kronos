@@ -1671,14 +1671,14 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, 
 		Vdp1External.updateVdp1Ram = 0;
 	}
 	glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
-	A.x = MIN(A.x, MIN(Vdp1Regs->userclipX2+1, Vdp1Regs->systemclipX2));
-	A.y = MIN(A.y, MIN(Vdp1Regs->userclipY2+1, Vdp1Regs->systemclipY2));
-	B.x = MIN(B.x, MIN(Vdp1Regs->userclipX2+1, Vdp1Regs->systemclipX2));
-	B.y = MIN(B.y, MIN(Vdp1Regs->userclipY2+1, Vdp1Regs->systemclipY2));
-	A.x = MAX(A.x, MAX(Vdp1Regs->userclipX1, 0));
-	A.y = MAX(A.y, MAX(Vdp1Regs->userclipY1, 0));
-	B.x = MAX(B.x, MAX(Vdp1Regs->userclipX1, 0));
-	B.y = MAX(B.y, MAX(Vdp1Regs->userclipY1, 0));
+	A.x = MIN(A.x, Vdp1Regs->systemclipX2);
+	A.y = MIN(A.y, Vdp1Regs->systemclipY2);
+	B.x = MIN(B.x, Vdp1Regs->systemclipX2);
+	B.y = MIN(B.y, Vdp1Regs->systemclipY2);
+	A.x = MAX(A.x, 0);
+	A.y = MAX(A.y, 0);
+	B.x = MAX(B.x, 0);
+	B.y = MAX(B.y, 0);
 
 	A.x *= tex_ratio;
 	A.y *= tex_ratio;
