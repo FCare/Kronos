@@ -49,7 +49,6 @@ int VDP1_MASK = 0xFFFF;
 extern u32* getVDP1WriteFramebuffer(int frame);
 extern u32* getVDP1ReadFramebuffer();
 extern void updateVdp1DrawingFBMem(int frame);
-extern void clearVDP1Framebuffer();
 extern void YglGenerate();
 extern void syncVdp1FBBuffer(u32 addr);
 
