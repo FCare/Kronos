@@ -2936,6 +2936,7 @@ char* getSTVGameName(int id) {
 
 int loadGames(char* path) {
   int i, nbGames = 0;
+  int character;
   char* field;
   char gameName[1024];
   char gamePath[MAX_LENGTH_FILEPATH];
@@ -2945,7 +2946,8 @@ int loadGames(char* path) {
   for(;;) {
     i=0;
     field = &gameName[0];
-    while((field[i] = fgetc(fp)) != EOF) {
+    while((character = fgetc(fp)) != EOF) {
+      field[i] = character;
       if (field[i] == '\n') {
         field[i] = '\0';
         break;
@@ -2960,7 +2962,7 @@ int loadGames(char* path) {
         }
       }
     }
-    if (field[i] == EOF) break;
+    if (character == EOF) break;
     LOGSTV("Scan new game %s %s!!!\n", gameName, gamePath);
     if (strncmp(gameName,BiosList.name,1024)==0) {
       biosLink.entry = &BiosList;
