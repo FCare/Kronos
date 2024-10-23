@@ -3059,7 +3059,7 @@ static int getVdp1ErasePixelLine() {
   }
 }
 
-static int Vdp1EraseWrite(int id){
+static void Vdp1EraseWrite(int id){
   lastHash = -1;
   _Ygl->shallVdp1Erase[id] = 1;
 }
