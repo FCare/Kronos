@@ -109,7 +109,7 @@ static const char vdp1_draw_line_start_f[] =
 "  uint CMDCOLR;\n" //Ok=>Tjrs la meme
 "  float G[6];\n"
 "  int flip;\n" //Ok - 2 bits
-"  int pad[1];\n"
+"  int idx;\n"
 "};\n"
 "layout(rgba8, binding = 0) writeonly uniform image2D outSurface;\n"
 "layout(rgba8, binding = 1) writeonly uniform image2D outMeshSurface;\n"
@@ -120,12 +120,10 @@ static const char vdp1_draw_line_start_f[] =
 "layout(location = 7) uniform ivec2 upscale;\n"
 "layout(location = 8) uniform ivec2 sysClip;\n"
 "layout(location = 9) uniform ivec4 usrClip;\n"
-"layout(location = 10) uniform int offset;\n"
 "layout(location = 11) uniform bool greedy;\n"
 "layout(location = 12) uniform int nbLines;\n"
 "layout(location = 13) uniform int nbLineDraw;\n"
 "layout(location = 14) uniform ivec2 bound;\n"
-"layout(location = 15) uniform int nbLineOffset;\n"
 
 "shared uint endIndex[256];\n"
 
@@ -165,7 +163,7 @@ static const char vdp1_draw_line_start_f_rw[] =
 "  uint CMDCOLR;\n"
 "  float G[6];\n"
 "  int flip;\n"
-"  int pad[1];\n"
+"  int idx;\n"
 "};\n"
 "layout(rgba8, binding = 0) uniform image2D outSurface;\n"
 "layout(rgba8, binding = 1) writeonly uniform image2D outMeshSurface;\n"
@@ -176,12 +174,10 @@ static const char vdp1_draw_line_start_f_rw[] =
 "layout(location = 7) uniform ivec2 upscale;\n"
 "layout(location = 8) uniform ivec2 sysClip;\n"
 "layout(location = 9) uniform ivec4 usrClip;\n"
-"layout(location = 10) uniform int offset;\n"
 "layout(location = 11) uniform bool greedy;\n"
 "layout(location = 12) uniform int nbLines;\n"
 "layout(location = 13) uniform int nbLineDraw;\n"
 "layout(location = 14) uniform ivec2 bound;\n"
-"layout(location = 15) uniform int nbLineOffset;\n"
 
 "shared uint endIndex[256];\n"
 
@@ -714,7 +710,7 @@ static const char vdp1_draw_poly_test[] =
 "  }\n"
 "  if (isOnLine || isOnGreedy) {\n"
 "   float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float((idx+nbLineOffset)/upscale.y)/float(nbLines/upscale.y)), P, valid);\n"
+"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float(pixcmd.idx/upscale.y)/float(nbLines/upscale.y)), P, valid);\n"
 "   if(valid) {\n"
 "    imageStore(outSurface,P,pixout);\n"
 "    return;\n"

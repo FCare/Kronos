@@ -30,7 +30,7 @@ typedef struct {
 	u32 CMDCOLR;
 	float G[6];
 	u32 flip;
-	u32 pad[1];
+	u32 idx;
 } cmd_poly;
 
 #define MIX(A, B, C) (((float)(1.0-C) * (float)(A)+(float)(C) * (float)(B)))
@@ -755,6 +755,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
 					.flip = cmd->flip,
+					.idx = i
 				};
 				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 				// printf("P %d,%d => %d,%d\n",
@@ -800,6 +801,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
 					.flip = cmd->flip,
+					.idx = i
 				};
 				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 				// printf("P %d,%d => %d,%d\n",
@@ -849,6 +851,7 @@ void drawPoint(vdp1cmd_struct* cmd) {
 			.CMDYB = cmd->CMDYB * tex_ratio + i,
 			.CMDCOLR = cmd->CMDCOLR,
 			.flip = cmd->flip,
+			.idx = i
 		};
 		cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
 		cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
@@ -886,6 +889,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 				.CMDYB = B.y * tex_ratio + i,
 				.CMDCOLR = cmd->CMDCOLR,
 				.flip = cmd->flip,
+				.idx = i
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
 			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
@@ -908,6 +912,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 				.CMDYB = B.y * tex_ratio,
 				.CMDCOLR = cmd->CMDCOLR,
 				.flip = cmd->flip,
+				.idx = i
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
 			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
@@ -968,6 +973,7 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDYB = list[3].y * tex_ratio + i,
 				.CMDCOLR = cmd->CMDCOLR,
 				.flip = cmd->flip,
+				.idx = i
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
 			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
@@ -990,6 +996,7 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 				.CMDYB = list[3].y * tex_ratio,
 				.CMDCOLR = cmd->CMDCOLR,
 				.flip = cmd->flip,
+				.idx = i
 			};
 			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
 			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
@@ -1046,6 +1053,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
 					.flip = cmd->flip,
+					.idx = i
 				};
 				// printf("P %d,%d => %d,%d\n",
 				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
@@ -1091,6 +1099,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
 					.flip = cmd->flip,
+					.idx = i
 				};
 				// printf("P %d,%d => %d,%d\n",
 				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
@@ -1388,6 +1397,15 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYB = 199;
 		// cmd->CMDYC = 199;
 		// cmd->CMDYD = 192;
+		//ROBOTICA US
+		// cmd->CMDXA = 368+160;
+		// cmd->CMDXB = 215+160;
+		// cmd->CMDXC = 268+160;
+		// cmd->CMDXD = 396+160;
+		// cmd->CMDYA = 86+96;
+		// cmd->CMDYB = 86+96;
+		// cmd->CMDYC = 316+96;
+		// cmd->CMDYD = 316+96;
 
 
 		//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
@@ -1609,7 +1627,6 @@ void startVdp1Render() {
 	glUniform2i(7, tex_ratio, tex_ratio);
 	glUniform2i(8, (Vdp1Regs->systemclipX2+1)*tex_ratio-1, (Vdp1Regs->systemclipY2+1)*tex_ratio-1);
 	glUniform4i(9, Vdp1Regs->userclipX1*tex_ratio, Vdp1Regs->userclipY1*tex_ratio, (Vdp1Regs->userclipX2+1)*tex_ratio-1, (Vdp1Regs->userclipY2+1)*tex_ratio-1);
-	glUniform1i(10, 0);
 	glUniform1i(11, 0);
 	glUniform1i(12, 0);
 }
@@ -1688,7 +1705,6 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, 
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
 		glBufferSubData(GL_SHADER_STORAGE_BUFFER, 0, drawNbLines*sizeof(cmd_poly), (void*)&cmd_pol[i]);
 		glUniform1i(13, drawNbLines);
-		glUniform1i(15, (i/NB_LINE_MAX_PER_DRAW)*NB_LINE_MAX_PER_DRAW);
 		flushVdp1Render((dx+WORKSIZE_L-1)/WORKSIZE_L, (dy+WORKSIZE_P-1)/WORKSIZE_P); //might be better to launch only the right number of workgroup
 	}
 }

@@ -80,7 +80,7 @@ static void checkFBSync();
 
 int CONVERTCMD(s32 *A) {
   s32 toto = (*A);
-  if ((((*A)>>12)&0x1)^(((*A)>>11)&0x1) != 0) {
+  if ((((((*A)>>12)&0x1)^(((*A)>>11)&0x1))) != 0) {
     return 1;
   }
   if (((*A)>>11)&0x1) (*A) |= 0xF800;
