@@ -1148,7 +1148,14 @@ int colinear(point a, point b) {
 	int lengtha = a.x*a.x + a.y*a.y;
 	int lengthb = b.x*b.x + b.y*b.y;
 	if ((lengtha == 0)||(lengthb == 0)) return 0;
-	return ((a.x*b.x+a.y*b.y)*(a.x*b.x+a.y*b.y) == lengtha*lengthb);
+
+	if ((b.x != 0) && (b.y != 0)){
+		return (((float)a.x/(float)b.x) == ((float)a.y/(float)b.y))?1:0;
+	} else {
+		if (b.x == 0) return (a.x == 0)?1:0;
+		if (b.y == 0) return (a.y == 0?1:0);
+	}
+  return 0;
 }
 
 int isLine(vdp1cmd_struct* cmd) {
