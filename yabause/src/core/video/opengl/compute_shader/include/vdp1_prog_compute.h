@@ -710,7 +710,7 @@ static const char vdp1_draw_poly_test[] =
 "  }\n"
 "  if (isOnLine || isOnGreedy) {\n"
 "   float dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float(pixcmd.idx/upscale.y)/float(nbLines/upscale.y)), P, valid);\n"
+"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float((pixcmd.idx/upscale.y)+0.5)/float(nbLines/upscale.y)), P, valid);\n"
 "   if(valid) {\n"
 "    imageStore(outSurface,P,pixout);\n"
 "    return;\n"
