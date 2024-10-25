@@ -5,6 +5,7 @@ on:
     branches: [ kronos-cmake_ci ]
   pull_request:
     branches: [ kronos-cmake_ci ]
+  workflow_dispatch:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -22,7 +23,7 @@ jobs:
           sudo apt-get install -y cmake qt5-default qtmultimedia5-dev libqt5opengl5-dev libsdl2-dev
           echo "Cloning sources"
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Configure CMake
         run: |
           cmake -S ${{github.workspace}}/yabause -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
