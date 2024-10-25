@@ -1710,7 +1710,7 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPoi
 		.x = MIN(A.x, B.x),
 		.y = MIN(A.y, B.y)
 	};
-	if ((Bound.x == Vdp1Regs->systemclipX2) || (Bound.y == Vdp1Regs->systemclipY2))
+	if ((Bound.x == Vdp1Regs->systemclipX2*tex_ratio) || (Bound.y == Vdp1Regs->systemclipY2*tex_ratio))
 	{
 		//Top left point is at limit, so quad will not be displayed, do not compute
 		return;
