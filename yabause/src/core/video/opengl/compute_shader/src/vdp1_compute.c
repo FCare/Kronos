@@ -874,55 +874,59 @@ void drawPoint(vdp1cmd_struct* cmd) {
 void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 	int dx = abs(B.x - A.x);
 	int dy = abs(B.y - A.y);
-	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio*tex_ratio, sizeof(cmd_poly));
 	if (dx >= dy) {
 		float dl = 0.5;
 		float dr = 0.5;
 		for (int i = 0; i< tex_ratio; i++) {
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = A.x * tex_ratio,
-				.CMDYA = A.y * tex_ratio + i,
-				.CMDXB = B.x * tex_ratio,
-				.CMDYB = B.y * tex_ratio + i,
-				.CMDCOLR = cmd->CMDCOLR,
-				.flip = cmd->flip,
-				.idx = i
-			};
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+			for (int j = 0; j< tex_ratio; j++) {
+				cmd_pol[i*tex_ratio+j] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
+					.CMDXA = A.x * tex_ratio + j,
+					.CMDYA = A.y * tex_ratio + i,
+					.CMDXB = B.x * tex_ratio + j,
+					.CMDYB = B.y * tex_ratio + i,
+					.CMDCOLR = cmd->CMDCOLR,
+					.flip = cmd->flip,
+					.idx = i*tex_ratio+j
+				};
+				cmd_pol[i*tex_ratio+j].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+				cmd_pol[i*tex_ratio+j].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+				cmd_pol[i*tex_ratio+j].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+				cmd_pol[i*tex_ratio+j].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+				cmd_pol[i*tex_ratio+j].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+				cmd_pol[i*tex_ratio+j].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+			}
 		}
 	} else {
 		float dl = 0.5;
 		float dr = 0.5;
 		for (int i = 0; i< tex_ratio; i++) {
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = A.x * tex_ratio + i,
-				.CMDYA = A.y * tex_ratio,
-				.CMDXB = B.x* tex_ratio + i,
-				.CMDYB = B.y * tex_ratio,
-				.CMDCOLR = cmd->CMDCOLR,
-				.flip = cmd->flip,
-				.idx = i
-			};
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+			for (int j = 0; j< tex_ratio; j++) {
+				cmd_pol[i*tex_ratio+j] = (cmd_poly){
+					.CMDPMOD = cmd->CMDPMOD,
+					.CMDSRCA = cmd->CMDSRCA,
+					.CMDSIZE = cmd->CMDSIZE,
+					.CMDXA = A.x * tex_ratio + i,
+					.CMDYA = A.y * tex_ratio + j,
+					.CMDXB = B.x * tex_ratio + i,
+					.CMDYB = B.y * tex_ratio + j,
+					.CMDCOLR = cmd->CMDCOLR,
+					.flip = cmd->flip,
+					.idx = i*tex_ratio+j
+				};
+				cmd_pol[i*tex_ratio+j].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+				cmd_pol[i*tex_ratio+j].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+				cmd_pol[i*tex_ratio+j].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+				cmd_pol[i*tex_ratio+j].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+				cmd_pol[i*tex_ratio+j].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+				cmd_pol[i*tex_ratio+j].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+			}
 		}
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type,0,A,B);
+	drawPolygonLine(cmd_pol, tex_ratio*tex_ratio, tex_ratio*tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type,0,A,B);
 	free(cmd_pol);
 }
 
