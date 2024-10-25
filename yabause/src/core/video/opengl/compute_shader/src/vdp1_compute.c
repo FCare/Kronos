@@ -47,7 +47,7 @@ static int tex_height;
 static int tex_ratio;
 static int struct_size;
 static int struct_line_size;
-void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, int overlap, point A, point B);
+void drawPolygonLine(cmd_poly* cmd_pol, int nbMaxLines, int nbLines, int nbPointsMax, u32 type, int overlap, point A, point B);
 
 static int work_groups_x;
 static int work_groups_y;
@@ -830,7 +830,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, add, nbPmax+tex_ratio,cmd->type, li!=ri, A, B);
+	drawPolygonLine(cmd_pol, i, add, nbPmax+tex_ratio,cmd->type, li!=ri, A, B);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -868,7 +868,7 @@ void drawPoint(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, cmd->type,0,A,B);
+	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, tex_ratio, cmd->type,0,A,B);
 	free(cmd_pol);
 }
 void drawLine(vdp1cmd_struct* cmd, point A, point B) {
@@ -922,7 +922,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 		}
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type,0,A,B);
+	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type,0,A,B);
 	free(cmd_pol);
 }
 
@@ -1006,7 +1006,7 @@ void drawQuadAsLine(vdp1cmd_struct* cmd) {
 			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 		}
 	}
-	drawPolygonLine(cmd_pol, tex_ratio, MAX(dx, dy)*tex_ratio, cmd->type, 0,list[0],list[3]);
+	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, MAX(dx, dy)*tex_ratio, cmd->type, 0,list[0],list[3]);
 	free(cmd_pol);
 }
 
@@ -1129,7 +1129,7 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, add, nbPmax+tex_ratio, cmd->type, 1,A,B);
+	drawPolygonLine(cmd_pol, i, add, nbPmax+tex_ratio, cmd->type, 1,A,B);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
@@ -1654,7 +1654,8 @@ void endVdp1Render() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, int overlap, point A, point B) {
+void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPointsMax, u32 type, int overlap, point A, point B) {
+	if (nbLines == 0) return;
 	int progId = getProgramLine(&cmd_pol[0], type);
 	// trace_prog(progId);
 	if (progId == DRAW_POLY_UNSUPPORTED_MESH) return;
@@ -1705,8 +1706,13 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbLines, int nbPointsMax, u32 type, 
 		.x = MIN(A.x, B.x),
 		.y = MIN(A.y, B.y)
 	};
+	if ((Bound.x == Vdp1Regs->systemclipX2) || (Bound.y == Vdp1Regs->systemclipY2))
+	{
+		//Top left point is at limit, so quad will not be displayed, do not compute
+		return;
+	}
 	glUniform2i(14, Bound.x, Bound.y);
-	glUniform1i(12, nbLines);
+	glUniform1i(12, nbTotalLines);
 	for (int i = 0; i<nbLines; i+=NB_LINE_MAX_PER_DRAW) {
 		int drawNbLines = MIN(NB_LINE_MAX_PER_DRAW,(nbLines - i));
 		glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbo_cmd_line_list_);
