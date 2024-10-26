@@ -1644,8 +1644,8 @@ void startVdp1Render() {
 
 static void flushVdp1Render(int nbWork, int nbPoints) {
 	if (nbWork>0) {
-		// if (a_prg_vdp1[oldProg][0] == vdp1_draw_line_start_f_rw)
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		if (a_prg_vdp1[oldProg][0] == vdp1_draw_line_start_f_rw)
+			glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		glDispatchCompute(nbWork, nbPoints, 1); //might be better to launch only the right number of workgroup
 	}
 }
