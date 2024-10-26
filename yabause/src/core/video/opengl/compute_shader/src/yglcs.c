@@ -268,7 +268,7 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
     scale = MAX(w/_Ygl->rwidth, h/_Ygl->rheight);
 #else
   //Libretro is taking care to the resize
-  w = width;
+  w = _Ygl->width;
   h = _Ygl->height;
   x = y = 0;
 #endif
