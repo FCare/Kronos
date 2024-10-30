@@ -44,6 +44,7 @@ protected slots:
 	 void on_pbSaveRawSprite_clicked ();
 	 void syncOnVdp1Entry(int cursel);
 	 void on_pbNextButton_clicked ();
+	 void on_pbFindCommand_clicked ();
 
 private:
 	void fillCommandList();

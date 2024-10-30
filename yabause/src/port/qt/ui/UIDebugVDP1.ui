@@ -185,6 +185,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QPushButton" name="pbFindCommand">
+        <property name="text">
+         <string>Find command</string>
+        </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QDialogButtonBox" name="dbbButtons">
        <property name="standardButtons">
         <set>QDialogButtonBox::Close</set>

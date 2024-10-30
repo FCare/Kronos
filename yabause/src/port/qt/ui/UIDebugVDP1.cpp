@@ -279,3 +279,6 @@ void UIDebugVDP1::on_pbNextButton_clicked() {
     fillCommandList();
   }
 }
+
+void UIDebugVDP1::on_pbFindCommand_clicked() {
+}
