@@ -1111,7 +1111,7 @@ int ishalfLine(vdp1cmd_struct* cmd) {
 	if (colinear(v3, v4)==1) return 1;
 	return 0;
 }
-
+static int greed = 0;
 int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 
 	if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
@@ -1280,14 +1280,15 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 159;
 		// cmd->CMDYD = 156;
 		//QUAD AS A LINE
+		// greed = 1;
 		// cmd->CMDXA = 10;
-		// cmd->CMDXB = 14;
-		// cmd->CMDXC = 14;
+		// cmd->CMDXB = 9;
+		// cmd->CMDXC = 9;
 		// cmd->CMDXD = 10;
-		// cmd->CMDYA = 9;
-		// cmd->CMDYB = 10;
-		// cmd->CMDYC = 10;
-		// cmd->CMDYD = 9;
+		// cmd->CMDYA = 10;
+		// cmd->CMDYB = 14;
+		// cmd->CMDYC = 14;
+		// cmd->CMDYD = 10;
 		//TRIANGLE
 		// cmd->CMDXA = 120;
 		// cmd->CMDXB = 120;
@@ -1333,6 +1334,15 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYB = 116+46;
 		// cmd->CMDYC = 116+74;
 		// cmd->CMDYD = 116+74;
+		//AIGUILLE SEGA RALLY // Triangle
+		// cmd->CMDXA = 176-126;
+		// cmd->CMDXB = 176-105;
+		// cmd->CMDXC = 176-127;
+		// cmd->CMDXD = 176-127;
+		// cmd->CMDYA = 128+90;
+		// cmd->CMDYB = 128+68;
+		// cmd->CMDYC = 128+89;
+		// cmd->CMDYD = 128+89;
 		//DOOM Line
 		// cmd->CMDXA = 120;
 		// cmd->CMDXB = 176;
@@ -1401,25 +1411,25 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 
 		//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
 		// drawLine(cmd);
-		if (isPoint(cmd))
-			 drawPoint(cmd);
-		else
-		if (isLine(cmd)){
-			// printf("Line detected %d,%d %d,%d %d,%d %d,%d\n",
-			// 	cmd->CMDXA,
-			// 	cmd->CMDYA,
-			// 	cmd->CMDXB,
-			// 	cmd->CMDYB,
-			// 	cmd->CMDXC,
-			// 	cmd->CMDYC,
-			// 	cmd->CMDXD,
-			// 	cmd->CMDYD
-			// );
-			drawQuadAsLine(cmd);
-		}
-		else if (ishalfLine(cmd))
-			drawHalfLine(cmd);
-		else
+		// if (isPoint(cmd))
+		// 	 drawPoint(cmd);
+		// else
+		// if (isLine(cmd)){
+		// 	// printf("Line detected %d,%d %d,%d %d,%d %d,%d\n",
+		// 	// 	cmd->CMDXA,
+		// 	// 	cmd->CMDYA,
+		// 	// 	cmd->CMDXB,
+		// 	// 	cmd->CMDYB,
+		// 	// 	cmd->CMDXC,
+		// 	// 	cmd->CMDYC,
+		// 	// 	cmd->CMDXD,
+		// 	// 	cmd->CMDYD
+		// 	// );
+		// 	drawQuadAsLine(cmd);
+		// }
+		// else if (ishalfLine(cmd))
+		// 	drawHalfLine(cmd);
+		// else
 			drawQuad(cmd);
 	}
 
@@ -1671,7 +1681,7 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPoi
 		Vdp1External.updateVdp1Ram = 0;
 	}
 	glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
-	// glUniform1i(11, 1);
+	// glUniform1i(11, greed);
 	A.x = MIN(A.x, Vdp1Regs->systemclipX2);
 	A.y = MIN(A.y, Vdp1Regs->systemclipY2);
 	B.x = MIN(B.x, Vdp1Regs->systemclipX2);
