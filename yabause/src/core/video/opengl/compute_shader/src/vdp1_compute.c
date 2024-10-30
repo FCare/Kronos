@@ -1349,14 +1349,14 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 159;
 		// cmd->CMDYD = 156;
 		//QUAD AS A LINE
-		cmd->CMDXA = 10;
-		cmd->CMDXB = 14;
-		cmd->CMDXC = 14;
-		cmd->CMDXD = 10;
-		cmd->CMDYA = 9;
-		cmd->CMDYB = 10;
-		cmd->CMDYC = 10;
-		cmd->CMDYD = 9;
+		// cmd->CMDXA = 10;
+		// cmd->CMDXB = 14;
+		// cmd->CMDXC = 14;
+		// cmd->CMDXD = 10;
+		// cmd->CMDYA = 9;
+		// cmd->CMDYB = 10;
+		// cmd->CMDYC = 10;
+		// cmd->CMDYD = 9;
 		//TRIANGLE
 		// cmd->CMDXA = 120;
 		// cmd->CMDXB = 120;
@@ -1730,8 +1730,8 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPoi
 		vdp1Ram_update_end = 0x0;
 		Vdp1External.updateVdp1Ram = 0;
 	}
-	// glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
-	glUniform1i(11, 1);
+	glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
+	// glUniform1i(11, 1);
 	A.x = MIN(A.x, Vdp1Regs->systemclipX2);
 	A.y = MIN(A.y, Vdp1Regs->systemclipY2);
 	B.x = MIN(B.x, Vdp1Regs->systemclipX2);
