@@ -588,12 +588,12 @@ static int generateComputeBuffer(int w, int h) {
   return 0;
 }
 
-static int computeSmoothedLinePoints(int x1, int y1, int x2, int y2, point **data, int upscale) {
+static int computeBresenhamLinePoints(int x1, int y1, int x2, int y2, point **data, int upscale) {
 	x1 *= upscale;
 	x2 *= upscale;
 	y1 *= upscale;
 	y2 *= upscale;
-
+	//Need to handle upscale smoothing
 	int dx =  abs (x2 - x1), sx = x1 < x2 ? 1 : -1;
   int dy = -abs (y2 - y1), sy = y1 < y2 ? 1 : -1;
   int err = dx + dy, e2; /* error value e_xy */
@@ -602,83 +602,14 @@ static int computeSmoothedLinePoints(int x1, int y1, int x2, int y2, point **dat
 	int i = 0;
   for (;;){  /* loop */
 		(*data)[i++] = (point){.x=x1, .y=y1};
-		printf("P %d,%d\n", x1, y1);
+		// printf("P %d,%d\n", x1, y1);
     if (x1 == x2 && y1 == y2) break;
     e2 = 2 * err;
     if (e2 >= dy) { err += dy; x1 += sx; } /* e_xy+e_x > 0 */
     if (e2 <= dx) { err += dx; y1 += sy; } /* e_xy+e_y < 0 */
   }
 	if (i != nbMaxPoint) {
-		printf("Error %d,%d => %d %d,%d => %d %d => %d\n", x1, x2, dx,y1, y2, dy, i, nbMaxPoint);
-		exit(-1);
-	}
-	return i;
-}
-
-static int computeLinePoints(int x1, int y1, int x2, int y2, point **data, int upscale) {
-	int i, a, ax, ay, dx, dy;
-	a = i = 0;
-	dx = (x2 - x1);
-	dy = (y2 - y1);
-	ax = (dx >= 0) ? 1 : -1;
-	ay = (dy >= 0) ? 1 : -1;
-	// dx += ax * upscale;
-	// dy += ay * upscale;
-	int nbMaxPoint = (MAX(abs(dx), abs(dy)) + 1)*upscale;
-	// x1 *= upscale;
-	// x2 *= upscale;
-	// y1 *= upscale;
-	// y2 *= upscale;
-	// dx *= upscale;
-	// dy *= upscale;
-	// dy += ay*(upscale -1);
-	// printf("%d %d (%d %d %d %d) %d\n", dx, dy, x1, x2, y1, y2, nbMaxPoint);
-
-	*data = (point*)malloc(nbMaxPoint*sizeof(point));
-	if (abs(dx) >= abs(dy)) {
-		// if (dx == 0) x2 += ax*upscale;
-		if (ax != ay) dx = -dx;
-		for (i = 0; x1 != x2; x1 += ax) {
-			// printf("Line\n");
-			// printf("X1 %d X2 %d\n", x1, x2);
-			for (int p=0; p<upscale; p++) {
-				(*data)[i++] = (point){.x=x1*upscale, .y=y1*upscale+ay*p};
-				// printf("%d P %d,%d\n", __LINE__, x1*upscale, y1*upscale+ay*p);
-			}
-			a += dy;
-			if (abs(a) >= abs(dx)) {
-				a -= dx;
-				y1 += ay;
-			}
-		}
-		for (int p=0; p< upscale; p++) {
-			(*data)[i++] = (point){.x=x2*upscale, .y=y2*upscale+ay*p};
-			// printf("%d P %d,%d\n", __LINE__, x2*upscale, y2*upscale+ay*p);
-		}
-	} else {
-		// if (dy == 0) y2 += ay*upscale;
-		if (ax != ay) dy = -dy;
-		for (i = 0; y1 != y2; y1 += ay) {
-			// printf("Line\n");
-			// printf("Y1 %d Y2 %d\n", y1, y2);
-			for (int p=0; p< upscale; p++) {
-				(*data)[i++] = (point){.x=x1*upscale+ax*p, .y=y1*upscale};
-				// printf("%d P %d,%d\n", __LINE__, x1*upscale+ax*p, y1*upscale);
-			}
-			a += dx;
-			if (abs(a) >= abs(dy)) {
-				a -= dy;
-				x1 += ax;
-			}
-		}
-		for (int p=0; p<upscale; p++) {
-			(*data)[i++] = (point){.x=x2*upscale+ax*p, .y=y2*upscale};
-			// printf("%d P %d,%d\n", __LINE__, x2*upscale+ax*p, y2*upscale);
-		}
-	}
-
-	if (i != nbMaxPoint) {
-		printf("Error %d,%d => %d %d,%d => %d %d => %d\n", x1, x2, dx,y1, y2, dy, i, nbMaxPoint);
+		// printf("Error %d,%d => %d %d,%d => %d %d => %d\n", x1, x2, dx,y1, y2, dy, i, nbMaxPoint);
 		exit(-1);
 	}
 	return i;
@@ -688,8 +619,8 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 	point *dataL, *dataR;
 	printf("Quad\n");
 	int nbPmax = 0;
-	int li = computeSmoothedLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
-	int ri = computeSmoothedLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
+	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
+	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
 	int nbCmd = MAX(li,ri);
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
 	int idl = 0;
@@ -984,8 +915,8 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 	// Draw as original size and duplicates lines
 	point *dataL, *dataR;
 	int nbPmax = 0;
-	int li = computeSmoothedLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
-	int ri = computeSmoothedLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
+	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
+	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
 	// printf("Half Line %d %d\n", li, ri);
 	//Draw as size one and duplicate lines depending the orientation of the line
 	int nbCmd = MAX(li,ri);
@@ -1457,6 +1388,15 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 191;
 		// cmd->CMDXD = 202;
 		// cmd->CMDYD = 188;
+		// cmd->type = POLYGON;
+		// cmd->CMDXA = 201;
+		// cmd->CMDYA = 190;
+		// cmd->CMDXB = 200;
+		// cmd->CMDYB = 192;
+		// cmd->CMDXC = 193;
+		// cmd->CMDYC = 188;
+		// cmd->CMDXD = 194;
+		// cmd->CMDYD = 187;
 
 
 		//Need to detect lines for sega rally or break point since quad as line are only one pixel wide potentially
