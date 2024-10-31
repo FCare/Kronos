@@ -588,11 +588,7 @@ static int generateComputeBuffer(int w, int h) {
   return 0;
 }
 
-static int computeBresenhamLinePoints(int x1, int y1, int x2, int y2, point **data, int upscale) {
-	x1 *= upscale;
-	x2 *= upscale;
-	y1 *= upscale;
-	y2 *= upscale;
+static int computeBresenhamLinePoints(int x1, int y1, int x2, int y2, point **data) {
 	//Need to handle upscale smoothing
 	int dx =  abs (x2 - x1), sx = x1 < x2 ? 1 : -1;
   int dy = -abs (y2 - y1), sy = y1 < y2 ? 1 : -1;
@@ -619,8 +615,8 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 	point *dataL, *dataR;
 	printf("Quad\n");
 	int nbPmax = 0;
-	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
-	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
+	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
+	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
 	int nbCmd = MAX(li,ri);
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(nbCmd, sizeof(cmd_poly));
 	int idl = 0;
@@ -632,18 +628,18 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		for (i = 0; i != li; i++) {
 			a += ri;
 			idl = i;
-			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
-			 || (dataL[idl].x < (Vdp1Regs->systemclipX2+1)*tex_ratio)
-			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
-			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)*tex_ratio))
+			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1))
+			 || (dataL[idl].x < (Vdp1Regs->systemclipX2+1))
+			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1))
+			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)))
 			 &&
 				 ((dataL[idl].y >= 0)
 			 || (dataL[idl].x >= 0)
 			 || (dataR[idr].y >= 0)
 			 || (dataR[idr].x >= 0)))
 			{
-				float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
-				float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
+				float dl = (float)((idl)+0.5)/(float)(li);
+				float dr = (float)((idr)+0.5)/(float)(ri);
 				cmd_pol[add] = (cmd_poly){
 					.CMDPMOD = cmd->CMDPMOD,
 					.CMDSRCA = cmd->CMDSRCA,
@@ -678,18 +674,18 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		for (i = 0; i != ri; i++) {
 			a += li;
 			idr = i;
-			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1)*tex_ratio)
-			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1)*tex_ratio))
-			 &&((dataL[idl].x < (Vdp1Regs->systemclipX2+1)*tex_ratio)
-			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)*tex_ratio))
+			if (((dataL[idl].y < (Vdp1Regs->systemclipY2+1))
+			 || (dataR[idr].y < (Vdp1Regs->systemclipY2+1)))
+			 &&((dataL[idl].x < (Vdp1Regs->systemclipX2+1))
+			 || (dataR[idr].x < (Vdp1Regs->systemclipX2+1)))
 			 &&
 			   ((dataL[idl].x >= 0)
 			 || (dataR[idr].x >= 0))
 			 &&((dataL[idl].y >= 0)
 			 || (dataR[idr].y >= 0)))
 			{
-				float dl = (float)((idl/tex_ratio)+0.5)/(float)(li/tex_ratio);
-				float dr = (float)((idr/tex_ratio)+0.5)/(float)(ri/tex_ratio);
+				float dl = (float)((idl)+0.5)/(float)(li);
+				float dr = (float)((idr)+0.5)/(float)(ri);
 				cmd_pol[add] = (cmd_poly){
 					.CMDPMOD = cmd->CMDPMOD,
 					.CMDSRCA = cmd->CMDSRCA,
@@ -729,36 +725,34 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, i, add, nbPmax+tex_ratio,cmd->type, li!=ri, A, B);
+	drawPolygonLine(cmd_pol, i, add, nbPmax+1,cmd->type, li!=ri, A, B);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
 }
 
 void drawPoint(vdp1cmd_struct* cmd) {
-	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
-	for (int i = 0; i< tex_ratio; i++) {
-		float dl = 0.5;
-		float dr = 0.5;
-		cmd_pol[i] = (cmd_poly){
-			.CMDPMOD = cmd->CMDPMOD,
-			.CMDSRCA = cmd->CMDSRCA,
-			.CMDSIZE = cmd->CMDSIZE,
-			.CMDXA = cmd->CMDXA * tex_ratio,
-			.CMDYA = cmd->CMDYA * tex_ratio + i,
-			.CMDXB = cmd->CMDXB * tex_ratio,
-			.CMDYB = cmd->CMDYB * tex_ratio + i,
-			.CMDCOLR = cmd->CMDCOLR,
-			.misc = cmd->flip & 0x3,
-			.idx = i
-		};
-		cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-		cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-		cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-		cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-		cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-		cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
-	}
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(1, sizeof(cmd_poly));
+	float dl = 0.5;
+	float dr = 0.5;
+	cmd_pol[0] = (cmd_poly){
+		.CMDPMOD = cmd->CMDPMOD,
+		.CMDSRCA = cmd->CMDSRCA,
+		.CMDSIZE = cmd->CMDSIZE,
+		.CMDXA = cmd->CMDXA,
+		.CMDYA = cmd->CMDYA,
+		.CMDXB = cmd->CMDXB,
+		.CMDYB = cmd->CMDYB,
+		.CMDCOLR = cmd->CMDCOLR,
+		.misc = cmd->flip & 0x3,
+		.idx = 0
+	};
+	cmd_pol[0].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+	cmd_pol[0].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+	cmd_pol[0].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+	cmd_pol[0].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+	cmd_pol[0].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+	cmd_pol[0].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
 	point A = (point){
 		.x= MIN(cmd->CMDXA, MIN(cmd->CMDXB, MIN(cmd->CMDXC, cmd->CMDXD))),
 		.y= MIN(cmd->CMDYA, MIN(cmd->CMDYB, MIN(cmd->CMDYC, cmd->CMDYD)))
@@ -767,61 +761,34 @@ void drawPoint(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, tex_ratio, cmd->type,0,A,B);
+	drawPolygonLine(cmd_pol, 1, 1, 1, cmd->type,0,A,B);
 	free(cmd_pol);
 }
 void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 	int dx = abs(B.x - A.x);
 	int dy = abs(B.y - A.y);
-	cmd_poly *cmd_pol = (cmd_poly*)calloc(tex_ratio, sizeof(cmd_poly));
-	if (dx >= dy) {
-		float dl = 0.5;
-		float dr = 0.5;
-		for (int i = 0; i< tex_ratio; i++) {
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = A.x * tex_ratio,
-				.CMDYA = A.y * tex_ratio + i,
-				.CMDXB = B.x * tex_ratio,
-				.CMDYB = B.y * tex_ratio + i,
-				.CMDCOLR = cmd->CMDCOLR,
-				.misc = cmd->flip & 0x3,
-				.idx = i
-			};
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
-		}
-	} else {
-		float dl = 0.5;
-		float dr = 0.5;
-		for (int i = 0; i< tex_ratio; i++) {
-			cmd_pol[i] = (cmd_poly){
-				.CMDPMOD = cmd->CMDPMOD,
-				.CMDSRCA = cmd->CMDSRCA,
-				.CMDSIZE = cmd->CMDSIZE,
-				.CMDXA = A.x * tex_ratio + i,
-				.CMDYA = A.y * tex_ratio,
-				.CMDXB = B.x * tex_ratio + i,
-				.CMDYB = B.y * tex_ratio,
-				.CMDCOLR = cmd->CMDCOLR,
-				.misc = cmd->flip & 0x3,
-				.idx = i
-			};
-			cmd_pol[i].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-			cmd_pol[i].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-			cmd_pol[i].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-			cmd_pol[i].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-			cmd_pol[i].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-			cmd_pol[i].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
-		}
-	}
-	drawPolygonLine(cmd_pol, tex_ratio, tex_ratio, MAX(dx, dy)*tex_ratio,cmd->type,0,A,B);
+	cmd_poly *cmd_pol = (cmd_poly*)calloc(1, sizeof(cmd_poly));
+	float dl = 0.5;
+	float dr = 0.5;
+	cmd_pol[0] = (cmd_poly){
+		.CMDPMOD = cmd->CMDPMOD,
+		.CMDSRCA = cmd->CMDSRCA,
+		.CMDSIZE = cmd->CMDSIZE,
+		.CMDXA = A.x,
+		.CMDYA = A.y,
+		.CMDXB = B.x,
+		.CMDYB = B.y,
+		.CMDCOLR = cmd->CMDCOLR,
+		.misc = cmd->flip & 0x3,
+		.idx = 0
+	};
+	cmd_pol[0].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
+	cmd_pol[0].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
+	cmd_pol[0].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
+	cmd_pol[0].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
+	cmd_pol[0].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
+	cmd_pol[0].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
+	drawPolygonLine(cmd_pol, 1, 1, MAX(dx, dy),cmd->type,0,A,B);
 	free(cmd_pol);
 }
 
@@ -915,8 +882,8 @@ void drawHalfLine(vdp1cmd_struct* cmd) {
 	// Draw as original size and duplicates lines
 	point *dataL, *dataR;
 	int nbPmax = 0;
-	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL, tex_ratio);
-	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR, tex_ratio);
+	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
+	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
 	// printf("Half Line %d %d\n", li, ri);
 	//Draw as size one and duplicate lines depending the orientation of the line
 	int nbCmd = MAX(li,ri);
@@ -1280,7 +1247,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 159;
 		// cmd->CMDYD = 156;
 		//QUAD AS A LINE
-		// greed = 1;
+		// greed = 0;
 		// cmd->CMDXA = 10;
 		// cmd->CMDXB = 9;
 		// cmd->CMDXC = 9;
@@ -1680,8 +1647,8 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPoi
 		vdp1Ram_update_end = 0x0;
 		Vdp1External.updateVdp1Ram = 0;
 	}
-	glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
-	// glUniform1i(11, greed);
+	// glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
+	glUniform1i(11, greed);
 	A.x = MIN(A.x, Vdp1Regs->systemclipX2);
 	A.y = MIN(A.y, Vdp1Regs->systemclipY2);
 	B.x = MIN(B.x, Vdp1Regs->systemclipX2);
