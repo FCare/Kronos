@@ -613,7 +613,7 @@ static int computeBresenhamLinePoints(int x1, int y1, int x2, int y2, point **da
 
 static void drawQuad(vdp1cmd_struct* cmd) {
 	point *dataL, *dataR;
-	printf("Quad\n");
+	// printf("Quad\n");
 	int nbPmax = 0;
 	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
 	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
@@ -653,10 +653,10 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.idx = i
 				};
 				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-				printf("(%d) %d,%d => %d,%d\n",i,
-					cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
-					cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
-				);
+				// printf("(%d) %d,%d => %d,%d\n",i,
+				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+				// );
 				cmd_pol[add].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
 				cmd_pol[add].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
 				cmd_pol[add].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
@@ -699,10 +699,10 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.idx = i
 				};
 				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
-				printf("(%d) %d,%d => %d,%d\n",i,
-					cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
-					cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
-				);
+				// printf("(%d) %d,%d => %d,%d\n",i,
+				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
+				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
+				// );
 				cmd_pol[add].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
 				cmd_pol[add].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
 				cmd_pol[add].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
@@ -1247,11 +1247,11 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYC = 159;
 		// cmd->CMDYD = 156;
 		//QUAD AS A LINE
-		// greed = 0;
-		// cmd->CMDXA = 10;
-		// cmd->CMDXB = 9;
-		// cmd->CMDXC = 9;
-		// cmd->CMDXD = 10;
+		// greed = 1;
+		// cmd->CMDXA = 9;
+		// cmd->CMDXB = 10;
+		// cmd->CMDXC = 10;
+		// cmd->CMDXD = 9;
 		// cmd->CMDYA = 10;
 		// cmd->CMDYB = 14;
 		// cmd->CMDYC = 14;
@@ -1647,8 +1647,8 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPoi
 		vdp1Ram_update_end = 0x0;
 		Vdp1External.updateVdp1Ram = 0;
 	}
-	// glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
-	glUniform1i(11, greed);
+	glUniform1i(11, (type==DISTORTED)||(type==POLYGON));
+	// glUniform1i(11, greed);
 	A.x = MIN(A.x, Vdp1Regs->systemclipX2);
 	A.y = MIN(A.y, Vdp1Regs->systemclipY2);
 	B.x = MIN(B.x, Vdp1Regs->systemclipX2);
