@@ -1164,7 +1164,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	// 	cmd->CMDYA = 9;
 	// 	cmd->CMDYB = 10;
 	// }
-	//LINE
+	// LINE - Test Bresenham
 	// if (clipcmd == 0) {
 	// 	cmd->type = LINE;
 	// 	cmd->CMDXA = 10;
@@ -1172,7 +1172,7 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	// 	cmd->CMDYA = 10;
 	// 	cmd->CMDYB = 20;
 	// }
-	//LINE AS A POINT
+	// LINE AS A POINT
 	// if (clipcmd == 0) {
 	// 	cmd->type = LINE;
 	// 	cmd->CMDXA = 90;
