@@ -1253,9 +1253,9 @@ void startVdp1Render() {
 	if (oldProg == -1) return;
 	glUseProgram(prg_vdp1[oldProg]);
 	if (a_prg_vdp1[oldProg][1] == vdp1_draw_line_start_f_rw)
-		glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
+		glBindImageTexture(0, get_vdp1_tex(_Ygl->drawframe), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 	else
-		glBindImageTexture(0, compute_tex[_Ygl->drawframe], 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
+		glBindImageTexture(0, get_vdp1_tex(_Ygl->drawframe), 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA8);
 	if (_Ygl->meshmode == IMPROVED_MESH) glBindImageTexture(1, get_vdp1_mesh(_Ygl->drawframe), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_cmd_line_list_);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_vdp1ram_);
@@ -1267,11 +1267,9 @@ void startVdp1Render() {
 }
 
 static void flushVdp1Render(int nbWork, int nbPoints) {
-	if (nbWork>0) {
 		// if (a_prg_vdp1[oldProg][0] == vdp1_draw_line_start_f_rw)
 		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 		glDispatchCompute(nbWork, nbPoints, 1); //might be better to launch only the right number of workgroup
-	}
 }
 
 void endVdp1Render() {
