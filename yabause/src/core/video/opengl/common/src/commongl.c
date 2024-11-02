@@ -2153,9 +2153,9 @@ void YglChangeResolution(int w, int h) {
   if (scale == 0){
     scale = 1;
   };
-  if (scale > scaleLimit) {
-    scale = scaleLimit;
-  }
+  // if (scale > scaleLimit) {
+  //   scale = scaleLimit;
+  // }
   _Ygl->rwidth = w;
   _Ygl->rheight = h;
   _Ygl->height = uh * scale;
