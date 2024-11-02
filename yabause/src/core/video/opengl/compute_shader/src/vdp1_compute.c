@@ -48,7 +48,7 @@ static int tex_height;
 static int tex_ratio;
 static int struct_size;
 static int struct_line_size;
-void drawPolygonLine(cmd_poly* cmd_pol, int nbMaxLines, int nbLines, int nbPointsMax, u32 type, int overlap, point A, point B);
+void drawPolygonLine(cmd_poly* cmd_pol, int nbMaxLines, int nbLines, u32 type, int overlap, point A, point B);
 
 static int work_groups_x;
 static int work_groups_y;
@@ -593,17 +593,22 @@ static int computeBresenhamLinePoints(int x1, int y1, int x2, int y2, point **da
 	//Need to handle upscale smoothing
 	int dx =  abs (x2 - x1), sx = x1 < x2 ? 1 : -1;
   int dy = -abs (y2 - y1), sy = y1 < y2 ? 1 : -1;
+	int rx = (dx < dy)?0:(sx + 2)&0x3;
+	int ry = (dx < dy)?(sy + 2)&0x3:0;
+	int s = 0;
+	int val = 0;
   int err = dx + dy, e2; /* error value e_xy */
 	int nbMaxPoint = MAX(abs(dx), abs(dy))+ 1;
 	*data = (point*)malloc(nbMaxPoint*sizeof(point));
 	int i = 0;
   for (;;){  /* loop */
-		(*data)[i++] = (point){.x=x1, .y=y1};
+		(*data)[i++] = (point){.x=x1, .y=y1, .s=s};
+		s = 0;
 		// printf("P %d,%d\n", x1, y1);
     if (x1 == x2 && y1 == y2) break;
     e2 = 2 * err;
-    if (e2 >= dy) { err += dy; x1 += sx; } /* e_xy+e_x > 0 */
-    if (e2 <= dx) { err += dx; y1 += sy; } /* e_xy+e_y < 0 */
+    if (e2 >= dy) { err += dy; x1 += sx; s |= rx;} /* e_xy+e_x > 0 */
+    if (e2 <= dx) { err += dx; y1 += sy; s |= ry<<2;} /* e_xy+e_y < 0 */
   }
 	if (i != nbMaxPoint) {
 		// printf("Error %d,%d => %d %d,%d => %d %d => %d\n", x1, x2, dx,y1, y2, dy, i, nbMaxPoint);
@@ -615,7 +620,6 @@ static int computeBresenhamLinePoints(int x1, int y1, int x2, int y2, point **da
 static void drawQuad(vdp1cmd_struct* cmd) {
 	point *dataL, *dataR;
 	// printf("Quad\n");
-	int nbPmax = 0;
 	int li = computeBresenhamLinePoints(cmd->CMDXA, cmd->CMDYA, cmd->CMDXD, cmd->CMDYD, &dataL);
 	int ri = computeBresenhamLinePoints(cmd->CMDXB, cmd->CMDYB, cmd->CMDXC, cmd->CMDYC, &dataR);
 	int nbCmd = MAX(li,ri);
@@ -650,10 +654,9 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.misc = (cmd->flip & 0x3),
+					.misc = (cmd->flip & 0x3)|(dataL[idl].s<<6)|(dataR[idr].s<<2),
 					.idx = i
 				};
-				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 				// printf("(%d) %d,%d => %d,%d\n",i,
 				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
@@ -696,10 +699,9 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.misc = (cmd->flip & 0x3),
+					.misc = (cmd->flip & 0x3)|(dataL[idl].s<<6)|(dataR[idr].s<<2),
 					.idx = i
 				};
-				nbPmax = MAX(nbPmax, MAX(abs(dataL[idl].x-dataR[idr].x), abs(dataL[idl].y-dataR[idr].y)));
 				// printf("(%d) %d,%d => %d,%d\n",i,
 				// 	cmd_pol[i].CMDXA,cmd_pol[i].CMDYA,
 				// 	cmd_pol[i].CMDXB,cmd_pol[i].CMDYB
@@ -726,51 +728,21 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
 		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
 	};
-	drawPolygonLine(cmd_pol, i, add, nbPmax+1,cmd->type, li!=ri, A, B);
+	drawPolygonLine(cmd_pol, i, add,cmd->type, li!=ri, A, B);
 	free(cmd_pol);
 	free(dataL);
 	free(dataR);
 }
 
-void drawPoint(vdp1cmd_struct* cmd) {
-	cmd_poly *cmd_pol = (cmd_poly*)calloc(1, sizeof(cmd_poly));
-	float dl = 0.5;
-	float dr = 0.5;
-	cmd_pol[0] = (cmd_poly){
-		.CMDPMOD = cmd->CMDPMOD,
-		.CMDSRCA = cmd->CMDSRCA,
-		.CMDSIZE = cmd->CMDSIZE,
-		.CMDXA = cmd->CMDXA,
-		.CMDYA = cmd->CMDYA,
-		.CMDXB = cmd->CMDXB,
-		.CMDYB = cmd->CMDYB,
-		.CMDCOLR = cmd->CMDCOLR,
-		.misc = cmd->flip & 0x3,
-		.idx = 0
-	};
-	cmd_pol[0].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
-	cmd_pol[0].G[1] = MIX(cmd->G[1], cmd->G[13], dl);
-	cmd_pol[0].G[2] = MIX(cmd->G[2], cmd->G[14], dl);
-	cmd_pol[0].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
-	cmd_pol[0].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
-	cmd_pol[0].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
-	point A = (point){
-		.x= MIN(cmd->CMDXA, MIN(cmd->CMDXB, MIN(cmd->CMDXC, cmd->CMDXD))),
-		.y= MIN(cmd->CMDYA, MIN(cmd->CMDYB, MIN(cmd->CMDYC, cmd->CMDYD)))
-	};
-	point B = (point){
-		.x= MAX(cmd->CMDXA, MAX(cmd->CMDXB, MAX(cmd->CMDXC, cmd->CMDXD))),
-		.y= MAX(cmd->CMDYA, MAX(cmd->CMDYB, MAX(cmd->CMDYC, cmd->CMDYD)))
-	};
-	drawPolygonLine(cmd_pol, 1, 1, 1, cmd->type,0,A,B);
-	free(cmd_pol);
-}
 void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 	int dx = abs(B.x - A.x);
 	int dy = abs(B.y - A.y);
 	cmd_poly *cmd_pol = (cmd_poly*)calloc(1, sizeof(cmd_poly));
 	float dl = 0.5;
 	float dr = 0.5;
+	int rx = (dx < dy)?0:(((B.x<A.x)?1:-1) + 2)&0x3;
+	int ry = (dx < dy)?0:(((B.y<A.y)?1:-1) + 2)&0x3;
+	int s = (ry<<2)|rx;
 	cmd_pol[0] = (cmd_poly){
 		.CMDPMOD = cmd->CMDPMOD,
 		.CMDSRCA = cmd->CMDSRCA,
@@ -781,6 +753,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 		.CMDYB = B.y,
 		.CMDCOLR = cmd->CMDCOLR,
 		.misc = cmd->flip & 0x3,
+		.misc = (cmd->flip & 0x3)|(s<<6)|(s<<2),
 		.idx = 0
 	};
 	cmd_pol[0].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
@@ -789,7 +762,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 	cmd_pol[0].G[3] = MIX(cmd->G[4], cmd->G[8], dr);
 	cmd_pol[0].G[4] = MIX(cmd->G[5], cmd->G[9], dr);
 	cmd_pol[0].G[5] = MIX(cmd->G[6], cmd->G[10], dr);
-	drawPolygonLine(cmd_pol, 1, 1, MAX(dx, dy),cmd->type,0,A,B);
+	drawPolygonLine(cmd_pol, 1, 1,cmd->type,0,A,B);
 	free(cmd_pol);
 }
 
@@ -1309,7 +1282,7 @@ void endVdp1Render() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPointsMax, u32 type, int overlap, point A, point B) {
+void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, u32 type, int overlap, point A, point B) {
 	if (nbLines == 0) return;
 	// nbLines = nbTotalLines = 1;
 	int progId = getProgramLine(&cmd_pol[0], type);
@@ -1318,11 +1291,6 @@ void drawPolygonLine(cmd_poly* cmd_pol, int nbTotalLines, int nbLines, int nbPoi
 	if (progId == DRAW_POLY_UNSUPPORTED_NO_MESH) return;
 	if (progId == DRAW_QUAD_UNSUPPORTED_MESH) return;
 	if (progId == DRAW_QUAD_UNSUPPORTED_NO_MESH) return;
-
-#if USE_PER_POINT
-	if (progId < DRAW_POLY_MSB_SHADOW_NO_MESH_NO_END)
-#endif
-		nbPointsMax = 1;
 
 
 	if (prg_vdp1[progId] == 0) {
