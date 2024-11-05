@@ -593,22 +593,19 @@ static int computeBresenhamLinePoints(int x1, int y1, int x2, int y2, point **da
 	//Need to handle upscale smoothing
 	int dx =  abs (x2 - x1), sx = x1 < x2 ? 1 : -1;
   int dy = -abs (y2 - y1), sy = y1 < y2 ? 1 : -1;
-	int rx = (dx < dy)?0:(sx + 2)&0x3;
-	int ry = (dx < dy)?(sy + 2)&0x3:0;
-	int s = 0;
+	int rs = ((sx + 2)&0x3)|(((sy + 2)&0x3)<<2);
+	int s = 0xA;
 	int val = 0;
   int err = dx + dy, e2; /* error value e_xy */
 	int nbMaxPoint = MAX(abs(dx), abs(dy))+ 1;
 	*data = (point*)malloc(nbMaxPoint*sizeof(point));
 	int i = 0;
   for (;;){  /* loop */
-		(*data)[i++] = (point){.x=x1, .y=y1, .s=s};
-		s = 0;
-		// printf("P %d,%d\n", x1, y1);
+		(*data)[i++] = (point){.x=x1, .y=y1, .s=0xA};
     if (x1 == x2 && y1 == y2) break;
     e2 = 2 * err;
-    if (e2 >= dy) { err += dy; x1 += sx; s |= rx;} /* e_xy+e_x > 0 */
-    if (e2 <= dx) { err += dx; y1 += sy; s |= ry<<2;} /* e_xy+e_y < 0 */
+    if (e2 >= dy) { err += dy; x1 += sx; if (dx < -dy) (*data)[i-1].s = rs;} /* e_xy+e_x > 0 */
+    if (e2 <= dx) { err += dx; y1 += sy; if (-dy < dx) (*data)[i-1].s = rs;} /* e_xy+e_y < 0 */
   }
 	if (i != nbMaxPoint) {
 		// printf("Error %d,%d => %d %d,%d => %d %d => %d\n", x1, x2, dx,y1, y2, dy, i, nbMaxPoint);
@@ -654,7 +651,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.misc = (cmd->flip & 0x3)|(dataL[idl].s<<6)|(dataR[idr].s<<2),
+					.misc = (cmd->flip & 0x3)|((dataL[idl].s&0xF)<<2)|((dataR[idr].s&0xF)<<6),
 					.idx = i
 				};
 				// printf("(%d) %d,%d => %d,%d\n",i,
@@ -699,7 +696,7 @@ static void drawQuad(vdp1cmd_struct* cmd) {
 					.CMDXB = dataR[idr].x,
 					.CMDYB = dataR[idr].y,
 					.CMDCOLR = cmd->CMDCOLR,
-					.misc = (cmd->flip & 0x3)|(dataL[idl].s<<6)|(dataR[idr].s<<2),
+					.misc = (cmd->flip & 0x3)|((dataL[idl].s&0xF)<<2)|((dataR[idr].s&0xF)<<6),
 					.idx = i
 				};
 				// printf("(%d) %d,%d => %d,%d\n",i,
@@ -753,7 +750,7 @@ void drawLine(vdp1cmd_struct* cmd, point A, point B) {
 		.CMDYB = B.y,
 		.CMDCOLR = cmd->CMDCOLR,
 		.misc = cmd->flip & 0x3,
-		.misc = (cmd->flip & 0x3)|(s<<6)|(s<<2),
+		.misc = (cmd->flip & 0x3)|((s&0xF)<<6)|((s&0xF)<<2),
 		.idx = 0
 	};
 	cmd_pol[0].G[0] = MIX(cmd->G[0], cmd->G[12], dl);
@@ -890,6 +887,126 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 		// cmd->CMDYB = 9;
 		// cmd->CMDYC = 22;
 		// cmd->CMDYD = 47;
+		//QUAD
+		// cmd->CMDCOLR = 0x7FFF;
+		// //sx=1, sy=1 , a.x=1, a.y=1
+		// cmd->CMDXA = 100;
+		// cmd->CMDXB = 150;
+		// cmd->CMDXC = 160;
+		// cmd->CMDXD = 110;
+		// cmd->CMDYA = 100;
+		// cmd->CMDYB = 100;
+		// cmd->CMDYC = 150;
+		// cmd->CMDYD = 150;
+		// //sx=1, sy=1 , a.x=-1, a.y=1
+		// cmd->CMDXA = 150;
+		// cmd->CMDXB = 100;
+		// cmd->CMDXC = 110;
+		// cmd->CMDXD = 160;
+		// cmd->CMDYA = 100;
+		// cmd->CMDYB = 100;
+		// cmd->CMDYC = 150;
+		// cmd->CMDYD = 150;
+		// //sx=1, sy=1 , a.x=1, a.y=-1
+		// cmd->CMDXA = 100;
+		// cmd->CMDXB = 150;
+		// cmd->CMDXC = 160;
+		// cmd->CMDXD = 110;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 150;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 100;
+		// //sx=1, sy=1 , a.x=-1, a.y = -1
+		// cmd->CMDXA = 150;
+		// cmd->CMDXB = 100;
+		// cmd->CMDXC = 110;
+		// cmd->CMDXD = 160;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 150;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 100;
+		// //sx=-1, sy=1, a.x = 1, a.y=1
+		// cmd->CMDXA = 110;
+		// cmd->CMDXB = 160;
+		// cmd->CMDXC = 150;
+		// cmd->CMDXD = 100;
+		// cmd->CMDYA = 100;
+		// cmd->CMDYB = 100;
+		// cmd->CMDYC = 150;
+		// cmd->CMDYD = 150;
+		// //sx=-1, sy=1, a.x = -1, a.y = 1
+		// cmd->CMDXA = 160;
+		// cmd->CMDXB = 110;
+		// cmd->CMDXC = 100;
+		// cmd->CMDXD = 150;
+		// cmd->CMDYA = 100;
+		// cmd->CMDYB = 100;
+		// cmd->CMDYC = 150;
+		// cmd->CMDYD = 150;
+		// //sx=-1, sy=1, a.x = 1, a.y=-1
+		// cmd->CMDXA = 110;
+		// cmd->CMDXB = 160;
+		// cmd->CMDXC = 150;
+		// cmd->CMDXD = 100;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 150;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 100;
+		// //sx=-1, sy=1, a.x = -1, a.y = -1
+		// cmd->CMDXA = 160;
+		// cmd->CMDXB = 110;
+		// cmd->CMDXC = 100;
+		// cmd->CMDXD = 150;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 140;
+		// cmd->CMDYC = 90;
+		// cmd->CMDYD = 100;
+		// //sx=-1, sy=-1, a.x = 1, a.y=1
+		// cmd->CMDXA = 110;
+		// cmd->CMDXB = 160;
+		// cmd->CMDXC = 150;
+		// cmd->CMDXD = 100;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 150;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 100;
+		// //sx=-1, sy=-1, a.x = -1, a.y=1
+		// cmd->CMDXA = 160;
+		// cmd->CMDXB = 110;
+		// cmd->CMDXC = 100;
+		// cmd->CMDXD = 150;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 150;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 100;
+		// //sx=-1, sy=-1, a.x = 1, a.y=-1
+		// cmd->CMDXA = 110;
+		// cmd->CMDXB = 160;
+		// cmd->CMDXC = 150;
+		// cmd->CMDXD = 100;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 140;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 90;
+		// //sx=-1, sy=-1, a.x = -1, a.y=-1
+		// cmd->CMDXA = 160;
+		// cmd->CMDXB = 110;
+		// cmd->CMDXC = 100;
+		// cmd->CMDXD = 150;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 150;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 100;
+		// //sx=1, sy=-1
+		// cmd->CMDXA = 100;
+		// cmd->CMDXB = 150;
+		// cmd->CMDXC = 160;
+		// cmd->CMDXD = 110;
+		// cmd->CMDYA = 150;
+		// cmd->CMDYB = 150;
+		// cmd->CMDYC = 100;
+		// cmd->CMDYD = 100;
+
 		//LINE
 		// cmd->CMDXA = 120;
 		// cmd->CMDXB = 130;
