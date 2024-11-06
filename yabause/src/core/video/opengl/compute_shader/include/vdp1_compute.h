@@ -21,8 +21,12 @@ enum
   NB_PRG
 };
 
+typedef struct {
+  int x, y;
+} point;
+
 extern void vdp1_compute_init(int width, int height, float ratio);
-extern void vdp1_compute();
+extern void vdp1_compute(vdp1cmd_struct* cmd, point tl, point br);
 extern int get_vdp1_tex(int);
 extern int get_vdp1_mesh(int);
 extern int vdp1_add(vdp1cmd_struct* cmd, int clipcmd);

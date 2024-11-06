@@ -144,7 +144,6 @@ extern void VIDCSSetSettingValueMode(int type, int value);
 extern void VIDCSSync();
 extern void VIDCSVdp2DispOff(void);
 extern int VIDCSGenFrameBuffer();
-extern void VIDCSGenerateBufferVdp1(vdp1cmd_struct* cmd);
 
 extern u32 FASTCALL Vdp1ReadPolygonColor(vdp1cmd_struct *cmd, Vdp2* varVdp2Regs);
 
@@ -169,7 +168,7 @@ VIDCSVdp1SystemClipping,
 VIDCSVdp1LocalCoordinate,
 VIDCSEraseWriteVdp1,
 VIDCSFrameChangeVdp1,
-VIDCSGenerateBufferVdp1,
+NULL,
 VIDCSVdp2Reset,
 VIDCSVdp2Draw,
 VIDCSGetGlSize,
@@ -798,20 +797,7 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   }
 
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
-  if (getBestMode(cmd) == DISTORTED) {
-    addCSCommands(cmd,DISTORTED);
-  } else {
-    cmd->type = QUAD;
-    if (cmd->CMDXA <= cmd->CMDXB) cmd->CMDXB += 1;
-    else cmd->CMDXB -= 1;
-    if (cmd->CMDXD <= cmd->CMDXC) cmd->CMDXC += 1;
-    else cmd->CMDXC -= 1;
-    if (cmd->CMDYB <= cmd->CMDYC) cmd->CMDYC += 1;
-    else cmd->CMDYC -= 1;
-    if (cmd->CMDYA <= cmd->CMDYD) cmd->CMDYD += 1;
-    else cmd->CMDYD -= 1;
-    vdp1_add(cmd,0);
-  }
+  addCSCommands(cmd, DISTORTED);
 
   return;
 }
@@ -822,21 +808,7 @@ void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   // cmd->type = POLYGON;
   cmd->COLOR[0] = Vdp1ReadPolygonColor(cmd,&Vdp2Lines[0]);
 
-
-  if (getBestMode(cmd) == DISTORTED) {
-    addCSCommands(cmd,POLYGON);
-  } else {
-    if (cmd->CMDXA <= cmd->CMDXB) cmd->CMDXB += 1;
-    else cmd->CMDXB -= 1;
-    if (cmd->CMDXD <= cmd->CMDXC) cmd->CMDXC += 1;
-    else cmd->CMDXC -= 1;
-    if (cmd->CMDYB <= cmd->CMDYC) cmd->CMDYC += 1;
-    else cmd->CMDYC -= 1;
-    if (cmd->CMDYA <= cmd->CMDYD) cmd->CMDYD += 1;
-    else cmd->CMDYD -= 1;
-    cmd->type = QUAD_POLY;
-    vdp1_add(cmd,0);
-  }
+  addCSCommands(cmd,POLYGON);
   return;
 }
 
@@ -876,11 +848,11 @@ void VIDCSVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   }
 
   cmd->type = USER_CLIPPING;
-  vdp1_add(cmd,1);
   regs->userclipX1 = cmd->CMDXA;
   regs->userclipY1 = cmd->CMDYA;
   regs->userclipX2 = cmd->CMDXC;
   regs->userclipY2 = cmd->CMDYC;
+  vdp1_add(cmd,1);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -889,9 +861,9 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   if (((cmd->CMDXC) == regs->systemclipX2) && (regs->systemclipY2 == (cmd->CMDYC))) return;
   cmd->type = SYSTEM_CLIPPING;
-  vdp1_add(cmd,1);
   regs->systemclipX2 = cmd->CMDXC;
   regs->systemclipY2 = cmd->CMDYC;
+  vdp1_add(cmd,1);
 }
 
 void VIDCSVdp1DrawFB(void) {

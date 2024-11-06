@@ -64,11 +64,8 @@ extern void Ygl_prog_Destroy(void);
 
 #define PI 3.1415926535897932384626433832795f
 
-#ifdef VDP1_TEXTURE_ASYNC
-extern int waitVdp1Textures( int sync);
-#endif
-
 #define ATLAS_BIAS (0.025f)
+extern int waitVdp1Textures( int sync);
 
 #if (defined(__ANDROID__) || defined(IOS)) && !defined(__LIBRETRO__)
 PFNGLPATCHPARAMETERIPROC glPatchParameteri = NULL;
@@ -235,9 +232,7 @@ void YglTMReset(YglTextureManager * tm  ) {
 }
 
 void YglTmPush(YglTextureManager * tm){
-#ifdef VDP1_TEXTURE_ASYNC
   WaitVdp2Async(1);
-#endif
   YabThreadLock(tm->mtx);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, tm->textureID);
@@ -278,10 +273,7 @@ static void YglTMRealloc(YglTextureManager * tm, unsigned int width, unsigned in
   unsigned int * new_texture;
   GLuint error;
   int dh;
-
-#ifdef VDP1_TEXTURE_ASYNC
   WaitVdp2Async(1);
-#endif
 
   if (tm->texture != NULL) {
     glActiveTexture(GL_TEXTURE0);
@@ -386,7 +378,7 @@ static u32* getVDP1Framebuffer(int frame) {
   if (_Ygl->vdp1fb_read_buf[frame] == NULL) {
     //Pas bien ca
     //A faire par core video
-      if (frame == _Ygl->drawframe) vdp1_compute();
+      // if (frame == _Ygl->drawframe) vdp1_compute();
       glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT|GL_TEXTURE_UPDATE_BARRIER_BIT);
       _Ygl->vdp1fb_read_buf[frame] = vdp1_read(frame);
   }

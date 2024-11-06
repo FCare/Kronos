@@ -35,8 +35,6 @@
 extern int GlHeight;
 extern int GlWidth;
 
-extern void vdp1_wait_regenerate(void);
-
 extern int DrawVDP2Screen(Vdp2 *varVdp2Regs, int id);
 
 extern void YglUpdateVdp2Reg();
@@ -99,7 +97,6 @@ int VIDCSEraseWriteVdp1(int id) {
 }
 
 void VIDCSFinsihDraw(void) {
-  vdp1_wait_regenerate();
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -107,7 +104,7 @@ void VIDCSFinsihDraw(void) {
 void VIDCSRenderVDP1(void) {
   TRACE_RENDER("VIDCSRenderVDP1");
   FRAMELOG("VIDCSRenderVDP1: drawframe =%d %d\n", _Ygl->drawframe, yabsys.LineCount);
-  vdp1_compute();
+  // vdp1_compute();
 }
 
 void VIDCSFrameChangeVdp1(){
@@ -156,6 +153,8 @@ void finishCSRender() {
   OSDDisplayMessages(NULL,0,0);
 
   _Ygl->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
+
+  startVdp1Render();
 }
 
 void VIDCSRender(Vdp2 *varVdp2Regs) {

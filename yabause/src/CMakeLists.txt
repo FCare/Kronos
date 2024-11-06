@@ -212,19 +212,9 @@ if (MSVC)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 endif(MSVC)
 
-option(YAB_WANT_VDP1RAM_CS_ASYNC "Enable Threaded update of VDP1 Ram for CS core" ON)
-if (YAB_WANT_VDP1RAM_CS_ASYNC)
-	add_definitions(-DVDP1RAM_CS_ASYNC=1)
-endif()
-
 option(YAB_WANT_ASYNC_CELL "Enable Threaded rendering of nbgx cells" ON)
 if (YAB_WANT_ASYNC_CELL)
 	add_definitions(-DCELL_ASYNC=1)
-endif()
-
-option(YAB_WANT_ASYNC_VDP1_TEXTURE "Enable Threaded rendering of vdp1 texture" ON)
-if (YAB_WANT_ASYNC_VDP1_TEXTURE)
-	add_definitions(-DVDP1_TEXTURE_ASYNC=1)
 endif()
 
 option(YAB_WANT_SOFT_RENDERING "Enable software renderer support" OFF)
