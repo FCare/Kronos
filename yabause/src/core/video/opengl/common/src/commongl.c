@@ -586,7 +586,6 @@ void YglGenerate() {
 
 void YglGenReset() {
   YglDestroy();
-  _Ygl->sync = 0;
   if (YglTM_vdp2!= NULL) YglTMDeInit(&YglTM_vdp2);
   rebuild_frame_buffer = 1;
   _Ygl->default_fbo = -1;
@@ -1583,19 +1582,8 @@ void YglSetClearColor(float r, float g, float b){
 }
 
 void YglCheckFBSwitch(int sync) {
-  GLenum ret = GL_WAIT_FAILED;
-  if (_Ygl->sync == 0) return;
-  ret = glClientWaitSync(_Ygl->sync, GL_SYNC_FLUSH_COMMANDS_BIT, 0);
-  if (sync != 0) {
-    int end = 0;
-    while (end == 0) {
-     ret = glClientWaitSync(_Ygl->sync, GL_SYNC_FLUSH_COMMANDS_BIT, 20000000);
-     if ((ret == GL_CONDITION_SATISFIED) || (ret == GL_ALREADY_SIGNALED)) end = 1;
-    }
-  }
-  if ((ret == GL_CONDITION_SATISFIED) || (ret == GL_ALREADY_SIGNALED)) {
-    glDeleteSync(_Ygl->sync);
-    _Ygl->sync = 0;
+  if (sync == 1) {
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
     YuiTimedSwapBuffers();
   }
 }

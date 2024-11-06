@@ -612,7 +612,6 @@ typedef struct {
    int wireframe_mode;
    RATIOMODE stretch;
    RESOLUTION_MODE resolution_mode;
-   GLsync sync;
    GLuint default_fbo;
    int vpd1_running;
    int needVdp1Render;
