@@ -622,7 +622,6 @@ SHADER_VERSION_COMPUTE
 "  if (pos.x >= size.x || pos.y >= size.y ) return;\n"
 "  vec2 texel = vec2(float(pos.x),float(-pos.y));\n"
 "  texel.y = -texel.y;\n"
-// "  finalColor = imageLoad(outSurface, ivec2(texel));\n"
 
 "  uint zone = 0;\n"
 "  vec2 OriginTexel = texel;\n"
@@ -654,7 +653,6 @@ SHADER_VERSION_COMPUTE
 "  }\n"
 "  if (discarded) return;\n"
 "  texel = OriginTexel;\n"
-     COLINDEX(finalColor)
      COLINDEX(newColor);
 
 static char vdp1_start_f[ sizeof(vdp1_start_f_base) + 64 ];
@@ -662,6 +660,8 @@ static char vdp1_start_f[ sizeof(vdp1_start_f_base) + 64 ];
 static const char vdp1_banding_f[] =
 "    if ((pixcmd.CMDPMOD & 0x8000u) == 0x8000u) {\n"
 "       //MSB shadow\n"
+"      finalColor = imageLoad(outSurface, ivec2(texel));\n"
+       COLINDEX(finalColor)
        MSB_SHADOW(finalColor)
 "      outColor = finalColor;\n"
 "    } else {\n"
@@ -672,6 +672,8 @@ static const char vdp1_banding_f[] =
 "          }; break;\n"
 "        case 1u: {\n"
 "           //shadow_mode,\n"
+"           finalColor = imageLoad(outSurface, ivec2(texel));\n"
+           COLINDEX(finalColor)
            SHADOW(finalColor)
 "          outColor = finalColor;\n"
 "          }; break;\n"
@@ -682,6 +684,8 @@ static const char vdp1_banding_f[] =
 "          }; break;\n"
 "        case 3u: {\n"
 "           //half_trans_mode,\n"
+"          finalColor = imageLoad(outSurface, ivec2(texel));\n"
+           COLINDEX(finalColor)
            HALF_TRANPARENT_MIX(newColor, finalColor)
 "          outColor = newColor;\n"
 "          }; break;\n"
@@ -701,6 +705,8 @@ static const char vdp1_banding_f[] =
 "           //gouraud_half_trans_mode,\n"
            GOURAUD_PROCESS(newColor)
            RECOLINDEX(newColor)
+"          finalColor = imageLoad(outSurface, ivec2(texel));\n"
+           COLINDEX(finalColor)
            HALF_TRANPARENT_MIX(newColor, finalColor)
 "          outColor = newColor;\n"
 "          }; break;\n"
@@ -713,6 +719,8 @@ static const char vdp1_banding_f[] =
 static const char vdp1_no_banding_f[] =
 "    if ((pixcmd.CMDPMOD & 0x8000u) == 0x8000u) {\n"
 "     //MSB shadow\n"
+"      finalColor = imageLoad(outSurface, ivec2(texel));\n"
+       COLINDEX(finalColor)
        MSB_SHADOW(finalColor)
 "      outColor = finalColor;\n"
 "    } else {\n"
@@ -723,6 +731,8 @@ static const char vdp1_no_banding_f[] =
 "          }; break;\n"
 "        case 1u: {\n"
 "           //shadow_mode,\n"
+"          finalColor = imageLoad(outSurface, ivec2(texel));\n"
+           COLINDEX(finalColor)
            SHADOW(finalColor)
 "          outColor = finalColor;\n"
 "          }; break;\n"
@@ -733,6 +743,8 @@ static const char vdp1_no_banding_f[] =
 "          }; break;\n"
 "        case 3u: {\n"
 "           //half_trans_mode,\n"
+"          finalColor = imageLoad(outSurface, ivec2(texel));\n"
+           COLINDEX(finalColor)
            HALF_TRANPARENT_MIX(newColor, finalColor)
 "          outColor = newColor;\n"
 "          }; break;\n"
@@ -754,6 +766,8 @@ static const char vdp1_no_banding_f[] =
            GOURAUD_PROCESS_EXTENDED(newColor)
            RECOLINDEX(newColor)
            //MSB bits in .ba has to be divided by two also...
+"          finalColor = imageLoad(outSurface, ivec2(texel));\n"
+           COLINDEX(finalColor)
            HALF_TRANPARENT_MIX(newColor, finalColor)
 "          outColor = newColor;\n"
 "          }; break;\n"
