@@ -152,6 +152,8 @@ void finishCSRender() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   OSDDisplayMessages(NULL,0,0);
 
+  _Ygl->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
+
   startVdp1Render();
 }
 
