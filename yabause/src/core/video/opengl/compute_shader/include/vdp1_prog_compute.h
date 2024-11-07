@@ -797,7 +797,7 @@ static const char vdp1_improved_mesh_f[] =
 "  if ((pixcmd.CMDPMOD & 0x100u)==0x100u){\n"//IS_MESH
 "    tag.rg = outColor.rg;\n"
 "    tag.b = 1.0;\n"
-"    outColor = finalColor;\n"
+"    outColor = imageLoad(outSurface, ivec2(texel));\n"
 "  } else {\n"
 "    tag = vec3(0.0);\n"
 "  }\n";
