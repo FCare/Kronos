@@ -290,6 +290,11 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 	int maxy = 0;
 	point A,B;
 
+	if ((Vdp1Regs->TVMR & 0x1)!=0) {
+		// Color calculation is working only on framebuffer 16 bits
+		cmd->CMDPMOD &= ~0x7; //Force a replace on framebuffer 8 bits
+	}
+
 	if (_Ygl->vdp1IsNotEmpty[_Ygl->drawframe] != -1) {
 		endVdp1Render();
 		vdp1_write();
