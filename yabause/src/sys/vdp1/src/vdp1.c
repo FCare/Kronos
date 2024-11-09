@@ -980,99 +980,86 @@ static int Vdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   x = cmd->CMDXA;
   y = cmd->CMDYA;
   // Setup Zoom Point
-  switch ((cmd->CMDCTRL & 0xF00) >> 8)
-  {
-  case 0x0: // Only two coordinates
-    rw = cmd->CMDXC - cmd->CMDXA;
-    rh = cmd->CMDYC - cmd->CMDYA;
+  switch ((cmd->CMDCTRL & 0x300) >> 8) {
+    //left/right/center/none => Compute X
+    case 0: //none
+        cmd->CMDXB = cmd->CMDXC;
+        cmd->CMDXD = cmd->CMDXA;
     break;
-  case 0x5: // Upper-left
+    case 1: //Left
     rw = cmd->CMDXB;
-    rh = cmd->CMDYB;
-    if ((rw < 0)||(rh <0)) {
-      return 0;
+        if (rw < 0) return 0;
+        cmd->CMDXB = cmd->CMDXA + rw;
+        cmd->CMDXC = cmd->CMDXA + rw;
+        cmd->CMDXD = cmd->CMDXA;
+    break;
+    case 2: //center
+    rw = cmd->CMDXB;
+        if (rw < 0) return 0;
+        cmd->CMDXA = x - rw/2;
+        cmd->CMDXB = x + (rw+1)/2;
+        cmd->CMDXD = x - rw/2;
+        cmd->CMDXC = x + (rw+1)/2;
+    break;
+    case 3: //right
+    rw = cmd->CMDXB;
+        if (rw < 0) return 0;
+        cmd->CMDXA = x - rw;
+        cmd->CMDXB = x;
+        cmd->CMDXC = x;
+        cmd->CMDXD = x - rw;
+    break;
+    default:
+        break;
     }
+  switch ((cmd->CMDCTRL & 0xC00) >> 10) {
+    //left/right/center/none => Compute X
+    case 0: //none
+        cmd->CMDYB = cmd->CMDYA;
+        cmd->CMDYD = cmd->CMDYC;
     break;
-  case 0x6: // Upper-Center
-    rw = cmd->CMDXB;
+    case 1: //Top
     rh = cmd->CMDYB;
-    x = x - rw / 2;
-    if ((rw < 0)||(rh <0)) {
-      return 0;
-    }
+        if (rh < 0) return 0;
+        cmd->CMDYB = cmd->CMDYA;
+        cmd->CMDYC = cmd->CMDYA + rh;
+        cmd->CMDYD = cmd->CMDYA + rh;
     break;
-  case 0x7: // Upper-Right
-    rw = cmd->CMDXB;
+    case 2: //center
     rh = cmd->CMDYB;
-    x = x - rw;
-    if ((rw < 0)||(rh <0)) {
-      return 0;
-    }
+        if (rh < 0) return 0;
+        cmd->CMDYA = y - rh/2;
+        cmd->CMDYB = y - rh/2;
+        cmd->CMDYC = y + (rh+1)/2;
+        cmd->CMDYD = y + (rh+1)/2;
     break;
-  case 0x9: // Center-left
-    rw = cmd->CMDXB;
+    case 3: //bottom
     rh = cmd->CMDYB;
-    y = y - rh / 2;
-    if ((rw < 0)||(rh <0)) {
-      return 0;
-    }
+        if (rh < 0) return 0;
+        cmd->CMDYA = y - rh;
+        cmd->CMDYB = y - rh;
+        cmd->CMDYC = y;
+        cmd->CMDYD = y;
     break;
-  case 0xA: // Center-center
-    rw = cmd->CMDXB;
-    rh = cmd->CMDYB;
-    x = x - rw / 2;
-    y = y - rh / 2;
+    default:
     break;
-  case 0xB: // Center-right
-    rw = cmd->CMDXB;
-    rh = cmd->CMDYB;
-    x = x - rw;
-    y = y - rh / 2;
-    if ((rw < 0)||(rh <0)) {
-      return 0;
-    }
-    break;
-  case 0xD: // Lower-left
-    rw = cmd->CMDXB;
-    rh = cmd->CMDYB;
-    y = y - rh;
-    if ((rw < 0)||(rh <0)) {
-      return 0;
-    }
-    break;
-  case 0xE: // Lower-center
-    rw = cmd->CMDXB;
-    rh = cmd->CMDYB;
-    x = x - rw / 2;
-    y = y - rh;
-    break;
-  case 0xF: // Lower-right
-    rw = cmd->CMDXB;
-    rh = cmd->CMDYB;
-    x = x - rw;
-    y = y - rh;
-    if ((rw < 0)||(rh <0)) {
-      return 0;
-    }
-    break;
-  default: break;
   }
 
-  cmd->CMDXA = x + regs->localX;
-  cmd->CMDYA = y + regs->localY;
-  cmd->CMDXB = x + rw  + regs->localX;
-  cmd->CMDYB = y + regs->localY;
-  cmd->CMDXC = x + rw  + regs->localX;
-  cmd->CMDYC = y + rh + regs->localY;
-  cmd->CMDXD = x + regs->localX;
-  cmd->CMDYD = y + rh + regs->localY;
+  cmd->CMDXA += regs->localX;
+  cmd->CMDYA += regs->localY;
+  cmd->CMDXB += regs->localX;
+  cmd->CMDYB += regs->localY;
+  cmd->CMDXC += regs->localX;
+  cmd->CMDYC += regs->localY;
+  cmd->CMDXD += regs->localX;
+  cmd->CMDYD += regs->localY;
 
   // Setup Zoom Point
   switch ((cmd->CMDCTRL & 0xF00) >> 8)
   {
   case 0x0: // Only two coordinates
-    if ((s16)cmd->CMDXC > (s16)cmd->CMDXA){ cmd->CMDXB += 1; cmd->CMDXC += 1;} else { cmd->CMDXA += 1; cmd->CMDXB +=1; cmd->CMDXC += 1; cmd->CMDXD += 1;}
-    if ((s16)cmd->CMDYC > (s16)cmd->CMDYA){ cmd->CMDYC += 1; cmd->CMDYD += 1;} else { cmd->CMDYA += 1; cmd->CMDYB += 1; cmd->CMDYC += 1; cmd->CMDYD += 1;}
+    if ((s16)cmd->CMDXC > (s16)cmd->CMDXA){ cmd->CMDXB += 1; cmd->CMDXC += 1;} else { cmd->CMDXA += 1; cmd->CMDXD += 1;}
+    if ((s16)cmd->CMDYC > (s16)cmd->CMDYA){ cmd->CMDYC += 1; cmd->CMDYD += 1;} else { cmd->CMDYA += 1; cmd->CMDYD += 1;}
     break;
   case 0x5: // Upper-left
   case 0x6: // Upper-Center
