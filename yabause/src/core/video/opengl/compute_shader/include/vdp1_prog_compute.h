@@ -220,7 +220,6 @@ SHADER_VERSION_COMPUTE
 "  float uBstepx;\n"
 "  float uBstepy;\n"
 "  float G[12];\n"
-"  int pad[16];\n"
 "};\n"
 
 "layout(local_size_x = %d, local_size_y = %d) in;\n"
