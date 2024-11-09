@@ -422,10 +422,9 @@ typedef enum
 {
     RES_ORIGINAL = 0x1, //For compatibility - Saturn output
     RES_SD = 0x2, //For compatibility - Saturn output
-    RES_HD = 0x4,
-    RES_FHD = 0x8,
-    RES_2K = 0x10,
-    RES_4K = 0x20,
+    RES_1X = 0x4,
+    RES_2X = 0x8,
+    RES_4X = 0x20,
     RES_NATIVE = 0x40
 } RESOLUTION_MODE;
 

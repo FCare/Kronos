@@ -103,10 +103,9 @@ const Items mUpscaleFilterMode = Items()
 	<< Item("3", "6xBRZ");
 
 const Items mResolutionMode = Items()
-	<< Item("1", "SD (original resolution of the Saturn)")
-	<< Item("8", "Full HD")
-	<< Item("16", "2K")
-	<< Item("32", "4K")
+	<< Item("1", "1x (original resolution of the Saturn)")
+	<< Item("8", "2x")
+	<< Item("32", "4x")
 	<< Item("64", "Native (current resolution of the window)");
 
 const Items mAspectRatio = Items()

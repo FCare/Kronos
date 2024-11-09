@@ -2119,29 +2119,26 @@ void YglChangeResolution(int w, int h) {
   if ((GlHeight * uw) > (GlWidth * uh)) {
     maxRes = GlWidth * uh / uw;
   }
-  scaleLimit = floor(maxRes/(float)uh);
+  scaleLimit = (int)(floor(maxRes/(float)uh))&~0x1;
   if (_Ygl->interlace == NORMAL_INTERLACE) scaleLimit>>=1;
   if (scaleLimit == 0)scaleLimit = 1;
   // printf("Request resolution %d %d (%d) [%d %d]\n", _Ygl->resolution_mode, uh, h, uw, w);
   switch (_Ygl->resolution_mode) {
-    case RES_HD: //720p
-    scale = 1; //floor(360.0/(float)uh);
     break;
-    case RES_FHD: //1080p
+    case RES_2X: //1080p
     scale = 2; //floor(540.0/(float)uh);
     break;
-    case RES_2K: //1440p
-    scale = 3;//floor(720.0/(float)uh);
-    break;
-    case RES_4K: //2160
+    case RES_4X: //2160
     scale = 4; //floor(1080/(float)uh);
     break;
     case RES_NATIVE: //Native
     scale = scaleLimit;
     break;
-    case RES_ORIGINAL: //Original
+    case RES_ORIGINAL:
+    case RES_SD:
+    case RES_1X: //720p
     default:
-    scale = 1;
+    scale = 1; //floor(360.0/(float)uh);
   }
   if (scale == 0){
     scale = 1;

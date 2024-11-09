@@ -65,7 +65,7 @@ static int banding_mode = ORIGINAL_BANDING;
 typedef enum
 {
     N_RES_NO = 0,
-    N_RES_4k = 1,
+    N_RES_4X = 1,
     N_RES_8k = 2,
 } NATIVE_RESOLUTION_MODE;
 
@@ -980,11 +980,11 @@ void check_variables(void)
       if (strcmp(var.value, "original") == 0)
          resolution_mode = RES_ORIGINAL;
       else if (strcmp(var.value, "480p") == 0)
-         resolution_mode = RES_SD;
+         resolution_mode = RES_1X;
       else if (strcmp(var.value, "720p") == 0)
-         resolution_mode = RES_HD;
+         resolution_mode = RES_1X;
       else if (strcmp(var.value, "1080p") == 0)
-         resolution_mode = RES_FHD;
+         resolution_mode = RES_2X;
       else if (strcmp(var.value, "4k") == 0)
       {
          resolution_mode = RES_NATIVE;
@@ -1141,21 +1141,22 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
       {
          case RES_ORIGINAL:
          case RES_SD:
+         case RES_1X:
             window_width = 704;
             window_height = 512;
             break;
-         case RES_HD:
+         case RES_1X:
             window_width = 1280;
             window_height = 720;
             break;
-         case RES_FHD:
+         case RES_2X:
             window_width = 1920;
             window_height = 1080;
             break;
          case RES_NATIVE:
             switch (native_resolution_mode)
             {
-               case N_RES_4k:
+               case N_RES_4X:
                   window_width = 3840;
                   window_height = 2160;
                   break;
