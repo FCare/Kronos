@@ -317,7 +317,6 @@ int vdp1_add(vdp1cmd_struct* cmd, int clipcmd) {
 					pos += (cmd->h/2) * cmd->w*2 + cmd->w;
 					break;
 			}
-			// cmd->COLOR[0] = cmdBuffer[_Ygl->drawframe][pos];
 			cmd->type = POLYLINE;
 			break;
 			case POLYGON:

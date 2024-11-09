@@ -145,7 +145,6 @@ extern void VIDCSSync();
 extern void VIDCSVdp2DispOff(void);
 extern int VIDCSGenFrameBuffer();
 
-extern u32 FASTCALL Vdp1ReadPolygonColor(vdp1cmd_struct *cmd, Vdp2* varVdp2Regs);
 
 VideoInterface_struct VIDCS = {
 VIDCORE_CS,
@@ -806,7 +805,6 @@ void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
   // cmd->type = POLYGON;
-  cmd->COLOR[0] = Vdp1ReadPolygonColor(cmd,&Vdp2Lines[0]);
 
   addCSCommands(cmd,POLYGON);
   return;
@@ -817,7 +815,6 @@ void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   LOG_CMD("%d\n", __LINE__);
 
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
-  cmd->COLOR[0] = Vdp1ReadPolygonColor(cmd,&Vdp2Lines[0]);
   cmd->type = POLYLINE;
 
   vdp1_add(cmd,0);
@@ -831,7 +828,6 @@ void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 
   cmd->SPCTL = Vdp2Lines[0].SPCTL;
   cmd->type = LINE;
-  cmd->COLOR[0] = Vdp1ReadPolygonColor(cmd,&Vdp2Lines[0]);
 
   vdp1_add(cmd,0);
 }
@@ -2328,12 +2324,6 @@ void VIDCSSetSettingValueMode(int type, int value) {
 }
 
 //////////////////////////////////////////////////////////////////////////////
-
-u32 FASTCALL Vdp1ReadPolygonColor(vdp1cmd_struct *cmd, Vdp2* varVdp2Regs)
-{
-  return VDP1COLOR(0x0, cmd->CMDCOLR);
-}
-
 static void Vdp1SetTextureRatio(int vdp2widthratio, int vdp2heightratio)
 {
   int vdp1w = 1;

@@ -210,9 +210,7 @@ SHADER_VERSION_COMPUTE
 "  int CMDXD;\n"
 "  int CMDYD;\n"
 "  uint CMDGRDA;\n"
-"  int COLOR[4];\n"
 "  float G[16];\n"
-"  uint priority;\n"
 "  uint w;\n"
 "  uint h;\n"
 "  uint flip;\n"
@@ -223,7 +221,7 @@ SHADER_VERSION_COMPUTE
 "  float uAstepy;\n"
 "  float uBstepx;\n"
 "  float uBstepy;\n"
-"  int pad[6];\n"
+"  int pad[11];\n"
 "};\n"
 
 "layout(local_size_x = %d, local_size_y = %d) in;\n"
@@ -506,8 +504,7 @@ SHADER_VERSION_COMPUTE
 "}\n"
 
 "vec4 extractPolygonColor(cmdparameter_struct pixcmd){\n"
-"  uint color = pixcmd.COLOR[0];\n"
-"  return VDP1COLOR(color);\n"
+"  return VDP1COLOR(pixcmd.CMDCOLR);\n"
 "};\n"
 
 "uint getEndIndex(cmdparameter_struct pixcmd, uint y)\n"

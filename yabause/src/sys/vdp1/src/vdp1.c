@@ -896,7 +896,6 @@ static int Vdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs){
   }
 
   cmd->flip = (cmd->CMDCTRL & 0x30) >> 4;
-  cmd->priority = 0;
 
   if ( CONVERTCMD(&cmd->CMDXA) ||
        CONVERTCMD(&cmd->CMDYA)) {
@@ -952,7 +951,6 @@ static int Vdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   }
 
   cmd->flip = (cmd->CMDCTRL & 0x30) >> 4;
-  cmd->priority = 0;
 
   switch ((cmd->CMDCTRL & 0xF00) >> 8)
   {
@@ -1130,7 +1128,6 @@ static int Vdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   }
 
   cmd->flip = (cmd->CMDCTRL & 0x30) >> 4;
-  cmd->priority = 0;
 
   if ( CONVERTCMD(&cmd->CMDXA) ||
        CONVERTCMD(&cmd->CMDYA) ||
@@ -1209,7 +1206,6 @@ static int Vdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
       cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
     }
   }
-  cmd->priority = 0;
   cmd->w = 1;
   cmd->h = 1;
   cmd->flip = 0;
@@ -1222,7 +1218,6 @@ static int Vdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
 
   Vdp2 *varVdp2Regs = &Vdp2Lines[0];
 
-  cmd->priority = 0;
   cmd->w = 1;
   cmd->h = 1;
   cmd->flip = 0;
@@ -1300,7 +1295,6 @@ static int Vdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
     cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
   }
   }
-  cmd->priority = 0;
   cmd->w = 1;
   cmd->h = 1;
   cmd->flip = 0;

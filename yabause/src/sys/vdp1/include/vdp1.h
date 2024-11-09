@@ -119,9 +119,7 @@ typedef struct
   s32 CMDXD;
   s32 CMDYD;
   u32 CMDGRDA;
-  u32 COLOR[4];
   float G[16];
-  u32 priority;
   u32 w;
   u32 h;
   u32 flip;
@@ -132,7 +130,7 @@ typedef struct
   float uAstepy;
   float uBstepx;
   float uBstepy;
-  u32 pad[6];
+  u32 pad[11];
 } vdp1cmd_struct;
 
 typedef struct
