@@ -119,18 +119,16 @@ typedef struct
   s32 CMDXD;
   s32 CMDYD;
   u32 CMDGRDA;
-  float G[16];
   u32 w;
   u32 h;
   u32 flip;
   u32 type;
-  u32 SPCTL;
   u32 nbStep;
   float uAstepx;
   float uAstepy;
   float uBstepx;
   float uBstepy;
-  u32 pad[11];
+  float G[12];
 } vdp1cmd_struct;
 
 typedef struct

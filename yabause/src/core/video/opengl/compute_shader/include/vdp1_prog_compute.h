@@ -167,9 +167,9 @@ float Rg = float((col"Stringify(A)" >> 00) & 0x1F)/31.0;\n \
 float Gg = float((col"Stringify(A)" >> 05) & 0x1F)/31.0;\n \
 float Bg = float((col"Stringify(A)" >> 10) & 0x1F)/31.0;\n \
 int MSBg = (col"Stringify(A)" & 0x8000) >> 8;\n \
-Rg = clamp(Rg + mix(mix(pixcmd.G[0],pixcmd.G[4],gouraudcoord.x), mix(pixcmd.G[12],pixcmd.G[8],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
-Gg = clamp(Gg+ mix(mix(pixcmd.G[1],pixcmd.G[5],gouraudcoord.x), mix(pixcmd.G[13],pixcmd.G[9],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
-Bg = clamp(Bg + mix(mix(pixcmd.G[2],pixcmd.G[6],gouraudcoord.x), mix(pixcmd.G[14],pixcmd.G[10],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
+Rg = clamp(Rg + mix(mix(pixcmd.G[0],pixcmd.G[3],gouraudcoord.x), mix(pixcmd.G[9],pixcmd.G[6],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
+Gg = clamp(Gg+ mix(mix(pixcmd.G[1],pixcmd.G[4],gouraudcoord.x), mix(pixcmd.G[10],pixcmd.G[7],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
+Bg = clamp(Bg + mix(mix(pixcmd.G[2],pixcmd.G[5],gouraudcoord.x), mix(pixcmd.G[11],pixcmd.G[8],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
 "Stringify(A)".r = float((int(Rg*255.0)>>3) | (((int(Gg*255.0)>>3) & 0x7)<<5))/255.0;\n \
 "Stringify(A)".g = float(((int(Gg*255.0)>>3)>>3) | ((int(Bg*255.0)>>3)<<2) | MSBg)/255.0;\n \
 ""\n"
@@ -179,9 +179,9 @@ float Rg = float((col"Stringify(A)" >> 00) & 0x1F)/31.0;\n \
 float Gg = float((col"Stringify(A)" >> 05) & 0x1F)/31.0;\n \
 float Bg = float((col"Stringify(A)" >> 10) & 0x1F)/31.0;\n \
 int MSBg = (col"Stringify(A)" & 0x8000) >> 8;\n \
-Rg = clamp(Rg + mix(mix(pixcmd.G[0],pixcmd.G[4],gouraudcoord.x), mix(pixcmd.G[12],pixcmd.G[8],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
-Gg = clamp(Gg+ mix(mix(pixcmd.G[1],pixcmd.G[5],gouraudcoord.x), mix(pixcmd.G[13],pixcmd.G[9],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
-Bg = clamp(Bg + mix(mix(pixcmd.G[2],pixcmd.G[6],gouraudcoord.x), mix(pixcmd.G[14],pixcmd.G[10],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
+Rg = clamp(Rg + mix(mix(pixcmd.G[0],pixcmd.G[3],gouraudcoord.x), mix(pixcmd.G[9],pixcmd.G[6],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
+Gg = clamp(Gg+ mix(mix(pixcmd.G[1],pixcmd.G[4],gouraudcoord.x), mix(pixcmd.G[10],pixcmd.G[7],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
+Bg = clamp(Bg + mix(mix(pixcmd.G[2],pixcmd.G[5],gouraudcoord.x), mix(pixcmd.G[11],pixcmd.G[8],gouraudcoord.x), gouraudcoord.y), 0.0, 1.0);\n \
 "Stringify(A)".r = float((int(Rg*255.0)>>3) | (((int(Gg*255.0)>>3) & 0x7)<<5))/255.0;\n \
 "Stringify(A)".g = float(((int(Gg*255.0)>>3)>>3) | ((int(Bg*255.0)>>3)<<2) | MSBg)/255.0;\n \
 "Stringify(A)".b = float((int(Rg*255.0)&0x7) | (int(Gg*255.0)&0x7)<< 4  )/255.0;\n \
@@ -210,18 +210,17 @@ SHADER_VERSION_COMPUTE
 "  int CMDXD;\n"
 "  int CMDYD;\n"
 "  uint CMDGRDA;\n"
-"  float G[16];\n"
 "  uint w;\n"
 "  uint h;\n"
 "  uint flip;\n"
 "  uint type;\n"
-"  uint SPCTL;\n"
 "  uint nbStep;\n"
 "  float uAstepx;\n"
 "  float uAstepy;\n"
 "  float uBstepx;\n"
 "  float uBstepy;\n"
-"  int pad[11];\n"
+"  float G[12];\n"
+"  int pad[16];\n"
 "};\n"
 
 "layout(local_size_x = %d, local_size_y = %d) in;\n"

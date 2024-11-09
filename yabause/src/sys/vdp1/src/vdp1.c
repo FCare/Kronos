@@ -916,14 +916,14 @@ static int Vdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs){
 
   yabsys.vdp1cycles+= getNormalCycles(cmd);
 
-  memset(cmd->G, 0, sizeof(float)*16);
+  memset(cmd->G, 0, sizeof(float)*12);
   if ((cmd->CMDPMOD & 4))
   {
     for (int i = 0; i < 4; i++){
       u16 color2 = Vdp1RamReadWord(NULL, ram, (Vdp1RamReadWord(NULL, ram, regs->addr + 0x1C) << 3) + (i << 1));
-      cmd->G[(i << 2) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
     }
   }
 
@@ -1095,14 +1095,14 @@ static int Vdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   yabsys.vdp1cycles+= getScaledCycles(cmd);
 
   //gouraud
-  memset(cmd->G, 0, sizeof(float)*16);
+  memset(cmd->G, 0, sizeof(float)*12);
   if ((cmd->CMDPMOD & 4))
   {
     for (int i = 0; i < 4; i++){
       u16 color2 = Vdp1RamReadWord(NULL, Vdp1Ram, (Vdp1RamReadWord(NULL, Vdp1Ram, regs->addr + 0x1C) << 3) + (i << 1));
-      cmd->G[(i << 2) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
     }
   }
 
@@ -1154,14 +1154,14 @@ static int Vdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   //mission 1 of burning rangers is loading a lot the vdp1.
   yabsys.vdp1cycles+= getDistortedCycles(cmd);
 
-  memset(cmd->G, 0, sizeof(float)*16);
+  memset(cmd->G, 0, sizeof(float)*12);
   if ((cmd->CMDPMOD & 4))
   {
     for (int i = 0; i < 4; i++){
       u16 color2 = Vdp1RamReadWord(NULL, Vdp1Ram, (Vdp1RamReadWord(NULL, Vdp1Ram, regs->addr + 0x1C) << 3) + (i << 1));
-      cmd->G[(i << 2) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
     }
   }
 
@@ -1196,14 +1196,14 @@ static int Vdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
 
   yabsys.vdp1cycles += getPolygonCycles(cmd);
   //gouraud
-  memset(cmd->G, 0, sizeof(float)*16);
+  memset(cmd->G, 0, sizeof(float)*12);
   if ((cmd->CMDPMOD & 4))
   {
     for (int i = 0; i < 4; i++){
       u16 color2 = Vdp1RamReadWord(NULL, Vdp1Ram, (Vdp1RamReadWord(NULL, Vdp1Ram, regs->addr + 0x1C) << 3) + (i << 1));
-      cmd->G[(i << 2) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
     }
   }
   cmd->w = 1;
@@ -1246,14 +1246,14 @@ static int Vdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   cmd->CMDYD += regs->localY;
 
   //gouraud
-  memset(cmd->G, 0, sizeof(float)*16);
+  memset(cmd->G, 0, sizeof(float)*12);
   if ((cmd->CMDPMOD & 4))
   {
     for (int i = 0; i < 4; i++){
       u16 color2 = Vdp1RamReadWord(NULL, Vdp1Ram, (Vdp1RamReadWord(NULL, Vdp1Ram, regs->addr + 0x1C) << 3) + (i << 1));
-      cmd->G[(i << 2) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
-      cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
+      cmd->G[(i * 3) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
     }
   }
   VIDCore->Vdp1PolylineDraw(cmd, ram, regs);
@@ -1285,14 +1285,14 @@ static int Vdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   cmd->CMDYD = cmd->CMDYA;
 
   //gouraud
-  memset(cmd->G, 0, sizeof(float)*16);
+  memset(cmd->G, 0, sizeof(float)*12);
   if ((cmd->CMDPMOD & 4))
   {
   for (int i = 0; i < 4; i++){
     u16 color2 = Vdp1RamReadWord(NULL, Vdp1Ram, (Vdp1RamReadWord(NULL, Vdp1Ram, regs->addr + 0x1C) << 3) + (i << 1));
-    cmd->G[(i << 2) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
-    cmd->G[(i << 2) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
-    cmd->G[(i << 2) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
+    cmd->G[(i * 3) + 0] = (float)((color2 & 0x001F)) / (float)(0x1F) - 0.5f;
+    cmd->G[(i * 3) + 1] = (float)((color2 & 0x03E0) >> 5) / (float)(0x1F) - 0.5f;
+    cmd->G[(i * 3) + 2] = (float)((color2 & 0x7C00) >> 10) / (float)(0x1F) - 0.5f;
   }
   }
   cmd->w = 1;

@@ -746,7 +746,6 @@ void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
     u32 *cclist = (u32 *)&(Vdp2Lines[0].CCRSA);
     cclist[0] &= 0x1Fu;
   }
-  cmd->SPCTL = Vdp2Lines[0].SPCTL;
   cmd->type = QUAD;
 
   vdp1_add(cmd,0);
@@ -778,7 +777,6 @@ void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
     cclist[0] &= 0x1Fu;
   }
 
-  cmd->SPCTL = Vdp2Lines[0].SPCTL;
   cmd->type = QUAD;
   vdp1_add(cmd,0);
 
@@ -795,7 +793,6 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
     cclist[0] &= 0x1Fu;
   }
 
-  cmd->SPCTL = Vdp2Lines[0].SPCTL;
   addCSCommands(cmd, DISTORTED);
 
   return;
@@ -803,7 +800,6 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 
 void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
-  cmd->SPCTL = Vdp2Lines[0].SPCTL;
   // cmd->type = POLYGON;
 
   addCSCommands(cmd,POLYGON);
@@ -814,7 +810,6 @@ void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   LOG_CMD("%d\n", __LINE__);
 
-  cmd->SPCTL = Vdp2Lines[0].SPCTL;
   cmd->type = POLYLINE;
 
   vdp1_add(cmd,0);
@@ -826,7 +821,6 @@ void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   LOG_CMD("%d\n", __LINE__);
 
-  cmd->SPCTL = Vdp2Lines[0].SPCTL;
   cmd->type = LINE;
 
   vdp1_add(cmd,0);
