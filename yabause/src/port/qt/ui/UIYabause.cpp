@@ -1091,24 +1091,24 @@ void UIYabause::toggleEmulateMouse( bool enable, bool show )
 
 int UIYabause::loadGameFromFile(QString const& fileName)
 {
-	YabauseLocker locker(mYabauseThread);
-
-	VolatileSettings* vs = QtYabause::volatileSettings();
-	const int currentCDCore = vs->value("General/CdRom").toInt();
-	const QString currentCdRomISO = vs->value("General/CdRomISO").toString();
-
-	QtYabause::settings()->setValue("Recents/ISOs", fileName);
-
-	// vs->setValue("autostart", false);
-	vs->setValue("General/CdRom", ISOCD.id);
-	vs->setValue("General/CdRomISO", fileName);
 	if (QFile::exists(fileName))
 	{
+		YabauseLocker locker(mYabauseThread);
+
+		VolatileSettings* vs = QtYabause::volatileSettings();
+		const int currentCDCore = vs->value("General/CdRom").toInt();
+		const QString currentCdRomISO = vs->value("General/CdRomISO").toString();
+
+		QtYabause::settings()->setValue("Recents/ISOs", fileName);
+
+		// vs->setValue("autostart", false);
+		vs->setValue("General/CdRom", ISOCD.id);
+		vs->setValue("General/CdRomISO", fileName);
 		if (mYabauseThread->CloseTray() != 0) {
 			if (vs->value("autostart").toBool()){
 				mYabauseThread->pauseEmulation(false, true);
 			}
-	}
+		}
 
 		mIsCdIn = true;
 	}
