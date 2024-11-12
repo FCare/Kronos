@@ -61,12 +61,17 @@ YabauseGL::YabauseGL( ) : QOpenGLWindow()
 void YabauseGL::requestFrame() {
   QApplication::postEvent(this, new FrameRequest());
 }
+void YabauseGL::pauseFrame() {
+  QApplication::postEvent(this, new FrameStop());
+}
 
 void YabauseGL::pause(bool pause) {
   if (pause != mPause) {
-    mPause = pause;
-    if (!mPause) {
+    if (!pause) {
+      mPause = false;
       requestFrame();
+    } else {
+      pauseFrame();
     }
   }
 }
@@ -82,11 +87,15 @@ bool YabauseGL::event(QEvent *event)
 {
     switch (event->type()) {
     case FrameRequest::mType:
-        if ( !mPause ) {
-          YabauseExec();
-          requestFrame();
-        }
-        return true;
+          if (!mPause) {
+            YabauseExec();
+            requestFrame();
+          }
+          return true;
+    case FrameStop::mType:
+          mPause = true;
+          emit emulationPaused();
+          return true;
     default:
         return QWindow::event(event);
     }

@@ -64,6 +64,7 @@ UIYabause::UIYabause( QWidget* parent )
    search.clear();
 	searchType = 0;
 	mNeedResize = false;
+	mLocker = NULL;
 
 	// setup dialog
 	setupUi( this );
@@ -139,6 +140,7 @@ UIYabause::UIYabause( QWidget* parent )
 	connect( hideMouseTimer, SIGNAL( timeout() ), this, SLOT( hideMouse() ));
 	connect( mouseCursorTimer, SIGNAL( timeout() ), this, SLOT( cursorRestore() ));
 	connect( mYabauseThread, SIGNAL( toggleEmulateMouse( bool, bool ) ), this, SLOT( toggleEmulateMouse( bool, bool ) ) );
+	connect( mYabauseGL, SIGNAL( emulationPaused()), this, SLOT (runActions()));
 
 	// Load shortcuts
 	VolatileSettings* vs = QtYabause::volatileSettings();
@@ -264,6 +266,21 @@ void UIYabause::hideMouse()
 	if (!cursorShown) this->setCursor(Qt::BlankCursor);
 	else this->setCursor(Qt::CrossCursor);
 	hideMouseTimer->stop();
+}
+
+void UIYabause::runActions() {
+	if (mLocker == NULL) return;
+	switch (mLocker->getAction()) {
+		case ACTION_OPENTRAY:
+		{
+			mYabauseThread->OpenTray();
+		}
+		break;
+		default:
+		break;
+	}
+	mLocker->~YabauseLocker();
+	mLocker = NULL;
 }
 
 void UIYabause::cursorRestore()
@@ -661,13 +678,13 @@ void UIYabause::on_aFileSettings_triggered()
 
 void UIYabause::on_aFileOpenISO_triggered()
 {
-        YabauseLocker locker(mYabauseThread);
 
 	if (mIsCdIn){
-		mYabauseThread->OpenTray();
 		mIsCdIn = false;
+		mLocker = new YabauseLocker(mYabauseThread, ACTION_OPENTRAY);
 	}
 	else{
+		YabauseLocker locker(mYabauseThread);
 		const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
 		loadGameFromFile(fn);
 	}

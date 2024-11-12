@@ -44,11 +44,14 @@ public:
 	void pause(bool);
   QImage grabFrameBuffer();
 	void makeCurrent();
+	bool isPaused() { return mPause;}
 
 private:
 	void requestFrame();
+	void pauseFrame();
 Q_SIGNALS:
 	void glInitialized();
+	void emulationPaused();
 	void frameSwapped();
 
 protected:
@@ -64,10 +67,14 @@ protected:
 
 };
 
-
 struct FrameRequest : public QEvent
 {
 	static const QEvent::Type mType = static_cast<QEvent::Type>(2000);
 	FrameRequest():QEvent(mType){};
+};
+struct FrameStop : public QEvent
+{
+	static const QEvent::Type mType = static_cast<QEvent::Type>(2200);
+	FrameStop():QEvent(mType){};
 };
 #endif // YABAUSEGL_H

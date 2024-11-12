@@ -38,16 +38,23 @@ enum BARDISPLAY
 	BD_SHOWONFSHOVER=3
 };
 
+enum ACTIONS_ENUM
+{
+	ACTION_NONE = 0,
+	ACTION_OPENTRAY = 1,
+};
+
 class YabauseLocker
 {
 public:
-	YabauseLocker( YabauseThread* yt/*, bool fr = false*/ )
+	YabauseLocker( YabauseThread* yt, ACTIONS_ENUM action = ACTION_NONE )
 	{
 		Q_ASSERT( yt );
 		mThread = yt;
 		//mForceRun = fr;
 		mRunning = mThread->emulationRunning();
 		mPaused = mThread->emulationPaused();
+		mAction = action;
 		if ( mRunning && !mPaused )
 			mThread->pauseEmulation( true, false );
 	}
@@ -56,16 +63,21 @@ public:
 			YabauseExec();
 		}
 	}
+	ACTIONS_ENUM getAction() {
+		return mAction;
+	}
 	~YabauseLocker()
 	{
-		if ( ( mRunning && !mPaused ) /*|| mForceRun*/ )
+		if ( ( mRunning && !mPaused ) /*|| mForceRun*/ ) {
 			mThread->pauseEmulation( false, false );
+		}
 	}
 
 protected:
 	YabauseThread* mThread;
 	bool mRunning;
 	bool mPaused;
+	ACTIONS_ENUM mAction;
 	//bool mForceRun;
 };
 
@@ -85,6 +97,7 @@ public:
 
 protected:
 	YabauseGL* mYabauseGL;
+	YabauseLocker *mLocker;
 
 	QDockWidget* mLogDock;
 	QTextEdit* teLog;
@@ -131,6 +144,7 @@ public slots:
 	void breakpointHandlerM68K();
 	void breakpointHandlerSCUDSP();
 	void breakpointHandlerSCSPDSP();
+	void runActions();
 protected slots:
 	void errorReceived( const QString& error, bool internal = true );
 	void sizeRequested( const QSize& size );
