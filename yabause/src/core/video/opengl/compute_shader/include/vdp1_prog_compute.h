@@ -530,9 +530,10 @@ static const char vdp1_get_pixel_gouraud_extended_half_transparent_f[] =
 "}\n";
 
 static char vdp1_draw_mesh_f[] =
-"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid)\n"
+"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid, out bool discarded)\n"
 "{\n"
 " valid = true;\n"
+" discarded = false;\n"
 " if( (int(P.y) & 0x01) == 0 ){\n"
 "  if( (int(P.x) & 0x01) == 0 ){\n"
 "   valid = false;\n"
@@ -547,29 +548,33 @@ static char vdp1_draw_mesh_f[] =
 "}\n";
 
 static char vdp1_draw_improved_mesh_f[] =
-"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid)\n"
+"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid, out bool discarded)\n"
 "{\n"
 " valid = true;\n"
+" discarded = false;\n"
 " vec4 ret = getColoredPixel(pixcmd, uv, P, valid);\n"
 " if (valid) {\n"
 "  ret.b = 1.0;\n"
 "  imageStore(outMeshSurface,P,ret);\n"
-"  }\n"
-" valid = false;\n"
+"  discarded = true;\n"
+" }\n"
 " return vec4(0.0);\n"
 "}\n";
 
 static char vdp1_draw_no_mesh_f[] =
-"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid)\n"
+"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid, out bool discarded)\n"
 "{\n"
+" discarded = false;\n"
 " return getColoredPixel(pixcmd, uv, P, valid);\n"
 "}\n";
 
 static char vdp1_draw_no_mesh_improved_f[] =
-"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid)\n"
+"vec4 getMeshedPixel(cmdparameter_struct pixcmd, vec2 uv, ivec2 P, out bool valid, out bool discarded)\n"
 "{\n"
-" imageStore(outMeshSurface,P,vec4(0.0));\n"
-" return getColoredPixel(pixcmd, uv, P, valid);\n"
+" discarded = false;\n"
+" vec4 ret = getColoredPixel(pixcmd, uv, P, valid);\n"
+" if (valid) imageStore(outMeshSurface,P,vec4(0.0));\n"
+" return ret;\n"
 "}\n";
 
 static const char vdp1_draw_poly_test[] =
@@ -649,10 +654,11 @@ static const char vdp1_draw_poly_test[] =
 "  if (antialiased && !pixelOnLine) pixelOnLine = (onChangeAliased((Pn), P0, slope, a, int(orientation), cidx, lidx));\n"
 "  if (pixelOnLine) {\n"
 "   float dp = 0.5*float(a.x);\n"
+"   bool discarded = false;\n"
 "   if (veclong != 0) dp = (float(Pn.x-P0.x)+0.5*float(a.x))/float(veclong);\n"
-"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float((pixcmd.idx)+0.5)/float(nbLines)), P, valid);\n"
+"   vec4 pixout = getMeshedPixel(pixcmd, vec2(dp,float((pixcmd.idx)+0.5)/float(nbLines)), P, valid, discarded);\n"
 "   if(valid) {\n"
-"    imageStore(outSurface,P,pixout);\n"
+"    if (!discarded) imageStore(outSurface,P,pixout);\n"
 "    return;\n"
 "   }\n"
 "  }\n"
