@@ -276,6 +276,11 @@ void UIYabause::runActions() {
 			mYabauseThread->OpenTray();
 		}
 		break;
+		case ACTION_LOADFILE:
+		{
+			const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
+			loadGameFromFile(fn);
+		}
 		default:
 		break;
 	}
@@ -684,9 +689,13 @@ void UIYabause::on_aFileOpenISO_triggered()
 		mLocker = new YabauseLocker(mYabauseThread, ACTION_OPENTRAY);
 	}
 	else{
-		YabauseLocker locker(mYabauseThread);
-		const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
-		loadGameFromFile(fn);
+		mLocker = new YabauseLocker(mYabauseThread, ACTION_LOADFILE);
+		if (!mLocker->isPaused()) {
+			const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
+			loadGameFromFile(fn);
+			mLocker->~YabauseLocker();
+			mLocker = NULL;
+		}
 	}
 }
 

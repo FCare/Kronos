@@ -42,6 +42,7 @@ enum ACTIONS_ENUM
 {
 	ACTION_NONE = 0,
 	ACTION_OPENTRAY = 1,
+	ACTION_LOADFILE = 2,
 };
 
 class YabauseLocker
@@ -63,6 +64,11 @@ public:
 			YabauseExec();
 		}
 	}
+
+	bool isPaused() {
+		return mRunning && !mPaused;
+	}
+
 	ACTIONS_ENUM getAction() {
 		return mAction;
 	}
