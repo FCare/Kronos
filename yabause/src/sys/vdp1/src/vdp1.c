@@ -1402,8 +1402,8 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs)
      // CEF <- 0
      Vdp1Regs->COPR = 0;
      Vdp1Regs->lCOPR = 0;
+     if (VIDCore->startVdp1Render) VIDCore->startVdp1Render();
   }
-  VIDCore->startVdp1Render();
 
    Vdp1External.status &= ~VDP1_STATUS_MASK;
    Vdp1External.status |= VDP1_STATUS_RUNNING;
