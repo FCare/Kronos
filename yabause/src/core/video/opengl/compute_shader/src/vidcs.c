@@ -130,13 +130,21 @@ void VIDCSVdp1PolylineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1LineDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1UserClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1NormalSpriteDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1ScaledSpriteDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1DistortedSpriteDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1PolygonDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1PolylineDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1LineDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1UserClippingUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
+void VIDCSVdp1SystemClippingUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 void VIDCSVdp1DrawFB(void);
 void VIDCSReadColorOffset(void);
+void VIDCSVdp1LocalCoordinate(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
 extern void VIDCSRender(Vdp2 *varVdp2Regs);
 extern void VIDCSRenderVDP1(void);
 extern void VIDCSFinsihDraw(void);
 
- void VIDCSVdp1LocalCoordinate(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs);
  int VIDCSVdp2Reset(void);
  void VIDCSVdp2Draw(void);
 extern void VIDCSGetGlSize(int *width, int *height);
@@ -144,6 +152,13 @@ extern void VIDCSSetSettingValueMode(int type, int value);
 extern void VIDCSSync();
 extern void VIDCSVdp2DispOff(void);
 extern int VIDCSGenFrameBuffer();
+
+static void VIDCSSetupVdp1Scale(int scale);
+
+static void VIDCSStartVdp1Render(void);
+static void VIDCSStartVdp1RenderUpscale(void);
+static void VIDCSEndVdp1Render(void);
+static void VIDCSEndVdp1RenderUpscale(void);
 
 
 VideoInterface_struct VIDCS = {
@@ -179,7 +194,10 @@ VIDCSRenderVDP1,
 VIDCSGenFrameBuffer,
 VIDCSFinsihDraw,
 VIDCSVdp1DrawFB,
-VIDCSGetVdp2ScreenExtract
+VIDCSGetVdp2ScreenExtract,
+VIDCSSetupVdp1Scale,
+VIDCSStartVdp1Render,
+VIDCSEndVdp1Render
 };
 
 
@@ -208,6 +226,46 @@ RBGDrawInfo* popRBG() {
 
 void pushRBG(RBGDrawInfo* val) {
   YabAddEventQueue(RBGStack,val);
+}
+
+static void VIDCSSetupVdp1Scale(int scale) {
+  if (scale == 1) {
+    VIDCS.Vdp1NormalSpriteDraw = VIDCSVdp1NormalSpriteDraw;
+    VIDCS.Vdp1ScaledSpriteDraw = VIDCSVdp1ScaledSpriteDraw;
+    VIDCS.Vdp1DistortedSpriteDraw = VIDCSVdp1DistortedSpriteDraw;
+    VIDCS.Vdp1PolygonDraw = VIDCSVdp1PolygonDraw;
+    VIDCS.Vdp1PolylineDraw = VIDCSVdp1PolylineDraw;
+    VIDCS.Vdp1LineDraw = VIDCSVdp1LineDraw;
+    VIDCS.Vdp1UserClipping = VIDCSVdp1UserClipping;
+    VIDCS.Vdp1SystemClipping = VIDCSVdp1SystemClipping;
+    VIDCS.endVdp1Render = VIDCSEndVdp1Render;
+    VIDCS.startVdp1Render = VIDCSStartVdp1Render;
+  } else {
+    VIDCS.Vdp1NormalSpriteDraw = VIDCSVdp1NormalSpriteDrawUpscale;
+    VIDCS.Vdp1ScaledSpriteDraw = VIDCSVdp1ScaledSpriteDrawUpscale;
+    VIDCS.Vdp1DistortedSpriteDraw = VIDCSVdp1DistortedSpriteDrawUpscale;
+    VIDCS.Vdp1PolygonDraw = VIDCSVdp1PolygonDrawUpscale;
+    VIDCS.Vdp1PolylineDraw = VIDCSVdp1PolylineDrawUpscale;
+    VIDCS.Vdp1LineDraw = VIDCSVdp1LineDrawUpscale;
+    VIDCS.Vdp1UserClipping = VIDCSVdp1UserClippingUpscale;
+    VIDCS.Vdp1SystemClipping = VIDCSVdp1SystemClippingUpscale;
+    VIDCS.endVdp1Render = VIDCSEndVdp1RenderUpscale;
+    VIDCS.startVdp1Render = VIDCSStartVdp1RenderUpscale;
+  }
+}
+
+static void VIDCSStartVdp1Render(void) {
+ startVdp1Render();
+}
+static void VIDCSStartVdp1RenderUpscale(void) {
+  startVdp1RenderUpscale();
+}
+
+static void VIDCSEndVdp1Render(void) {
+  endVdp1Render();
+}
+static void VIDCSEndVdp1RenderUpscale(void) {
+  endVdp1RenderUpscale();
 }
 
 #define CELL_SINGLE 0x1
@@ -606,6 +664,7 @@ int VIDCSInit(void)
     YglReset(_Ygl->vdp2levels[i]);
 
   _Ygl->vdp1ratio = 1.0;
+  if (VIDCore->SetupVdp1Scale) VIDCore->SetupVdp1Scale((int)_Ygl->vdp1ratio);
 
   _Ygl->vdp1wdensity = 1.0;
   _Ygl->vdp1hdensity = 1.0;
@@ -717,7 +776,7 @@ void addCSCommands(vdp1cmd_struct* cmd, int type)
   YuiMsg("=> %d (%d %d %d %d => %d %d) %f %f %f %f\n", cmd->nbStep, ADx, ADy, BCx, BCy, nbStepAD, nbStepBC, cmd->uAstepx, cmd->uAstepy, cmd->uBstepx, cmd->uBstepy);
   YuiMsg("==============\n");
 #endif
-  vdp1_add(cmd,0);
+  vdp1_add_upscale(cmd,0);
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -735,8 +794,8 @@ void VIDCSVdp1Draw()
   _Ygl->vpd1_running = 0;
 }
 
-//////////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////////
 void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   LOG_CMD("%d\n", __LINE__);
@@ -751,21 +810,6 @@ void VIDCSVdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   vdp1_add(cmd,0);
 
   LOG_CMD("%d\n", __LINE__);
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-int getBestMode(vdp1cmd_struct* cmd) {
-  int ret = DISTORTED;
-  // if (
-  //   ((cmd->CMDXA - cmd->CMDXD) == 0) &&
-  //   ((cmd->CMDYA - cmd->CMDYB) == 0) &&
-  //   ((cmd->CMDXB - cmd->CMDXC) == 0) &&
-  //   ((cmd->CMDYC - cmd->CMDYD) == 0)
-  // ) {
-  //   ret = QUAD;
-  // }
-  return ret;
 }
 
 void VIDCSVdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
@@ -793,7 +837,8 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
     cclist[0] &= 0x1Fu;
   }
 
-  addCSCommands(cmd, DISTORTED);
+  cmd->type = DISTORTED;
+  vdp1_add(cmd,0);
 
   return;
 }
@@ -801,8 +846,8 @@ void VIDCSVdp1DistortedSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 void VIDCSVdp1PolygonDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
 {
   // cmd->type = POLYGON;
-
-  addCSCommands(cmd,POLYGON);
+  cmd->type = POLYGON;
+  vdp1_add(cmd,0);
   return;
 }
 
@@ -854,6 +899,142 @@ void VIDCSVdp1SystemClipping(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
   regs->systemclipX2 = cmd->CMDXC;
   regs->systemclipY2 = cmd->CMDYC;
   vdp1_add(cmd,1);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void VIDCSVdp1NormalSpriteDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+  LOG_CMD("%d\n", __LINE__);
+
+  cmd->CMDXB = cmd->CMDXA + MAX(1,cmd->w);
+  cmd->CMDYB = cmd->CMDYA;
+  cmd->CMDXC = cmd->CMDXA + MAX(1,cmd->w);
+  cmd->CMDYC = cmd->CMDYA + MAX(1,cmd->h);
+  cmd->CMDXD = cmd->CMDXA;
+  cmd->CMDYD = cmd->CMDYA + MAX(1,cmd->h);
+
+  if (((cmd->CMDPMOD >> 3) & 0x7u) == 5) {
+    // hard/vdp2/hon/p09_20.htm#no9_21
+    u32 *cclist = (u32 *)&(Vdp2Lines[0].CCRSA);
+    cclist[0] &= 0x1Fu;
+  }
+  cmd->type = QUAD;
+
+  vdp1_add_upscale(cmd,0);
+
+  LOG_CMD("%d\n", __LINE__);
+}
+
+void VIDCSVdp1ScaledSpriteDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+
+  // Setup Zoom Point
+  switch ((cmd->CMDCTRL & 0xF00) >> 8)
+  {
+    case 0x0: // Only two coordinates
+      if ((s16)cmd->CMDXC > (s16)cmd->CMDXA){ cmd->CMDXB += 1; cmd->CMDXC += 1;} else { cmd->CMDXA += 1; cmd->CMDXD += 1;}
+      if ((s16)cmd->CMDYC > (s16)cmd->CMDYA){ cmd->CMDYC += 1; cmd->CMDYD += 1;} else { cmd->CMDYA += 1; cmd->CMDYD += 1;}
+      break;
+    case 0x5: // Upper-left
+    case 0x6: // Upper-Center
+    case 0x7: // Upper-Right
+    case 0x9: // Center-left
+    case 0xA: // Center-center
+    case 0xB: // Center-right
+    case 0xD: // Lower-left
+    case 0xE: // Lower-center
+    case 0xF: // Lower-right
+      cmd->CMDXB += 1;
+      cmd->CMDXC += 1;
+      cmd->CMDYC += 1;
+      cmd->CMDYD += 1;
+      break;
+    default: break;
+  }
+  if (((cmd->CMDPMOD >> 3) & 0x7u) == 5) {
+    // hard/vdp2/hon/p09_20.htm#no9_21
+    u32 *cclist = (u32 *)&(Vdp2Lines[0].CCRSA);
+    cclist[0] &= 0x1Fu;
+  }
+
+  cmd->type = QUAD;
+  vdp1_add_upscale(cmd,0);
+
+  LOG_CMD("%d\n", __LINE__);
+}
+
+void VIDCSVdp1DistortedSpriteDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+  LOG_CMD("%d\n", __LINE__);
+
+  if (((cmd->CMDPMOD >> 3) & 0x7u) == 5) {
+    // hard/vdp2/hon/p09_20.htm#no9_21
+    u32 *cclist = (u32 *)&(Vdp2Lines[0].CCRSA);
+    cclist[0] &= 0x1Fu;
+  }
+
+  addCSCommands(cmd, DISTORTED);
+
+  return;
+}
+
+void VIDCSVdp1PolygonDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+  // cmd->type = POLYGON;
+
+  addCSCommands(cmd,POLYGON);
+  return;
+}
+
+void VIDCSVdp1PolylineDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+  LOG_CMD("%d\n", __LINE__);
+
+  cmd->type = POLYLINE;
+
+  vdp1_add_upscale(cmd,0);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void VIDCSVdp1LineDrawUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+  LOG_CMD("%d\n", __LINE__);
+
+  cmd->type = LINE;
+
+  vdp1_add_upscale(cmd,0);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void VIDCSVdp1UserClippingUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+  if (  (cmd->CMDXC > regs->systemclipX2)
+    && (cmd->CMDYC > regs->systemclipY2)
+  ) {
+    regs->localX = 0;
+    regs->localY = 0;
+  }
+
+  cmd->type = USER_CLIPPING;
+  regs->userclipX1 = cmd->CMDXA;
+  regs->userclipY1 = cmd->CMDYA;
+  regs->userclipX2 = cmd->CMDXC;
+  regs->userclipY2 = cmd->CMDYC;
+  vdp1_add_upscale(cmd,1);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void VIDCSVdp1SystemClippingUpscale(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs)
+{
+  if (((cmd->CMDXC) == regs->systemclipX2) && (regs->systemclipY2 == (cmd->CMDYC))) return;
+  cmd->type = SYSTEM_CLIPPING;
+  regs->systemclipX2 = cmd->CMDXC;
+  regs->systemclipY2 = cmd->CMDYC;
+  vdp1_add_upscale(cmd,1);
 }
 
 void VIDCSVdp1DrawFB(void) {
@@ -2283,6 +2464,18 @@ void VIDCSVdp2DispOff()
 {
 }
 
+void updateMeshMode(MESHMODE value) {
+  if (_Ygl->meshmode != value){
+    _Ygl->meshmode = value;
+    vdp1_update_mesh();
+  }
+}
+void updateBandingMode(BANDINGMODE value) {
+  if (_Ygl->bandingmode != value){
+    _Ygl->bandingmode = value;
+    vdp1_update_banding();
+  }
+}
 void VIDCSSetSettingValueMode(int type, int value) {
 
   switch (type) {
@@ -2307,10 +2500,10 @@ void VIDCSSetSettingValueMode(int type, int value) {
     _Ygl->wireframe_mode = value;
   break;
   case VDP_SETTING_MESH_MODE:
-    _Ygl->meshmode = (MESHMODE)value;
+    updateMeshMode((MESHMODE)value);
   break;
   case VDP_SETTING_BANDING_MODE:
-    _Ygl->bandingmode = (BANDINGMODE)value;
+    updateBandingMode((BANDINGMODE)value);
   break;
   default:
   return;

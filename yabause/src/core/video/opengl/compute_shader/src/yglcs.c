@@ -154,7 +154,7 @@ void finishCSRender() {
 
   _Ygl->sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE,0);
 
-  startVdp1Render();
+  if (VIDCore->startVdp1Render) VIDCore->startVdp1Render();
 }
 
 void VIDCSRender(Vdp2 *varVdp2Regs) {

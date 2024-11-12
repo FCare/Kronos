@@ -2158,7 +2158,10 @@ void YglChangeResolution(int w, int h) {
   _Ygl->vdp1height = 256*scale*_Ygl->vdp1hdensity;
 
   //upscale Ratio of effective original vdp1FB
-  _Ygl->vdp1ratio = (float)scale;
+  if ((float) scale != _Ygl->vdp1ratio) {
+    _Ygl->vdp1ratio = (float)scale;
+    if (VIDCore->SetupVdp1Scale) VIDCore->SetupVdp1Scale(scale);
+  }
 
   rebuild_frame_buffer = 1;
 

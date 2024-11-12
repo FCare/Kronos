@@ -168,6 +168,9 @@ typedef struct
    void (*FinsihDraw)(void);
    void (*Vdp1FBDraw)(void);
    pixel_t* (*getVdp2ScreenExtract)(u32 screen, int * w, int * h);
+   void (*SetupVdp1Scale)(int scale);
+   void (*startVdp1Render)(void);
+   void (*endVdp1Render)(void);
 } VideoInterface_struct;
 
 extern VideoInterface_struct *VIDCore;
@@ -243,8 +246,6 @@ void Vdp1VBlankOUT(void);
 void Vdp1VBlankIN(void);
 void Vdp1VBlankIN_It(void);
 void Vdp1SwitchFrame(void);
-extern void startVdp1Render();
-extern void endVdp1Render();
 
 #ifdef __cplusplus
 }

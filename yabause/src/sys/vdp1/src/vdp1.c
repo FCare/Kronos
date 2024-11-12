@@ -111,7 +111,7 @@ static void abortVdp1() {
     // Abort the current command list
     Vdp1External.status &= ~VDP1_STATUS_MASK;
     Vdp1External.status |= VDP1_STATUS_IDLE;
-    endVdp1Render();
+    if (VIDCore->endVdp1Render) VIDCore->endVdp1Render();
     CmdListInLoop = 0;
     vdp1_clock = 0;
     nbCmdToProcess = 0;
@@ -907,12 +907,12 @@ static int Vdp1NormalSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs){
   cmd->CMDXA += regs->localX;
   cmd->CMDYA += regs->localY;
 
-  cmd->CMDXB = cmd->CMDXA + MAX(1,cmd->w);
+  cmd->CMDXB = cmd->CMDXA + MAX(1,cmd->w)-1;
   cmd->CMDYB = cmd->CMDYA;
-  cmd->CMDXC = cmd->CMDXA + MAX(1,cmd->w);
-  cmd->CMDYC = cmd->CMDYA + MAX(1,cmd->h);
+  cmd->CMDXC = cmd->CMDXA + MAX(1,cmd->w)-1;
+  cmd->CMDYC = cmd->CMDYA + MAX(1,cmd->h)-1;
   cmd->CMDXD = cmd->CMDXA;
-  cmd->CMDYD = cmd->CMDYA + MAX(1,cmd->h);
+  cmd->CMDYD = cmd->CMDYA + MAX(1,cmd->h)-1;
 
   yabsys.vdp1cycles+= getNormalCycles(cmd);
 
@@ -1054,29 +1054,6 @@ static int Vdp1ScaledSpriteDraw(vdp1cmd_struct *cmd, u8 * ram, Vdp1 * regs) {
   cmd->CMDXD += regs->localX;
   cmd->CMDYD += regs->localY;
 
-  // Setup Zoom Point
-  switch ((cmd->CMDCTRL & 0xF00) >> 8)
-  {
-  case 0x0: // Only two coordinates
-    if ((s16)cmd->CMDXC > (s16)cmd->CMDXA){ cmd->CMDXB += 1; cmd->CMDXC += 1;} else { cmd->CMDXA += 1; cmd->CMDXD += 1;}
-    if ((s16)cmd->CMDYC > (s16)cmd->CMDYA){ cmd->CMDYC += 1; cmd->CMDYD += 1;} else { cmd->CMDYA += 1; cmd->CMDYD += 1;}
-    break;
-  case 0x5: // Upper-left
-  case 0x6: // Upper-Center
-  case 0x7: // Upper-Right
-  case 0x9: // Center-left
-  case 0xA: // Center-center
-  case 0xB: // Center-right
-  case 0xD: // Lower-left
-  case 0xE: // Lower-center
-  case 0xF: // Lower-right
-    cmd->CMDXB += 1;
-    cmd->CMDXC += 1;
-    cmd->CMDYC += 1;
-    cmd->CMDYD += 1;
-    break;
-  default: break;
-  }
 
   //mission 1 of burning rangers is loading a lot the vdp1.
   yabsys.vdp1cycles+= getScaledCycles(cmd);
@@ -1426,7 +1403,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs)
      Vdp1Regs->COPR = 0;
      Vdp1Regs->lCOPR = 0;
   }
-  startVdp1Render();
+  VIDCore->startVdp1Render();
 
    Vdp1External.status &= ~VDP1_STATUS_MASK;
    Vdp1External.status |= VDP1_STATUS_RUNNING;
@@ -1434,7 +1411,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs)
      FRAMELOG("Address Error\n");
       Vdp1External.status &= ~VDP1_STATUS_MASK;
       Vdp1External.status |= VDP1_STATUS_IDLE;
-      endVdp1Render();
+      if (VIDCore->endVdp1Render) VIDCore->endVdp1Render();
       return; // address error
     }
 
@@ -1537,7 +1514,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs)
              FRAMELOG("vdp1\t: Bad command: %x\n", command);
              Vdp1External.status &= ~VDP1_STATUS_MASK;
              Vdp1External.status |= VDP1_STATUS_IDLE;
-             endVdp1Render();
+             if (VIDCore->endVdp1Render) VIDCore->endVdp1Render();
              regs->COPR = (regs->addr & 0x7FFFF) >> 3;
              FRAMELOG("Clear EDSR\n");
              regs->EDSR = 0;
@@ -1599,7 +1576,7 @@ void Vdp1DrawCommands(u8 * ram, Vdp1 * regs)
        FRAMELOG("VDP1: Command Finished! count = %d @ %08X\n", nbCmdToProcess, regs->addr);
        Vdp1External.status &= ~VDP1_STATUS_MASK;
        Vdp1External.status |= VDP1_STATUS_IDLE;
-       endVdp1Render();
+       if (VIDCore->endVdp1Render) VIDCore->endVdp1Render();
        regs->COPR = (regs->addr & 0x7FFFF) >> 3;
        regs->lCOPR = (regs->addr & 0x7FFFF) >> 3;
        FRAMELOG("Set EDSR\n");
@@ -1705,7 +1682,7 @@ static void Vdp1NoDraw(void) {
    Vdp1Regs->lCOPR = 0;
    Vdp1External.status &= ~VDP1_STATUS_MASK;
    Vdp1External.status |= VDP1_STATUS_IDLE;
-   endVdp1Render();
+   if (VIDCore->endVdp1Render) VIDCore->endVdp1Render();
    Vdp1FakeDrawCommands(Vdp1Ram, Vdp1Regs);
 }
 
