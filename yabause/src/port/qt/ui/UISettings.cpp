@@ -91,6 +91,8 @@ const Items mCartridgeTypes = Items()
 
 const Items mVideoFilterMode = Items()
 	<< Item("0", "None")
+	<< Item("1", "Bilinear")
+	<< Item("2", "BiCubic")
 	<< Item("3", "Deinterlacing Adaptative")
 	<< Item("4", "Deinterlacing Debug Adaptative")
 	<< Item("5", "Deinterlacing Bob")

@@ -26,6 +26,7 @@
 #include "ygl.h"
 #include "yui.h"
 #include "vidshared.h"
+#include "bicubic_shader.h"
 #include "scanline_shader.h"
 #include "common_glshader.h"
 
@@ -1645,7 +1646,8 @@ u32* vdp1_read_gl(int frame) {
 //----------------------------------------------------------------------------------------
 static int blit_prg = -1;
 static int blit_mode = -1;
-static int u_texSize = -1;
+static int u_w = -1;
+static int u_h = -1;
 static int u_l = -1;
 static int u_d = -1;
 static int u_f = -1;
@@ -1671,7 +1673,8 @@ static const char fblit_head[] =
   "#ifdef GL_ES\n"
   "precision highp float;       \n"
   "#endif\n"
-  "uniform vec2 texSize; \n"
+  "uniform float fWidth; \n"
+  "uniform float fHeight; \n"
   "uniform vec2 lineNumber; \n"
   "uniform float decim; \n"
   "uniform int field; \n"
@@ -1681,11 +1684,9 @@ static const char fblit_head[] =
   "out vec4 fragColor; \n";
 
 static const char fblit_img[] =
-  "void main()\n"
-  "{\n"
-  " vec2 pix = vTexCoord * texSize; //position in texel\n"
-  " pix = floor(pix) + min(fract(pix) / (abs(dFdx(pix)) + abs(dFdy(pix))), 1.0) - 0.5;\n"
-  " fragColor = Filter( u_Src, pix/texSize ); \n";
+  "void main()   \n"
+  "{   \n"
+"	fragColor = Filter( u_Src, vTexCoord ); \n";
 
   static const char fblit_retro_img[] =
   "void main()\n"
@@ -1748,6 +1749,33 @@ static const char fblitnear_interlace_img[] =
       "    return texelFetch( textureSampler, ivec2(coord.x,coord.y) , 0 ); \n"
       "} \n";
 
+
+static const char fblitbilinear_img[] =
+  "// Function to get a texel data from a texture with GL_NEAREST property. \n"
+  "// Bi-Linear interpolation is implemented in this function with the  \n"
+  "// help of nearest four data. \n"
+  "vec4 Filter( sampler2D textureSampler_i, vec2 texCoord_i ) \n"
+  "{ \n"
+  "	float texelSizeX = 1.0 / fWidth; //size of one texel  \n"
+  "	float texelSizeY = 1.0 / fHeight; //size of one texel  \n"
+  "	int nX = int( texCoord_i.x * fWidth ); \n"
+  "	int nY = int( texCoord_i.y * fHeight ); \n"
+  "	vec2 texCoord_New = vec2( ( float( nX ) + 0.5 ) / fWidth, ( float( nY ) + 0.5 ) / fHeight ); \n"
+  "	// Take nearest two data in current row. \n"
+  "    vec4 p0q0 = texture(textureSampler_i, texCoord_New); \n"
+  "    vec4 p1q0 = texture(textureSampler_i, texCoord_New + vec2(texelSizeX, 0)); \n"
+  "	// Take nearest two data in bottom row. \n"
+  "    vec4 p0q1 = texture(textureSampler_i, texCoord_New + vec2(0, texelSizeY)); \n"
+  "    vec4 p1q1 = texture(textureSampler_i, texCoord_New + vec2(texelSizeX , texelSizeY)); \n"
+  "    float a = fract( texCoord_i.x * fWidth ); // Get Interpolation factor for X direction. \n"
+  "	// Fraction near to valid data. \n"
+  "	// Interpolation in X direction. \n"
+  "    vec4 pInterp_q0 = mix( p0q0, p1q0, a ); // Interpolates top row in X direction. \n"
+  "    vec4 pInterp_q1 = mix( p0q1, p1q1, a ); // Interpolates bottom row in X direction. \n"
+  "    float b = fract( texCoord_i.y * fHeight ); // Get Interpolation factor for Y direction. \n"
+  "    return mix( pInterp_q0, pInterp_q1, b ); // Interpolate in Y direction. \n"
+  "} \n";
+
 /////
 
 GLuint textureCoord_buf[2] = {0,0};
@@ -1764,6 +1792,9 @@ int YglBlitFramebuffer(u32 srcTexture, float w, float h, float dispw, float disp
   const GLchar * fblit_img_retro_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_retro_img, fblit_img_end, NULL };
   const GLchar * fblit_img_v[] = { fblit_head, fblitnear_img, fblit_img, fblit_img_end, NULL };
   const GLchar * fblit_img_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_img, fblit_img_end, NULL };
+  const GLchar * fblitbilinear_img_v[] = { fblit_head, fblitnear_img, fblit_img, fblit_img_end, NULL };
+  const GLchar * fblitbilinear_img_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_img, fblit_img_end, NULL };
+  const GLchar * fblitbicubic_img_v[] = { fblit_head, fblitbicubic_img, fblit_img, fblit_img_end, NULL };
   const GLchar * fblit_img_scanline_is_v[] = { fblit_head, fblitnear_img, fblit_img, Yglprg_blit_scanline_is_f, fblit_img_end, NULL };
   const GLchar * fblit_img_scanline_is_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_img, Yglprg_blit_scanline_interlace_is_f, fblit_img_end, NULL };
 
@@ -1816,6 +1847,7 @@ int YglBlitFramebuffer(u32 srcTexture, float w, float h, float dispw, float disp
     width = scale*_Ygl->rwidth;
     height = scale*_Ygl->rheight;
   }
+  //if ((aamode == AA_NONE) && ((w != dispw) || (h != disph))) aamode = AA_BILINEAR_FILTER;
   if (_Ygl->interlace == NORMAL_INTERLACE) {
     if ((aamode >= AA_ADAPTATIVE_FILTER) && (aamode < AA_SCANLINE)) {
       aamode = AA_NONE;
@@ -1857,6 +1889,15 @@ int YglBlitFramebuffer(u32 srcTexture, float w, float h, float dispw, float disp
           glShaderSource(fshader, 4, fblit_img_v, NULL);
         else
           glShaderSource(fshader, 4, fblit_img_interlace_v, NULL);
+        break;
+      case AA_BILINEAR_FILTER:
+        if (_Ygl->interlace == NORMAL_INTERLACE)
+          glShaderSource(fshader, 4, fblitbilinear_img_v, NULL);
+        else
+          glShaderSource(fshader, 4, fblitbilinear_img_interlace_v, NULL);
+        break;
+      case AA_BICUBIC_FILTER:
+        glShaderSource(fshader, 4, fblitbicubic_img_v, NULL);
         break;
       case AA_ADAPTATIVE_FILTER:
         glShaderSource(fshader, 4, fblit_adaptative_img_v, NULL);
@@ -1902,7 +1943,8 @@ int YglBlitFramebuffer(u32 srcTexture, float w, float h, float dispw, float disp
 
     GLUSEPROG(blit_prg);
     glUniform1i(glGetUniformLocation(blit_prg, "u_Src"), 0);
-    u_texSize = glGetUniformLocation(blit_prg, "texSize");
+    u_w = glGetUniformLocation(blit_prg, "fWidth");
+    u_h = glGetUniformLocation(blit_prg, "fHeight");
     u_l = glGetUniformLocation(blit_prg, "lineNumber");
     u_d = glGetUniformLocation(blit_prg, "decim");
     u_f = glGetUniformLocation(blit_prg, "field");
@@ -1932,7 +1974,8 @@ int YglBlitFramebuffer(u32 srcTexture, float w, float h, float dispw, float disp
   glBufferData(GL_ARRAY_BUFFER, 8*sizeof(float), &textureCoord[isRotated * 8], GL_STREAM_DRAW);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(1);
-  glUniform2f(u_texSize, width, height);
+  glUniform1f(u_w, width);
+  glUniform1f(u_h, height);
   glUniform2f(u_l, nbLines, disph);
   decim = (disph + nbLines) / nbLines;
   if (decim < 2) decim = 2;
@@ -1942,8 +1985,13 @@ int YglBlitFramebuffer(u32 srcTexture, float w, float h, float dispw, float disp
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, tex);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  if (aamode == AA_BILINEAR_FILTER) {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  } else {
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  }
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   // Clean up
