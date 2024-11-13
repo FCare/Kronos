@@ -69,6 +69,7 @@ void YabauseGL::pause(bool pause) {
   if (pause != mPause) {
     if (!pause) {
       mPause = false;
+      updateView();
       requestFrame();
     } else {
       pauseFrame();

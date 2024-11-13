@@ -1078,7 +1078,6 @@ void UIYabause::on_cbVideoDriver_currentIndexChanged( int id )
 void UIYabause::pause( bool paused )
 {
 	mYabauseGL->pause(paused);
-	mYabauseGL->updateView();
 
 	aEmulationRun->setEnabled( paused );
 	aEmulationPause->setEnabled( !paused );
