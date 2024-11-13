@@ -670,7 +670,7 @@ int YabauseExec(void) {
 		YabauseEmulate();
 	}
 #else
-  ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+  // ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
   YabauseEmulate();
 #endif
 	return 0;
