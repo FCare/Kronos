@@ -101,6 +101,9 @@ UIYabause::UIYabause( QWidget* parent )
 	connect(mYabauseGL, &YabauseGL::glInitialized, [&]
 	{
 		auto const * const vs = QtYabause::volatileSettings();
+		if (vs->value("Video/Fullscreen").toBool()) {
+			fullscreenRequested(true);
+		}
 		if (vs->value("autorun").toBool())
 			aEmulationRun->trigger();
 	});
@@ -130,7 +133,7 @@ UIYabause::UIYabause( QWidget* parent )
 	mouseCursorTimer = new QTimer();
 	// connections
 	connect( mYabauseThread, SIGNAL( requestSize( const QSize& ) ), this, SLOT( sizeRequested( const QSize& ) ) );
-	connect( mYabauseThread, SIGNAL( requestFullscreen( bool ) ), this, SLOT( fullscreenRequested( bool ) ) );
+	// connect( mYabauseThread, SIGNAL( requestFullscreen( bool ) ), this, SLOT( fullscreenRequested( bool ) ) );
 	connect( mYabauseThread, SIGNAL( requestVolumeChange( int ) ), this, SLOT( on_sVolume_valueChanged( int ) ) );
 	connect( aViewLog, SIGNAL( toggled( bool ) ), mLogDock, SLOT( setVisible( bool ) ) );
 	connect( mLogDock->toggleViewAction(), SIGNAL( toggled( bool ) ), aViewLog, SLOT( setChecked( bool ) ) );
@@ -452,6 +455,9 @@ QPoint preFullscreenModeWindowPosition;
 
 void UIYabause::fullscreenRequested( bool f )
 {
+	VolatileSettings * vs = QtYabause::volatileSettings();
+	vs->setValue("Video/Fullscreen", f);
+
 	if ( isFullScreen() && !f )
 	{
 #ifdef USE_UNIFIED_TITLE_TOOLBAR
