@@ -30,14 +30,6 @@ class YabauseGL;
 class QTextEdit;
 class QDockWidget;
 
-enum BARDISPLAY
-{
-	BD_NEVERHIDE=0,
-	BD_HIDEFS=1,
-	BD_ALWAYSHIDE=2,
-	BD_SHOWONFSHOVER=3
-};
-
 enum ACTIONS_ENUM
 {
 	ACTION_NONE = 0,

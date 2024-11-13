@@ -192,10 +192,6 @@ void UIYabause::showEvent( QShowEvent* e )
 	{
 		VolatileSettings* vs = QtYabause::volatileSettings();
 
-		if ( vs->value( "View/Menubar" ).toInt() == BD_ALWAYSHIDE )
-			menubar->hide();
-		if ( vs->value( "View/Toolbar" ).toInt() == BD_ALWAYSHIDE )
-			toolBar->hide();
 		aEmulationVSync->setChecked( vs->value( "General/EnableVSync", 1 ).toBool() );
 		aViewFPS->setChecked( vs->value( "General/ShowFPS" ).toBool() );
 		mInit = true;
@@ -348,13 +344,6 @@ void UIYabause::mouseMoveEvent( QMouseEvent* e )
 			} else this->setCursor(Qt::CrossCursor);
 			return;
 		}
-		else if (vs->value( "View/Menubar" ).toInt() == BD_SHOWONFSHOVER)
-		{
-			if (e->y() < showMenuBarHeight)
-				menubar->show();
-			else
-				menubar->hide();
-		}
 
 		hideMouseTimer->start(3 * 1000);
 		this->setCursor(Qt::ArrowCursor);
@@ -369,11 +358,8 @@ void UIYabause::resizeEvent( QResizeEvent* event )
 void UIYabause::adjustHeight(int & height)
 {
    // Compensate for menubar and toolbar
-   VolatileSettings* vs = QtYabause::volatileSettings();
-   if (vs->value("View/Menubar").toInt() != BD_ALWAYSHIDE)
-      height += menubar->height();
-   if (vs->value("View/Toolbar").toInt() != BD_ALWAYSHIDE)
-      height += toolBar->height();
+  height += menubar->height();
+  height += toolBar->height();
 }
 
 void UIYabause::swapBuffers()
@@ -452,11 +438,8 @@ void UIYabause::sizeRequested( const QSize& s )
 	}
 
 	// Compensate for menubar and toolbar
-	VolatileSettings* vs = QtYabause::volatileSettings();
-	if (vs->value( "View/Menubar" ).toInt() != BD_ALWAYSHIDE)
-		height += menubar->height();
-	if (vs->value( "View/Toolbar" ).toInt() != BD_ALWAYSHIDE)
-		height += toolBar->height();
+	height += menubar->height();
+	height += toolBar->height();
 
 	resize( width, height );
 }
@@ -475,15 +458,10 @@ void UIYabause::fullscreenRequested( bool f )
 		setUnifiedTitleAndToolBarOnMac( true );
 #endif
 		showNormal();
-		this->move(preFullscreenModeWindowPosition);
+		// this->move(preFullscreenModeWindowPosition);
 
-		VolatileSettings* vs = QtYabause::volatileSettings();
-		int menubarHide = vs->value( "View/Menubar" ).toInt();
-		if ( menubarHide == BD_HIDEFS ||
-			  menubarHide == BD_SHOWONFSHOVER)
-			menubar->show();
-		if ( vs->value( "View/Toolbar" ).toInt() == BD_HIDEFS )
-			toolBar->show();
+		menubar->show();
+		toolBar->show();
 
 		setCursor(Qt::ArrowCursor);
 		hideMouseTimer->stop();
@@ -495,17 +473,14 @@ void UIYabause::fullscreenRequested( bool f )
 #endif
 		VolatileSettings* vs = QtYabause::volatileSettings();
 
-		setMaximumSize( QWIDGETSIZE_MAX, QWIDGETSIZE_MAX );
-		setMinimumSize( 0,0 );
-		preFullscreenModeWindowPosition = this->pos();
-		this->move(0,0);
+		// setMaximumSize( QWIDGETSIZE_MAX, QWIDGETSIZE_MAX );
+		// setMinimumSize( 0,0 );
+		// preFullscreenModeWindowPosition = this->pos();
+		// this->move(0,0);
 
 		showFullScreen();
-
-		if ( vs->value( "View/Menubar" ).toInt() == BD_HIDEFS )
-			menubar->hide();
-		if ( vs->value( "View/Toolbar" ).toInt() == BD_HIDEFS )
-			toolBar->hide();
+		menubar->hide();
+		toolBar->hide();
 
 		hideMouseTimer->start(3 * 1000);
 	}
@@ -587,29 +562,14 @@ void UIYabause::on_aFileSettings_triggered()
 
 		if(isFullScreen())
 		{
-			if ( vs->value( "View/Menubar" ).toInt() == BD_HIDEFS || vs->value( "View/Menubar" ).toInt() == BD_ALWAYSHIDE )
-				menubar->hide();
-			else
-				menubar->show();
-
-			if ( vs->value( "View/Toolbar" ).toInt() == BD_HIDEFS || vs->value( "View/Toolbar" ).toInt() == BD_ALWAYSHIDE )
-				toolBar->hide();
-			else
-				toolBar->show();
+			menubar->hide();
+			toolBar->hide();
 		}
 		else
 		{
-			if ( vs->value( "View/Menubar" ).toInt() == BD_ALWAYSHIDE )
-				menubar->hide();
-			else
-				menubar->show();
-
-			if ( vs->value( "View/Toolbar" ).toInt() == BD_ALWAYSHIDE )
-				toolBar->hide();
-			else
-				toolBar->show();
+			menubar->show();
+			toolBar->show();
 		}
-
 
 		//only reset if bios, region, cart,  back up, mpeg, sh2, m68k are changed
 		Settings *ss = (QtYabause::settings());
@@ -662,7 +622,6 @@ void UIYabause::on_aFileSettings_triggered()
 			ScspChangeSoundCore(newhash["Sound/SoundCore"].toInt());
 
 		if (newhash["Video/WindowWidth"] != hash["Video/WindowWidth"] || newhash["Video/WindowHeight"] != hash["Video/WindowHeight"] ||
-          newhash["View/Menubar"] != hash["View/Menubar"] || newhash["View/Toolbar"] != hash["View/Toolbar"] ||
 			 newhash["Input/GunMouseSensitivity"] != hash["Input/GunMouseSensitivity"])
 			sizeRequested(QSize(newhash["Video/WindowWidth"].toInt(),newhash["Video/WindowHeight"].toInt()));
 

@@ -708,18 +708,6 @@ void UISettings::loadSettings()
 	cbSH2Interpreter->setCurrentIndex( cbSH2Interpreter->findData( s->value( "Advanced/SH2Interpreter", QtYabause::defaultSH2Core().id ).toInt() ) );
    cb68kCore->setCurrentIndex(cb68kCore->findData(s->value("Advanced/68kCore", QtYabause::default68kCore().id).toInt()));
 
-	// view
-	bgShowMenubar->setId( rbMenubarNever, BD_NEVERHIDE );
-	bgShowMenubar->setId( rbMenubarFullscreen, BD_HIDEFS );
-	bgShowMenubar->setId( rbMenubarAlways, BD_ALWAYSHIDE );
-	bgShowMenubar->setId( rbMenubarFullscreenHover, BD_SHOWONFSHOVER );
-	bgShowMenubar->button( s->value( "View/Menubar", BD_SHOWONFSHOVER ).toInt() )->setChecked( true );
-
-	bgShowToolbar->setId( rbToolbarNever, BD_NEVERHIDE );
-	bgShowToolbar->setId( rbToolbarFullscreen, BD_HIDEFS );
-	bgShowToolbar->setId( rbToolbarAlways, BD_ALWAYSHIDE );
-	bgShowToolbar->button( s->value( "View/Toolbar", BD_HIDEFS ).toInt() )->setChecked( true );
-
 	// debug
 	leAddr2Line->setText( s->value( "Debug/Addr2Line" ).toString() );
 
@@ -818,10 +806,6 @@ void UISettings::saveSettings()
 	s->setValue( "STV/Region", cbRegion->itemData( cbRegion->currentIndex() ).toString() );
 	s->setValue( "Advanced/SH2Interpreter", cbSH2Interpreter->itemData( cbSH2Interpreter->currentIndex() ).toInt() );
    s->setValue("Advanced/68kCore", cb68kCore->itemData(cb68kCore->currentIndex()).toInt());
-
-	// view
-	s->setValue( "View/Menubar", bgShowMenubar->checkedId() );
-	s->setValue( "View/Toolbar", bgShowToolbar->checkedId() );
 
 	// shortcuts
 	applyShortcuts();
