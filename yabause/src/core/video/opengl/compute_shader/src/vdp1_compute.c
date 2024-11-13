@@ -36,7 +36,7 @@ extern vdp2rotationparameter_struct  Vdp1ParaA;
 static int local_size_x = 8;
 static int local_size_y = 8;
 
-#define WORKSIZE_L 1
+#define WORKSIZE_L 8
 #define WORKSIZE_P 8
 
 static int tex_width;
