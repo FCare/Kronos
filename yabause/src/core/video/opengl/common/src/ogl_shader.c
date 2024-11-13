@@ -1687,13 +1687,6 @@ static const char fblit_img[] =
   " pix = floor(pix) + min(fract(pix) / (abs(dFdx(pix)) + abs(dFdy(pix))), 1.0) - 0.5;\n"
   " fragColor = Filter( u_Src, pix/texSize ); \n";
 
-static const char fblit_interlace_img[] =
-  "void main()\n"
-  "{\n"
-  " vec2 pix = vTexCoord * texSize; //position in texel\n"
-  " pix.x = (floor(pix) + min(fract(pix) / (abs(dFdx(pix)) + abs(dFdy(pix))), 1.0) - 0.5).x;\n"
-  " fragColor = Filter( u_Src, pix/texSize ); \n";
-
   static const char fblit_retro_img[] =
   "void main()\n"
   "{\n"
@@ -1770,7 +1763,7 @@ int YglBlitFramebuffer(u32 srcTexture, float w, float h, float dispw, float disp
   const GLchar * fblit_img_retro_v[] = { fblit_head, fblitnear_img, fblit_retro_img, fblit_img_end, NULL };
   const GLchar * fblit_img_retro_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_retro_img, fblit_img_end, NULL };
   const GLchar * fblit_img_v[] = { fblit_head, fblitnear_img, fblit_img, fblit_img_end, NULL };
-  const GLchar * fblit_img_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_interlace_img, fblit_img_end, NULL };
+  const GLchar * fblit_img_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_img, fblit_img_end, NULL };
   const GLchar * fblit_img_scanline_is_v[] = { fblit_head, fblitnear_img, fblit_img, Yglprg_blit_scanline_is_f, fblit_img_end, NULL };
   const GLchar * fblit_img_scanline_is_interlace_v[] = { fblit_head, fblitnear_interlace_img, fblit_img, Yglprg_blit_scanline_interlace_is_f, fblit_img_end, NULL };
 
