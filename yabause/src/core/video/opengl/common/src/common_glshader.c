@@ -1208,11 +1208,7 @@ if (is_lncl_off["Stringify(ID)"] == 2) needColorOffRBG1 = true;\n \
 vdp2col"Stringify(ID)" = getPixel( s_texture"Stringify(ID)", v_texcoord.st, 0, 0 ); \n \
 linepos.y = is_perline["Stringify(ID)"];\n \
 offcol"Stringify(ID)" = texelFetch( s_perline, linepos,0 );\n \
-if (offcol"Stringify(ID)" == vec4(0.0)) vdp2col"Stringify(ID)" = vec4(0.0);\n \
-else {\n \
-  offcol"Stringify(ID)".rgb = (offcol"Stringify(ID)".rgb - vec3(0.5))*2.0;\n \
-  if (offcol"Stringify(ID)".a > 0.0) vdp2col"Stringify(ID)".a = float(int(offcol"Stringify(ID)".a * 255.0) | (int(vdp2col"Stringify(ID)".a * 255.0) & 0x7))/255.0;\n \
-}\n \
+offcol"Stringify(ID)".rgb = (offcol"Stringify(ID)".rgb - vec3(0.5))*2.0;\n \
 "
 
 #define COMMON_GET_PRIORITY_SCREEN_FB "\
