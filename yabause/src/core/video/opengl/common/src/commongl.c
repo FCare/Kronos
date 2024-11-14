@@ -1532,10 +1532,10 @@ void YglUpdateVdp2Reg() {
     bufline[S2PRI*size] = ((varVdp2Regs->PRISB >> 0) & 0x7);
     bufline[S3PRI*size] = ((varVdp2Regs->PRISB >> 8) & 0x7);
     bufline[S4PRI*size] = ((varVdp2Regs->PRISC >> 0) & 0x7);
-    bufline[S6PRI*size] = ((varVdp2Regs->PRISD >> 0) & 0x7);
     bufline[S5PRI*size] = ((varVdp2Regs->PRISC >> 8) & 0x7);
-    bufline[SPCC*size] = ((varVdp2Regs->SPCTL >> 8) & 0x07);
+    bufline[S6PRI*size] = ((varVdp2Regs->PRISD >> 0) & 0x7);
     bufline[S7PRI*size] = ((varVdp2Regs->PRISD >> 8) & 0x7);
+    bufline[SPCC*size] = ((varVdp2Regs->SPCTL >> 8) & 0x07);
     bufline[VDP1COR*size] = vdp1cor & 0xFF;
     bufline[VDP1COG*size] = vdp1cog & 0xFF;
     bufline[VDP1COB*size] = vdp1cob & 0xFF;
