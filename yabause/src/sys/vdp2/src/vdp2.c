@@ -81,8 +81,41 @@ static void vdp2RamAccessCheck(SH2_struct *context, u32 addr){
 
   int bank = Vdp2GetBank(Vdp2Regs, addr);
 
-  for (int i = 0; i<8; i++) {
-    if(Vdp2External.AC_VRAM[bank][i] == 0xE) BlockedAccess = 0;
+  int partitioned =
+    ((bank == VDP2_VRAM_A0) || (bank == VDP2_VRAM_A1))?
+      (Vdp2Regs->RAMCTL>>8)&0x1:
+      (Vdp2Regs->RAMCTL>>9)&0x1;
+  int usedTimings = 8;
+  if ((Vdp2Regs->TVMD & 0x6)==0x2) usedTimings>>=1;
+  for (int i = 0; i<usedTimings; i++) {
+    if (partitioned != 0) {
+      if((i>0) && (Vdp2External.AC_VRAM[bank][i] == 0xE) && (Vdp2External.AC_VRAM[bank][i-1] == 0xF)) BlockedAccess = 0;
+    } else {
+      if(Vdp2External.AC_VRAM[bank][i] == 0xE) BlockedAccess = 0;
+      if(Vdp2External.AC_VRAM[bank][i] == 0xF) BlockedAccess = 0;
+      if(((Vdp2External.AC_VRAM[bank][i] == 0xC) ||
+        (Vdp2External.AC_VRAM[bank][i] == 0x4) ||
+        (Vdp2External.AC_VRAM[bank][i] == 0x0)) &&
+        ((Vdp2Regs->BGON&0x1)==0))
+        //Setup §NBG0 access but did not enabled NBG0 => Used by CPU
+         BlockedAccess = 0;
+      if(((Vdp2External.AC_VRAM[bank][i] == 0xD) ||
+        (Vdp2External.AC_VRAM[bank][i] == 0x5) ||
+        (Vdp2External.AC_VRAM[bank][i] == 0x1)) &&
+        ((Vdp2Regs->BGON&0x2)==0))
+        //Setup §NBG1 access but did not enabled NBG1 => Used by CPU
+         BlockedAccess = 0;
+      if(((Vdp2External.AC_VRAM[bank][i] == 0x6) ||
+        (Vdp2External.AC_VRAM[bank][i] == 0x2)) &&
+        ((Vdp2Regs->BGON&0x4)==0))
+        //Setup §NBG2 access but did not enabled NBG2 => Used by CPU
+         BlockedAccess = 0;
+      if(((Vdp2External.AC_VRAM[bank][i] == 0x7) ||
+        (Vdp2External.AC_VRAM[bank][i] == 0x3)) &&
+        ((Vdp2Regs->BGON&0x8)==0))
+        //Setup §NBG3 access but did not enabled NBG3 => Used by CPU
+         BlockedAccess = 0;
+    }
   }
 
   if ((context != NULL) && (yabsys.LineCount < yabsys.VBlankLineCount) && (Vdp2Regs->TVSTAT & 0x0004) == 0) {
@@ -146,10 +179,6 @@ void FASTCALL Vdp2RamWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
 //////////////////////////////////////////////////////////////////////////////
 
 void FASTCALL Vdp2RamWriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
-  int BlockedAccess = 0;
-  int A1BlockedAccess = 0;
-  int B0BlockedAccess = 0;
-  int B1BlockedAccess = 0;
   if (Vdp2Regs->VRSIZE & 0x8000)
     addr &= 0xEFFFF;
   else
