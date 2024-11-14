@@ -156,35 +156,32 @@ static void updateSH2BlockedState(SH2_struct *context) {
 }
 
 void SH2SetCPUConcurrency(SH2_struct *context, u8 mask) {
-  context->blockingMask |= mask;
-  if (mask == A_BUS_ACCESS) context->isAccessingCPUBUS = 0;
-  updateSH2BlockedState(context);
-
-  // if (mask == A_BUS_ACCESS) {
-  //   if (context->SH2InterruptibleExec != SH2BlockableExec) {
-  //     context->isAccessingCPUBUS = 0;
-  //     context->SH2InterruptibleExec = SH2BlockableExec;
-  //   }
-  // }
-  // else {
-  //   context->blockingMask |= mask;
-  //   updateSH2BlockedState(context);
-  // }
+  if (mask == A_BUS_ACCESS) {
+    if (context->SH2InterruptibleExec != SH2BlockableExec) {
+      MSH2->isAccessingCPUBUS = 0;
+      SSH2->isAccessingCPUBUS = 0;
+      MSH2->SH2InterruptibleExec = SH2BlockableExec;
+      SSH2->SH2InterruptibleExec = SH2BlockableExec;
+    }
+  }
+  else {
+    context->blockingMask |= mask;
+    updateSH2BlockedState(context);
+  }
 }
 
 void SH2ClearCPUConcurrency(SH2_struct *context, u8 mask) {
-  context->blockingMask &= ~mask;
-  if (mask == A_BUS_ACCESS) context->isAccessingCPUBUS = 0;
-  updateSH2BlockedState(context);
-  // if (mask == A_BUS_ACCESS) {
-  //   if (context->SH2InterruptibleExec != SH2StandardExec) {
-  //     context->isAccessingCPUBUS = 0;
-  //     context->SH2InterruptibleExec = SH2StandardExec;
-  //   }
-  // } else {
-  //   context->blockingMask &= ~mask;
-  //   updateSH2BlockedState(context);
-  // }
+  if (mask == A_BUS_ACCESS) {
+    if (context->SH2InterruptibleExec != SH2StandardExec) {
+      MSH2->isAccessingCPUBUS = 0;
+      SSH2->isAccessingCPUBUS = 0;
+      MSH2->SH2InterruptibleExec = SH2StandardExec;
+      SSH2->SH2InterruptibleExec = SH2StandardExec;
+    }
+  } else {
+    context->blockingMask &= ~mask;
+    updateSH2BlockedState(context);
+  }
 }
 
 int SH2Init(int coreid)
