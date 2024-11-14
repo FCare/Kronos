@@ -41,6 +41,7 @@
 #define UNLOCK(A)
 
 extern void SH2undecoded(SH2_struct * sh);
+extern void SH2InfiniteLoop(SH2_struct * sh);
 
 static void SH2KronosNotifyInterrupt(SH2_struct *context);
 static void insertInterruptReturnHandling(SH2_struct *context);
@@ -338,6 +339,11 @@ int SH2KronosInterpreterInit(void)
 {
 
    int i,j;
+
+   if (SH2Core->id == SH2CORE_KRONOS_INTERPRETER) {
+     //Optimize while(1) loop
+     opcodeTable[0xAFFE] = SH2InfiniteLoop;
+  }
 
    for (i = 0; i < 8; i++) {
        for (j = 0; j < cacheSize[i]; j++) {

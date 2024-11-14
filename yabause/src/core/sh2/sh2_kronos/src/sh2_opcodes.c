@@ -50,6 +50,10 @@ static void SH2next(SH2_struct * sh)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+void SH2InfiniteLoop(SH2_struct * sh)
+{
+  sh->cycles = sh->target_cycles;
+}
 
 void SH2undecoded(SH2_struct * sh)
 {
