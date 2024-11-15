@@ -211,6 +211,7 @@ SHADER_VERSION_COMPUTE
 "layout(std430, binding = 6) readonly buffer CMD_LIST { \n"
 "  cmdparameter_struct cmd[];\n"
 "};\n"
+"layout(location = 4) uniform bool is8bit;\n"
 "layout(location = 7) uniform vec2 upscale;\n"
 "layout(location = 8) uniform ivec2 sysClip;\n"
 "layout(location = 9) uniform ivec4 usrClip;\n"
@@ -356,7 +357,10 @@ SHADER_VERSION_COMPUTE
 "}\n"
 
 "vec4 VDP1COLOR(uint CMDCOLR) {\n"
+" if (is8bit)"
 "  return vec4(float((CMDCOLR>>0)&0xFFu)/255.0,float((CMDCOLR>>8)&0xFFu)/255.0,0.0,0.0);\n"
+" else"
+"  return vec4(float((CMDCOLR>>0)&0xFFu)/255.0,0.0,0.0,0.0);\n"
 "}\n"
 
 "vec4 ReadSpriteColor(cmdparameter_struct pixcmd, vec2 uv, vec2 texel, out bool discarded){\n"

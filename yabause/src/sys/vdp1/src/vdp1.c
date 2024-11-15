@@ -657,6 +657,7 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       if ((val & 0x1)!=(Vdp1Regs->TVMR & 0x1)) {
         if (val & 0x1) switchFB8bit();
         else switchFB16bit();
+        if (VIDCore->startVdp1Render) VIDCore->startVdp1Render();
       }
       Vdp1Regs->TVMR = val;
       FRAMELOG("TVMR => Write VBE=%d FCM=%d FCT=%d line = %d (%d)\n", (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount, yabsys.DecilineCount);

@@ -30,6 +30,7 @@ static const char vdp1_draw_line_start_f[] =
 "  cmdparameter_struct cmd[];\n"
 "};\n"
 "layout(std430, binding = 3) readonly buffer VDP1RAM { uint Vdp1Ram[]; };\n"
+"layout(location = 4) uniform bool is8bit;\n"
 "layout(location = 8) uniform ivec2 sysClip;\n"
 "layout(location = 9) uniform ivec4 usrClip;\n"
 "layout(location = 11) uniform bool antialiased;\n"
@@ -83,6 +84,7 @@ static const char vdp1_draw_line_start_f_rw[] =
 "  cmdparameter_struct cmd[];\n"
 "};\n"
 "layout(std430, binding = 3) readonly buffer VDP1RAM { uint Vdp1Ram[]; };\n"
+"layout(location = 4) uniform bool is8bit;\n"
 "layout(location = 8) uniform ivec2 sysClip;\n"
 "layout(location = 9) uniform ivec4 usrClip;\n"
 "layout(location = 11) uniform bool antialiased;\n"
@@ -115,6 +117,9 @@ static const char vdp1_get_non_textured_f[] =
 "}\n"
 "uint getColor(cmdparameter_struct pixcmd, vec2 uv, out bool valid){\n"
 "  valid = true;\n"
+" if (is8bit)"
+"  return (pixcmd.CMDCOLR&0xFF);\n"
+" else"
 "  return pixcmd.CMDCOLR;\n"
 "}\n";
 
@@ -339,7 +344,10 @@ static const char vdp1_get_textured_f[] =
 "      break;\n"
 "  }\n"
 " valid = valid && ((!END) || (END && (x <= endIndex[y])));\n"
-" return color;\n"
+" if (is8bit)"
+"  return (color&0xFF);\n"
+" else"
+"  return color;\n"
 "}\n";
 
 static const char vdp1_get_pixel_msb_shadow_f[] =

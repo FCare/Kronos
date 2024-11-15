@@ -968,6 +968,7 @@ void startVdp1Render() {
 	if (_Ygl->meshmode == IMPROVED_MESH) glBindImageTexture(1, get_vdp1_mesh(_Ygl->drawframe), 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA8);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, ssbo_cmd_line_list_);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_vdp1ram_);
+	glUniform1i(4, (Vdp1Regs->TVMR & 0x1));
 	glUniform2i(8, Vdp1Regs->systemclipX2, Vdp1Regs->systemclipY2);
 	glUniform4i(9, Vdp1Regs->userclipX1, Vdp1Regs->userclipY1, Vdp1Regs->userclipX2, Vdp1Regs->userclipY2);
 	glUniform1i(11, 0);
@@ -1624,6 +1625,7 @@ void startVdp1RenderUpscale() {
 
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo_vdp1ram_);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 6, ssbo_cmd_list_);
+	glUniform1i(4, (Vdp1Regs->TVMR & 0x1));
 	glUniform2f(7, tex_ratio, tex_ratio);
 	glUniform2i(8, Vdp1Regs->systemclipX2, Vdp1Regs->systemclipY2);
 	glUniform4i(9, Vdp1Regs->userclipX1, Vdp1Regs->userclipY1, Vdp1Regs->userclipX2, Vdp1Regs->userclipY2);
