@@ -358,9 +358,9 @@ SHADER_VERSION_COMPUTE
 
 "vec4 VDP1COLOR(uint CMDCOLR) {\n"
 " if (is8bit)"
-"  return vec4(float((CMDCOLR>>0)&0xFFu)/255.0,float((CMDCOLR>>8)&0xFFu)/255.0,0.0,0.0);\n"
-" else"
 "  return vec4(float((CMDCOLR>>0)&0xFFu)/255.0,0.0,0.0,0.0);\n"
+" else"
+"  return vec4(float((CMDCOLR>>0)&0xFFu)/255.0,float((CMDCOLR>>8)&0xFFu)/255.0,0.0,0.0);\n"
 "}\n"
 
 "vec4 ReadSpriteColor(cmdparameter_struct pixcmd, vec2 uv, vec2 texel, out bool discarded){\n"
