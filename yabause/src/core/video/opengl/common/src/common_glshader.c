@@ -517,9 +517,12 @@ static const GLchar Yglprg_vdp2_common_start[] =
 " ret.b = float((((colindex & 0x7C00) >> 10) & 0x1F)<<3)/255.0;\n"
  " return ret;\n"
 "}\n"
-
+"int getColorLine(int line){\n"
+"  vec4 val = texelFetch(s_color_map, ivec2(line, 0), 0);\n"
+"  return (int(val.g*255.0)<<8)|int(val.r*255.0);\n"
+"}\n"
 "vec4 getColoredPixel(int idx, int line){ \n"
-"  return texelFetch( s_color,  ivec2( idx , int(float(line)/u_vdp2_h_density) )  , 0 );\n"
+"  return texelFetch( s_color,  ivec2( idx , getColorLine(int(float(line)/u_vdp2_h_density)) )  , 0 );\n"
 "}\n"
 
 "vec2 getVec2(int colindex) {\n"

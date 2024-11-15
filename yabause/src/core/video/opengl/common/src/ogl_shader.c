@@ -138,7 +138,12 @@ SHADER_VERSION
 "uniform int u_frame;\n"
 "uniform highp sampler2D s_texture;\n"
 "uniform sampler2D s_color;\n"
+"uniform sampler2D s_color_map;\n"
 "out vec4 fragColor;\n"
+"int getColorLine(int line){\n"
+"  vec4 val = texelFetch(s_color_map, ivec2(line, 0), 0);\n"
+"  return (int(val.g*255.0)<<8)|int(val.r*255.0);\n"
+"}\n"
 "void main()\n"
 "{\n"
 "  ivec2 linepos; \n "
@@ -154,7 +159,7 @@ SHADER_VERSION
 "  if(txindex.a == 0.0) { discard; }\n"
 "  int msb = int(txindex.b * 255.0)&0x1; \n"
 "  int tx = int(txindex.g*255.0)<<8 | int(txindex.r*255.0);\n"
-"  int ty = int(float(linepos.x)/u_hratio);\n"
+"  int ty = getColorLine(int(float(linepos.x)/u_hratio));\n"
 "  fragColor = texelFetch( s_color,  ivec2( tx , ty )  , 0 );\n"
 "  int blue = int(fragColor.b * 255.0) & 0xFE;\n"
 "  fragColor.b = float(blue|msb)/255.0;\n" //Blue LSB bit is used for special color calculation
@@ -174,6 +179,7 @@ static int id_normal_cram_emu_width = -1;
 static int id_normal_cram_vheight = -1;
 static int id_normal_cram_vwidth = -1;
 static int id_normal_cram_s_color = -1;
+static int id_normal_cram_s_color_map = -1;
 static int id_normal_cram_matrix = -1;
 
 
@@ -186,6 +192,7 @@ int Ygl_uniformNormalCram(void * p, YglTextureManager *tm, Vdp2 *varVdp2Regs, in
   glEnableVertexAttribArray(1);
   glUniform1i(id_normal_cram_s_texture, 0);
   glUniform1i(id_normal_cram_s_color, 1);
+  glUniform1i(id_normal_cram_s_color_map, 2);
   glUniform1f(id_normal_cram_vdp2_hratio, (float)_Ygl->vdp2hdensity);
   glUniform1i(id_normal_cram_vdp2_interlace, (_Ygl->interlace==DOUBLE_INTERLACE)?1:0);
   glUniform1i(id_normal_cram_vdp2_frame, ((varVdp2Regs->TVSTAT>>1)&0x1)==1);
@@ -202,6 +209,8 @@ int Ygl_uniformNormalCram(void * p, YglTextureManager *tm, Vdp2 *varVdp2Regs, in
   }
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, _Ygl->cram_tex);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, _Ygl->cram_map_tex);
   return 0;
 }
 
@@ -225,18 +234,24 @@ SHADER_VERSION
 "in vec4 v_texcoord;\n"
 "uniform highp sampler2D s_texture;\n"
 "uniform sampler2D s_color;\n"
+"uniform sampler2D s_color_map;\n"
 "out vec4 fragColor;\n"
+"int getColorLine(int line){\n"
+"  vec4 val = texelFetch(s_color_map, ivec2(line, 0), 0);\n"
+"  return (int(val.g*255.0)<<8)|int(val.r*255.0);\n"
+"}\n"
 "void main()\n"
 "{\n"
 "  vec4 txindex = texelFetch( s_texture, ivec2(int(v_texcoord.x),int(v_texcoord.y)) ,0 );\n"
 "  if(txindex.a == 0.0) { discard; }\n"
-"  vec4 fragColor = texelFetch( s_color,  ivec2( ( int(txindex.g*255.0)<<8 | int(txindex.r*255.0)) ,0 )  , 0 );\n"
+"  vec4 fragColor = texelFetch( s_color,  ivec2( ( int(txindex.g*255.0)<<8 | int(txindex.r*255.0)) , getColorLine(0) )  , 0 );\n"
 "  fragColor.a = txindex.a;\n"
 "}\n";
 
 const GLchar * pYglprg_normal_cram_addcol_f[] = { Yglprg_normal_cram_addcol_f, NULL };
 static int id_normal_cram_s_texture_addcol = -1;
 static int id_normal_cram_s_color_addcol = -1;
+static int id_normal_cram_s_color_map_addcol = -1;
 static int id_normal_cram_matrix_addcol = -1;
 
 
@@ -249,8 +264,11 @@ int Ygl_uniformAddColCram(void * p, YglTextureManager *tm, Vdp2 *varVdp2Regs, in
   glEnableVertexAttribArray(1);
   glUniform1i(id_normal_cram_s_texture_addcol, 0);
   glUniform1i(id_normal_cram_s_color_addcol, 1);
+  glUniform1i(id_normal_cram_s_color_map_addcol, 2);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, _Ygl->cram_tex);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, _Ygl->cram_map_tex);
   return 0;
 }
 
@@ -337,6 +355,10 @@ int Ygl_uniformMosaic(void * p, YglTextureManager *tm, Vdp2 *varVdp2Regs, int id
     glEnableVertexAttribArray(prg->texcoordp);
     glUniform1i(id_normal_cram_s_texture, 0);
     glUniform1i(id_normal_cram_s_color, 1);
+    glUniform1i(id_normal_cram_s_color_map, 2);
+
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, _Ygl->cram_map_tex);
 
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, _Ygl->cram_tex);
@@ -384,6 +406,7 @@ typedef struct  {
   int idvdp1Mesh;
   int idvdp2regs;
   int idcram;
+  int idcram_map;
 } DrawFrameBufferUniform;
 
 #define MAX_FRAME_BUFFER_UNIFORM (BLIT_TEXTURE_NB_PROG)
@@ -428,6 +451,7 @@ uniform sampler2D s_vdp1Mesh;\n \
 uniform sampler2D s_win0;  \n \
 uniform sampler2D s_win1;  \n \
 uniform sampler2D s_color; \n \
+uniform sampler2D s_color_map; \n \
 uniform sampler2D s_vdp2reg; \n \
 uniform sampler2D s_perline; \n \
 uniform float u_emu_height;\n \
@@ -674,6 +698,7 @@ int YglInitDrawFrameBufferShaders(int id, int CS) {
   g_draw_framebuffer_uniforms[arrayid].idvdp1Mesh = glGetUniformLocation(_prgid[id], (const GLchar *)"s_vdp1Mesh");
   g_draw_framebuffer_uniforms[arrayid].idvdp2regs = glGetUniformLocation(_prgid[id], (const GLchar *)"s_vdp2reg");
   g_draw_framebuffer_uniforms[arrayid].idcram = glGetUniformLocation(_prgid[id], (const GLchar *)"s_color");
+  g_draw_framebuffer_uniforms[arrayid].idcram_map = glGetUniformLocation(_prgid[id], (const GLchar *)"s_color_map");
   return 0;
 }
 
@@ -705,6 +730,10 @@ int Ygl_uniformVDP2DrawFramebuffer(float * offsetcol, int nb_screen, Vdp2* varVd
   glUniform1i(g_draw_framebuffer_uniforms[arrayid].idcram, 11);
   glActiveTexture(GL_TEXTURE11);
   glBindTexture(GL_TEXTURE_2D, _Ygl->cram_tex);
+
+  glUniform1i(g_draw_framebuffer_uniforms[arrayid].idcram_map, 20);
+  glActiveTexture(GL_TEXTURE20);
+  glBindTexture(GL_TEXTURE_2D, _Ygl->cram_map_tex);
 
   glUniform1i(g_draw_framebuffer_uniforms[arrayid].idvdp2regs, 12);
   glActiveTexture(GL_TEXTURE12);
@@ -749,6 +778,7 @@ int YglProgramInit()
 
   id_normal_cram_s_texture = glGetUniformLocation(_prgid[PG_VDP2_NORMAL_CRAM], (const GLchar *)"s_texture");
   id_normal_cram_s_color = glGetUniformLocation(_prgid[PG_VDP2_NORMAL_CRAM], (const GLchar *)"s_color");
+  id_normal_cram_s_color_map = glGetUniformLocation(_prgid[PG_VDP2_NORMAL_CRAM], (const GLchar *)"s_color_map");
   id_normal_cram_matrix = glGetUniformLocation(_prgid[PG_VDP2_NORMAL_CRAM], (const GLchar *)"u_mvpMatrix");
   id_normal_cram_emu_height = glGetUniformLocation(_prgid[PG_VDP2_NORMAL_CRAM], (const GLchar *)"u_emu_height");
   id_normal_cram_vdp2_hratio = glGetUniformLocation(_prgid[PG_VDP2_NORMAL_CRAM], (const GLchar *)"u_hratio");
@@ -1064,7 +1094,7 @@ int YglBlitTexture(int* prioscreens, int* modescreens, int* isRGB, int * isBlur,
     vdp2blit_prg = Ygl_uniformVDP2DrawFramebuffer(offsetcol, id, varVdp2Regs );
 
 
-  int gltext[20] = {GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8, GL_TEXTURE9, GL_TEXTURE10, GL_TEXTURE11, GL_TEXTURE12, GL_TEXTURE13, GL_TEXTURE14, GL_TEXTURE15, GL_TEXTURE16, GL_TEXTURE17, GL_TEXTURE18, GL_TEXTURE19};
+  int gltext[21] = {GL_TEXTURE0, GL_TEXTURE1, GL_TEXTURE2, GL_TEXTURE3, GL_TEXTURE4, GL_TEXTURE5, GL_TEXTURE6, GL_TEXTURE7, GL_TEXTURE8, GL_TEXTURE9, GL_TEXTURE10, GL_TEXTURE11, GL_TEXTURE12, GL_TEXTURE13, GL_TEXTURE14, GL_TEXTURE15, GL_TEXTURE16, GL_TEXTURE17, GL_TEXTURE18, GL_TEXTURE19, GL_TEXTURE20};
   int useLnclRBG0 = 0;
   int useLnclRBG1 = 0;
   for (int i = 0; i< 6; i++) {
@@ -1258,7 +1288,7 @@ int YglBlitTexture(int* prioscreens, int* modescreens, int* isRGB, int * isBlur,
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   // Clean up
-  for (int i = 0; i<20; i++) {
+  for (int i = 0; i<21; i++) {
     glActiveTexture(gltext[i]);
     glBindTexture(GL_TEXTURE_2D, 0);
   }

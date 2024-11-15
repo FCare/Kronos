@@ -311,6 +311,18 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
    }
    cprg = -1;
 
+   if (_Ygl->ColorRamNeedSync != 0) {
+     //Need to update the colorRamLine mapping
+     glBindTexture(GL_TEXTURE_2D, _Ygl->cram_map_tex);
+     glTexImage2D(GL_TEXTURE_2D,
+          0,
+          GL_RGBA,
+          512, 1,
+          0,
+          GL_RGBA, GL_UNSIGNED_BYTE,
+          &_Ygl->colorRamIndexFull[0]);
+    _Ygl->ColorRamNeedSync = 0;
+   }
    glActiveTexture(GL_TEXTURE0);
    glBindTexture(GL_TEXTURE_2D, YglTM_vdp2->textureID);
 
@@ -320,6 +332,7 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
   int nbPrio = 0;
   int minPrio = -1;
   int allPrio = 0;
+
 
   for (int i = 0; i < SPRITE; i++) {
     if ((i == RBG0) || (i == RBG1)) {

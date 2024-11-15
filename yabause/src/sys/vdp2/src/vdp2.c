@@ -45,8 +45,7 @@ Vdp2 * Vdp2Regs;
 Vdp2Internal_struct Vdp2Internal;
 Vdp2External_struct Vdp2External;
 
-int addrToUpdate[0x1000];
-int nbAddrToUpdate = 0;
+static int nbAddrToUpdate = 0;
 
 static u8 AC_VRAM[4][8] = {0}; //4 banks, 8 timings
 
@@ -227,14 +226,10 @@ u32 FASTCALL Vdp2ColorRamReadLong(SH2_struct *context, u8* mem, u32 addr) {
 
 void FASTCALL Vdp2ColorRamWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
    addr &= 0xFFF;
-   // printf("[VDP2] Update Coloram Byte %08X:%02X", addr, val);
+   // printf("[VDP2] Update Coloram Byte %08X:%08X\n", addr, val);
    if (val != T2ReadByte(mem, addr)) {
      T2WriteByte(mem, addr, val);
-     //A EXTRAIRE
-#if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-     addrToUpdate[addr] = 1;
      nbAddrToUpdate = 1;
-#endif
    }
 }
 
@@ -242,15 +237,10 @@ void FASTCALL Vdp2ColorRamWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 v
 
 void FASTCALL Vdp2ColorRamWriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
    addr &= 0xFFF;
-   // printf("[VDP2] Update Coloram [mode %d] Word %08X:%04X\n", Vdp2Internal.ColorMode, addr, val);
+   // printf("[VDP2] Update Coloram Word %08X:%08X\n", addr, val);
    if (val != T2ReadWord(mem, addr)) {
      T2WriteWord(mem, addr, val);
-
-#if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-    addrToUpdate[addr] = 1;
-    addrToUpdate[addr+1] = 1;
-    nbAddrToUpdate = 1;
-#endif
+     nbAddrToUpdate = 1;
    }
 }
 
@@ -260,20 +250,12 @@ void FASTCALL Vdp2ColorRamWriteLong(SH2_struct *context, u8* mem, u32 addr, u32 
    addr &= 0xFFF;
    // printf("[VDP2] Update Coloram Long %08X:%08X\n", addr, val);
    T2WriteLong(mem, addr, val);
-#if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
    if (Vdp2Internal.ColorMode == 2) {
-     addrToUpdate[addr] = 1;
-     addrToUpdate[addr+1] = 1;
      nbAddrToUpdate = 1;
    }
    else {
-     addrToUpdate[addr] = 1;
-     addrToUpdate[addr+1] = 1;
-     addrToUpdate[addr+2] = 1;
-     addrToUpdate[addr+3] = 1;
      nbAddrToUpdate = 1;
    }
-#endif
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -291,11 +273,8 @@ int Vdp2Init(void) {
    Vdp2Reset();
 
    memset(Vdp2ColorRam, 0xFF, 0x1000);
-#if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-   for (int i = 0; i < 0x1000; i ++) {
-     YglOnUpdateColorRamWord(i);
-   }
-#endif
+   nbAddrToUpdate = 1;
+   syncVDP2ColorLine(0);
 
    return 0;
 }
@@ -600,21 +579,23 @@ void Vdp2HBlankIN(void) {
 extern int vdp1_clock;
 void Vdp2StartVisibleLine(void) {
   #if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-  if (nbAddrToUpdate != 0){
-    for (int i=0; i<0x1000; i++) {
-      if (addrToUpdate[i] != 0) {
-        YglOnUpdateColorRamWord(i);
-        addrToUpdate[i] = 0;
-      }
+  if(yabsys.LineCount == 0) {
+    //Mettre a jour la texture des index.
+    //Copier la ligne 0 avec la derniere ligne
+    if ((_Ygl->colorRamIndex!= 0)||(nbAddrToUpdate != 0)) {
+      syncVDP2ColorLine(0);
+      memset(_Ygl->colorRamIndexFull,0,512);
+      nbAddrToUpdate = 0;
     }
-    nbAddrToUpdate = 0;
-  }
-  if(yabsys.LineCount == yabsys.MaxLineCount - 1) {
-    YglUpdateColorRam();
+  } else {
+    _Ygl->colorRamIndexFull[yabsys.LineCount] = _Ygl->colorRamIndex;
+    if (nbAddrToUpdate != 0){
+      syncVDP2ColorLine(++_Ygl->colorRamIndex);
+      nbAddrToUpdate = 0;
+    }
   }
   #endif
 
-  updateVdp2ColorRam(yabsys.LineCount);
   if (yabsys.LineCount < yabsys.VBlankLineCount)
   {
     Vdp2Regs->TVSTAT &= ~0x0004;
@@ -831,12 +812,7 @@ void FASTCALL Vdp2WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
          if (Vdp2Internal.ColorMode != ((val >> 12) & 0x3) ) {
            Vdp2Internal.ColorMode = (val >> 12) & 0x3;
            //A EXTRAIRE
-#if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-           for (int i = 0; i < 0x1000; i ++) {
-             addrToUpdate[i] = 1;
-           }
            nbAddrToUpdate = 1;
-#endif
          }
          return;
       case 0x010:
@@ -1315,9 +1291,7 @@ int Vdp2LoadState(const void * stream, UNUSED int version, int size)
 
    if(VIDCore) VIDCore->Resize(0,0,0,0,0);
 
-#if defined(HAVE_LIBGL) || defined(__ANDROID__) || defined(IOS)
-   YglDirtyColorRamWord();
-#endif
+   nbAddrToUpdate = 1;
 
    return size;
 }

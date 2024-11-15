@@ -626,10 +626,11 @@ typedef struct {
    int needWinUpdate;
 
    GLuint cram_tex;
-   GLuint cram_tex_pbo;
    u32 * cram_tex_buf;
-   u32 colupd_min_addr[512];
-   u32 colupd_max_addr[512];
+   GLuint cram_map_tex;
+   u32 colorRamIndex;
+   int colorRamIndexFull[512];
+   u8 ColorRamNeedSync;
    YabMutex * crammutex;
 
    int msb_shadow_count_[2];
@@ -708,11 +709,6 @@ void YglEndWindow( vdp2draw_struct * info );
 
 int YglVDP1AllocateTexture(vdp1cmd_struct * input, YglTexture * output, YglTextureManager *tm);
 
-void YglOnUpdateColorRamWord(u32 addr);
-void YglDirtyColorRamWord(void);
-void YglUpdateColorRam();
-void updateVdp2ColorRam(int line);
-void syncColorRam(void);
 int YglInitShader(int id, const GLchar * vertex[], int vcount, const GLchar * frag[], int fcount);
 
 int YglTriangleGrowShading(YglSprite * input, YglTexture * output, float * colors, YglCache * c, YglTextureManager *tm);
@@ -749,6 +745,8 @@ int YglUpscaleFramebuffer(u32 srcTexture, u32 targetFbo, float w, float h, float
 
 u32 * YglGetLineColorScreenPointer();
 void YglSetLineColorScreen(u32 * pbuf, int size);
+
+void syncVDP2ColorLine(int line);
 
 //To be removed
 void vdp1_write_gl();
