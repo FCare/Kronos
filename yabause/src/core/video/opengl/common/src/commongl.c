@@ -1856,7 +1856,7 @@ void syncVDP2ColorLine(int line) {
   if (buf == NULL) {
     return;
   }
-  for (int addr = 0x0; addr <= 0x1000; addr+=2) {
+  for (int addr = 0x0; addr < 0x1000; addr+=2) {
     switch (Vdp2Internal.ColorMode)
     {
       case 0:
