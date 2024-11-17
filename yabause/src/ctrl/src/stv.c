@@ -69,6 +69,7 @@ const u8 ShienryuNV[0x80]={
     0x00,0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
     0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
 
+static int stv_favorite_region = STV_REGION_EU;
 
 static u8 bitswap8(u8 in, const u8* vec)
 {
@@ -85,6 +86,11 @@ void sanjeon_init(void) {
   {
     T1WriteByte(CartridgeArea->rom, x, bitswap8(T1ReadByte(CartridgeArea->rom, x)^0xff,vec1));
   }
+}
+
+void rsgun_init(void) {
+  if (stv_favorite_region & (STV_REGION_EU | STV_REGION_TW | STV_REGION_US))
+    YuiErrorMsg("Radiant Silvergun is known for having incomplete controls on non-JP bioses");
 }
 
 
@@ -1725,7 +1731,7 @@ Game GameList[NB_STV_GAMES]={
     STV_REGION_EU | STV_REGION_US | STV_REGION_JP | STV_REGION_TW,
     0x05272d01,
     0,
-    NULL,
+    rsgun_init,
     NULL,
     {
         GAME_WORD_BLOB, "mpr20958.7",   0x0200000, 0x0200000, 0x00000000,
@@ -2409,7 +2415,6 @@ u8 hasBios = 0;
 u8 hasEeprom = 0;
 u8 fileFound[NB_STV_GAMES][MAX_GAME_FILES];
 u8 biosFound[MAX_GAME_FILES];
-static int stv_favorite_region = STV_REGION_EU;
 
 typedef struct {
     const char* filename;
