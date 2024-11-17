@@ -282,9 +282,14 @@ void UIYabause::runActionsAlreadyPaused() {
 		case ACTION_OPENTRAY:
 		case ACTION_LOADFILE:
 		{
-			const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
 			mYabauseThread->OpenTray();
-			loadGameFromFile(fn);
+			if (bundle != NULL) {
+				loadGameFromFile(*((QString*)bundle));
+				delete bundle;
+			} else {
+				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
+				loadGameFromFile(fn);
+			}
 			mYabauseThread->resetEmulation();
 		}
 			break;
@@ -336,8 +341,16 @@ void UIYabause::runActions() {
 		break;
 		case ACTION_LOADFILE:
 		{
-			const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
-			loadGameFromFile(fn);
+			if (bundle != NULL) {
+				mYabauseThread->SetCdInserted(false);
+				mYabauseThread->OpenTray();
+				loadGameFromFile(*((QString*)bundle));
+				delete bundle;
+				mYabauseThread->resetEmulation();
+			} else {
+				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
+				loadGameFromFile(fn);
+			}
 		}
 		break;
 		case ACTION_RESET:
@@ -1175,12 +1188,14 @@ void UIYabause::dragEnterEvent(QDragEnterEvent* e)
 	}
 }
 
-// void UIYabause::dropEvent(QDropEvent* e)
-// {
-// 	auto urls = e->mimeData()->urls();
-// 	const QUrl& url = urls.first();
-// 	QString const& fileName = url.toLocalFile();
-// 	qDebug() << "Dropped file:" << fileName;
-//
-// 	loadGameFromFile(fileName);
-// }
+void UIYabause::dropEvent(QDropEvent* e)
+{
+	auto urls = e->mimeData()->urls();
+	const QUrl& url = urls.first();
+	QString* bundle = new QString(url.toLocalFile());
+
+	mYabauseThread->SetCdInserted(false);
+	mLocker = new YabauseLocker(mYabauseThread, ACTION_LOADFILE, (void*)bundle);
+	mLocker->lock();
+;
+}

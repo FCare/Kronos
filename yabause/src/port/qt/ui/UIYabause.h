@@ -151,7 +151,7 @@ protected:
 	virtual void mouseMoveEvent( QMouseEvent* event );
 	virtual void resizeEvent( QResizeEvent* event );
 	virtual void dragEnterEvent(QDragEnterEvent* e) override;
-	// virtual void dropEvent(QDropEvent* e) override;
+	virtual void dropEvent(QDropEvent* e) override;
 
 public slots:
 	void appendLog( const char* msg );
