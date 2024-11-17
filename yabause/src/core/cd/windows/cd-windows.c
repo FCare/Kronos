@@ -43,7 +43,7 @@ static HANDLE thread_handle=INVALID_HANDLE_VALUE;
 static CRITICAL_SECTION cd_cs;
 static int drivestatus=0;
 static DWORD thread_id;
-static struct 
+static struct
 {
 	volatile int enable_read_ahead;
 	u32 FAD;
@@ -59,6 +59,8 @@ static int SPTICDGetStatus(void);
 static int SPTICDReadSectorFAD(u32, void *);
 static void SPTICDReadAheadFAD(u32);
 static void SPTICDSetStatus( int status );
+
+static int ForceOpenState = 0;
 
 CDInterface ArchCD = {
 CDCORE_ARCH,
@@ -104,11 +106,11 @@ int SPTICDInit(const char *cdrom_name) {
 //////////////////////////////////////////////////////////////////////////////
 
 void SPTICDDeInit() {
-	if (thread_handle != INVALID_HANDLE_VALUE)                               
+	if (thread_handle != INVALID_HANDLE_VALUE)
 	{
 		// Set the flag telling it to stop
 		KillCDThread=1;
-		if (WaitForSingleObject(thread_handle,INFINITE) == WAIT_TIMEOUT)      
+		if (WaitForSingleObject(thread_handle,INFINITE) == WAIT_TIMEOUT)
 		{
 			// Couldn't close thread cleanly
 			TerminateThread(thread_handle,0);
@@ -151,7 +153,7 @@ DWORD WINAPI __stdcall SPTICDThread(void *b)
 			sptd.TimeOutValue=60; // may need to be changed
 			sptd.DataBuffer=(PVOID)cd_buf.data;
 			sptd.SenseInfoOffset=0;
-			sptd.DataTransferLength=2352; 
+			sptd.DataTransferLength=2352;
 
 			sptd.Cdb[0]=0xBE; // CDB12 code
 			sptd.Cdb[1]=0; // Sector Type, RELADR
@@ -186,7 +188,7 @@ DWORD WINAPI __stdcall SPTICDThread(void *b)
 			sptd.Length=sizeof(sptd);
 			sptd.CdbLength=12;
 			sptd.SenseInfoLength=0; // No sense data
-			sptd.DataIn=SCSI_IOCTL_DATA_IN; 
+			sptd.DataIn=SCSI_IOCTL_DATA_IN;
 			sptd.TimeOutValue=60; // may need to be changed
 			sptd.DataBuffer=(PVOID)&(statusbuf);
 			sptd.SenseInfoOffset=0;
@@ -220,7 +222,7 @@ DWORD WINAPI __stdcall SPTICDThread(void *b)
 			}
 			//else
 				//drivestatus = 2;
-			
+
 			lastticks = curticks;
 		}
 
@@ -245,6 +247,7 @@ int SPTICDGetStatus() {
 	// If you really don't want to bother too much with this function, just
 	// return status 0. Though it is kind of nice when the bios's cd player,
 	// etc. recognizes when you've ejected the tray and popped in another disc.
+	if( ForceOpenState == 1) return 3;
 	int status;
 	EnterCriticalSection(&cd_cs);
 	status = drivestatus;
@@ -253,7 +256,8 @@ int SPTICDGetStatus() {
 }
 
 static void SPTICDSetStatus(int status){
-
+	if (status == 3) ForceOpenState = 1;
+	else ForceOpenState = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -318,7 +322,7 @@ int SPTICDReadSectorFAD(u32 FAD, void *buffer) {
 	// sector detection, etc. Not to mention it means less work for the porter
 	// since they only have to implement raw sector reading as opposed to
 	// implementing mode 1, mode 2 form1/form2, -and- raw sector reading.
-	
+
 	for (;;)
 	{
 		EnterCriticalSection(&cd_cs);

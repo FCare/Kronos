@@ -117,6 +117,7 @@ private:
 	void loadSlot(int a);
 	void saveSlotAs();
 	void loadSlotAs();
+	void loadCDRom();
 protected:
 	YabauseGL* mYabauseGL;
 	YabauseLocker *mLocker;

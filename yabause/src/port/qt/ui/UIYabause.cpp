@@ -57,6 +57,7 @@
 #define ACTION_SCREENSHOT 4
 #define ACTION_SAVESLOT 5
 #define ACTION_LOADSLOT 6
+#define ACTION_LOADCDROM 7
 
 extern "C" {
 extern VideoInterface_struct *VIDCoreList[];
@@ -309,6 +310,11 @@ void UIYabause::runActionsAlreadyPaused() {
 				loadSlotAs();
 			}
 		break;
+		case ACTION_LOADCDROM:
+			mYabauseThread->OpenTray();
+			loadCDRom();
+			mYabauseThread->resetEmulation();
+		break;
 		default:
 		break;
 	}
@@ -355,6 +361,9 @@ void UIYabause::runActions() {
 			} else {
 				loadSlotAs();
 			}
+		break;
+		case ACTION_LOADCDROM:
+			loadCDRom();
 		break;
 		default:
 		break;
@@ -737,9 +746,8 @@ void UIYabause::on_aFileOpenISO_triggered()
 	}
 }
 
-void UIYabause::on_aFileOpenCDRom_triggered()
+void UIYabause::loadCDRom()
 {
-	YabauseLocker locker( mYabauseThread );
 	QStringList list = getCdDriveList();
 	int current = list.indexOf(QtYabause::volatileSettings()->value( "Recents/CDs").toString());
 	QString fn = QInputDialog::getItem(this, QtYabause::translate("Open CD Rom"),
@@ -748,18 +756,27 @@ void UIYabause::on_aFileOpenCDRom_triggered()
 	if (!fn.isEmpty())
 	{
 		VolatileSettings* vs = QtYabause::volatileSettings();
-		const int currentCDCore = vs->value( "General/CdRom" ).toInt();
-		const QString currentCdRomISO = vs->value( "General/CdRomISO" ).toString();
 
 		QtYabause::settings()->setValue( "Recents/CDs", fn );
 
 		// vs->setValue( "autostart", false );
 		vs->setValue( "General/CdRom", QtYabause::defaultCDCore().id );
 		vs->setValue( "General/CdRomISO", fn );
-		if (vs->value("autostart").toBool()){
-			mYabauseThread->pauseEmulation( false, true );
-		}
+		mYabauseThread->SetCdInserted(true);
+		mYabauseThread->CloseTray();
 		refreshStatesActions();
+	}
+}
+
+void UIYabause::on_aFileOpenCDRom_triggered()
+{
+	if (mYabauseThread->IsCDInserted()){
+		mYabauseThread->SetCdInserted(false);
+		mLocker = new YabauseLocker(mYabauseThread, ACTION_OPENTRAY);
+		mLocker->lock();
+	} else {
+		mLocker = new YabauseLocker(mYabauseThread, ACTION_LOADCDROM);
+		mLocker->lock();
 	}
 }
 
@@ -1139,8 +1156,6 @@ int UIYabause::loadGameFromFile(QString const& fileName)
 	if (QFile::exists(fileName))
 	{
 		VolatileSettings* vs = QtYabause::volatileSettings();
-		const int currentCDCore = vs->value("General/CdRom").toInt();
-		const QString currentCdRomISO = vs->value("General/CdRomISO").toString();
 
 		QtYabause::settings()->setValue("Recents/ISOs", fileName);
 

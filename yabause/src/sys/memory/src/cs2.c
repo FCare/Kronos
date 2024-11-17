@@ -822,17 +822,13 @@ void Cs2ForceOpenTray(){
 };
 
 int Cs2ForceCloseTray( int coreid, const char * cdpath ){
-
   int ret = 0;
    if (Cs2Area == NULL) {
-     printf("LA\n");
      return -1;
    }
    if ((ret = Cs2ChangeCDCore(coreid, cdpath)) != 0) {
-     printf("ICI\n");
      return ret;
    }
-
   Cs2Reset();
 
   if (yabsys.emulatebios)
@@ -843,6 +839,7 @@ int Cs2ForceCloseTray( int coreid, const char * cdpath ){
 		  return -2;
 	  }
   }
+  Cs2Area->cdi->SetStatus(CDCORE_NORMAL);
   Cs2Area->cdi->ReadTOC(Cs2Area->TOC);
   return 0;
 };

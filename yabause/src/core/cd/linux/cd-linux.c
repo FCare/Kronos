@@ -71,6 +71,7 @@ static void LinuxCDDeInit(void) {
 	LOG("CDDeInit OK\n");
 }
 
+static int ForceOpenState = 0;
 
 static s32 LinuxCDReadTOC(u32 * TOC)
 {
@@ -99,7 +100,7 @@ static s32 LinuxCDReadTOC(u32 * TOC)
 
       // convert TOC to saturn format
       for (i = ctTOC.cdth_trk0 + 1; i <= ctTOC.cdth_trk1; i++)
-      {      
+      {
 	      ctTOCent.cdte_track = i;
 	      ioctl(hCDROM, CDROMREADTOCENTRY, &ctTOCent);
 	      TOC[i - 1] = (ctTOCent.cdte_ctrl << 28) |
@@ -139,7 +140,7 @@ static int LinuxCDGetStatus(void) {
 	// 2 - CD not present
 	// 3 - Tray open
 	// see ../windows/cd.cc for more info
-
+	if( ForceOpenState == 1) return 3;
 	int ret = ioctl(hCDROM, CDROM_DRIVE_STATUS, CDSL_CURRENT);
 	switch(ret) {
 		case CDS_DISC_OK:
@@ -169,7 +170,7 @@ static int LinuxCDReadSectorFAD(u32 FAD, void *buffer) {
 		if (ioctl(hCDROM, CDROMREADRAW, &position) == -1) {
 			return 0;
 		}
-		
+
 		memcpy(buffer, position.bigbuf, 2352);
 
 		return 1;
@@ -179,7 +180,8 @@ static int LinuxCDReadSectorFAD(u32 FAD, void *buffer) {
 }
 
 static void LinuxCDSetStatus(int status){
-	
+	if (status == 3) ForceOpenState = 1;
+	else ForceOpenState = 0;
 }
 
 static void LinuxCDReadAheadFAD(UNUSED u32 FAD)
