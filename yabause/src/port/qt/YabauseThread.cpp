@@ -39,6 +39,7 @@ YabauseThread::YabauseThread( QObject* o )
 	memset(&mYabauseConf, 0, sizeof(mYabauseConf));
 	showFPS = false;
 	mIsCdIn = false;
+	mIsCDDirty = false;
 }
 
 YabauseThread::~YabauseThread()
@@ -76,8 +77,9 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 
 	mPause = pause;
 
-	if (mIsCdIn && !pause) {
+	if (mIsCDDirty && mIsCdIn && !pause) {
 		CloseTray();
+		mIsCDDirty = false;
 	}
 
 	if ( mPause ) {

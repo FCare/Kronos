@@ -40,7 +40,7 @@ public:
 	bool emulationPaused();
 	inline int init() const { return mInit; }
 
-	void SetCdInserted(bool state) {mIsCdIn=state;};
+	void SetCdInserted(bool state) {mIsCdIn=state;mIsCDDirty=true;};
 	bool IsCDInserted() {return mIsCdIn;};
 	void OpenTray();
 	int CloseTray();
@@ -55,7 +55,7 @@ protected:
 	void deInitEmulation();
 	void resetYabauseConf();
 	bool mIsCdIn;
-
+	bool mIsCDDirty;
 
 public slots:
 	void initEmulation();

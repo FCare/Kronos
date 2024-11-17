@@ -1445,14 +1445,9 @@ int YabSaveStateBuffer(void ** buffer, size_t * size)
    if (buffer != NULL) *buffer = NULL;
    *size = 0;
 
-   // Mute scsp & lock its thread (workaround for audio issues ? it doesn't seem reliable though)
-   ScspMuteAudio(SCSP_MUTE_SYSTEM);
-   ScspLockThread();
-
    // Get size
    status = YabSaveStateStream(NULL);
    if (status != 0) {
-      ScspUnLockThread();
       return status;
    }
    *size = MemStateGetOffset();
@@ -1460,22 +1455,14 @@ int YabSaveStateBuffer(void ** buffer, size_t * size)
    // Allocate buffer
    *buffer = (void *)malloc(*size);
    if (buffer == NULL) {
-      ScspUnLockThread();
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       return -1;
    }
 
    // Fill buffer
    status = YabSaveStateStream(buffer);
    if (status != 0) {
-      ScspUnLockThread();
-      ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
       return status;
    }
-
-   // Unlock scsp thread
-   ScspUnLockThread();
-   ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
 
    return 0;
 }
@@ -1659,11 +1646,7 @@ int YabLoadStateBuffer(const void * buffer, size_t size)
 {
    int status;
 
-   ScspMuteAudio(SCSP_MUTE_SYSTEM);
-   ScspLockThread();
    status = YabLoadStateStream(buffer, size);
-   ScspUnLockThread();
-   ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
 
    return status;
 }

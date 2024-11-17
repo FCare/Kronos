@@ -114,7 +114,9 @@ public:
 private:
 	void takeScreenshot(void);
 	void saveSlot(int a);
+	void loadSlot(int a);
 	void saveSlotAs();
+	void loadSlotAs();
 protected:
 	YabauseGL* mYabauseGL;
 	YabauseLocker *mLocker;

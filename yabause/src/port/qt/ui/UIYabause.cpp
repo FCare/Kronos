@@ -56,6 +56,7 @@
 #define ACTION_RESET 3
 #define ACTION_SCREENSHOT 4
 #define ACTION_SAVESLOT 5
+#define ACTION_LOADSLOT 6
 
 extern "C" {
 extern VideoInterface_struct *VIDCoreList[];
@@ -183,8 +184,6 @@ UIYabause::UIYabause( QWidget* parent )
 	mouseSensitivity = vs->value( "Input/GunMouseSensitivity", 100 ).toInt();
 	showMenuBarHeight = menubar->height();
 	translations = QtYabause::getTranslationList();
-
-
 }
 
 UIYabause::~UIYabause()
@@ -302,6 +301,14 @@ void UIYabause::runActionsAlreadyPaused() {
 				saveSlotAs();
 			}
 		break;
+		case ACTION_LOADSLOT:
+			if (bundle != NULL) {
+				loadSlot(*((int*)bundle));
+				free(bundle);
+			} else {
+				loadSlotAs();
+			}
+		break;
 		default:
 		break;
 	}
@@ -339,6 +346,14 @@ void UIYabause::runActions() {
 				free(bundle);
 			} else {
 				saveSlotAs();
+			}
+		break;
+		case ACTION_LOADSLOT:
+			if (bundle != NULL) {
+				loadSlot(*((int*)bundle));
+				free(bundle);
+			} else {
+				loadSlotAs();
 			}
 		break;
 		default:
@@ -755,12 +770,27 @@ void UIYabause::saveSlot(int a) {
 		refreshStatesActions();
 }
 
+void UIYabause::loadSlot(int a) {
+	if ( YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a ) != 0 )
+		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
+}
+
 void UIYabause::saveSlotAs() {
 	const QString fn = CommonDialogs::getSaveFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Choose a file to save your state" ), QtYabause::translate( "Kronos Save State (*.yss)" ) );
 	if ( fn.isNull() )
 		return;
 	if ( YabSaveState( fn.toLatin1().constData() ) != 0 )
 		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
+}
+
+void UIYabause::loadSlotAs() {
+	const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Select a file to load your state" ), QtYabause::translate( "Kronos Save State (*.yss)" ) );
+	if ( fn.isNull() )
+		return;
+	if ( YabLoadState( fn.toLatin1().constData() ) != 0 )
+		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
+	else
+		aEmulationRun->trigger();
 }
 
 void UIYabause::on_mFileSaveState_triggered( QAction* a )
@@ -777,9 +807,10 @@ void UIYabause::on_mFileLoadState_triggered( QAction* a )
 {
 	if ( a == aFileLoadStateAs )
 		return;
-	YabauseLocker locker( mYabauseThread );
-	if ( YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a->data().toInt() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
+	int* bundle = (int*)malloc(sizeof(int));
+	*bundle = a->data().toInt();
+	mLocker = new YabauseLocker(mYabauseThread, ACTION_LOADSLOT, (void*)bundle);
+	mLocker->lock();
 }
 
 void UIYabause::on_aFileSaveStateAs_triggered()
@@ -790,16 +821,8 @@ void UIYabause::on_aFileSaveStateAs_triggered()
 
 void UIYabause::on_aFileLoadStateAs_triggered()
 {
-	YabauseLocker locker( mYabauseThread );
-	const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Select a file to load your state" ), QtYabause::translate( "Kronos Save State (*.yss)" ) );
-	if ( fn.isNull() )
-		return;
-	// if (mYabauseThread)
-	// 		mYabauseThread->initEmulation();
-	if ( YabLoadState( fn.toLatin1().constData() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
-	else
-		aEmulationRun->trigger();
+	mLocker = new YabauseLocker(mYabauseThread, ACTION_LOADSLOT);
+	mLocker->lock();
 }
 
 void UIYabause::takeScreenshot(void) {
@@ -1096,6 +1119,7 @@ void UIYabause::pause( bool paused )
 
 void UIYabause::reset()
 {
+	refreshStatesActions();
 	mYabauseGL->updateView();
 	VolatileSettings* vs = QtYabause::volatileSettings();
 	if (vs->value("autostart").toBool()){
