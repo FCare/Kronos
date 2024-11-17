@@ -38,7 +38,7 @@ enum ACTIONS_ENUM
 class YabauseLocker
 {
 public:
-	YabauseLocker( YabauseThread* yt, int action = ACTION_NONE )
+	YabauseLocker( YabauseThread* yt, int action = ACTION_NONE, void *bundle = NULL)
 	{
 		Q_ASSERT( yt );
 		mThread = yt;
@@ -46,6 +46,7 @@ public:
 		mRunning = mThread->emulationRunning();
 		mPaused = mThread->emulationPaused();
 		mAction = action;
+		mBundle = bundle;
 		if (action == ACTION_NONE) {
 			if ( mRunning && !mPaused )
 				mThread->pauseEmulation( true, false );
@@ -76,6 +77,11 @@ public:
 		mAction = ACTION_NONE;
 		return ret;
 	}
+	void* popBundle() {
+		void *ret = mBundle;
+		mBundle = NULL;
+		return ret;
+	}
 	~YabauseLocker()
 	{
 		if ( ( mRunning && !mPaused ) /*|| mForceRun*/ ) {
@@ -88,6 +94,7 @@ protected:
 	bool mRunning;
 	bool mPaused;
 	int mAction;
+	void *mBundle;
 	//bool mForceRun;
 };
 
@@ -106,6 +113,8 @@ public:
 	YabauseThread* mYabauseThread;
 private:
 	void takeScreenshot(void);
+	void saveSlot(int a);
+	void saveSlotAs();
 protected:
 	YabauseGL* mYabauseGL;
 	YabauseLocker *mLocker;

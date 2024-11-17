@@ -55,6 +55,7 @@
 #define ACTION_LOADFILE 2
 #define ACTION_RESET 3
 #define ACTION_SCREENSHOT 4
+#define ACTION_SAVESLOT 5
 
 extern "C" {
 extern VideoInterface_struct *VIDCoreList[];
@@ -276,6 +277,7 @@ void UIYabause::runActionsAlreadyPaused() {
 		return;
 	}
 	int action = mLocker->popAction();
+	void *bundle = mLocker->popBundle();
 	switch (action) {
 		case ACTION_OPENTRAY:
 		case ACTION_LOADFILE:
@@ -292,6 +294,14 @@ void UIYabause::runActionsAlreadyPaused() {
 		case ACTION_SCREENSHOT:
 			takeScreenshot();
 		break;
+		case ACTION_SAVESLOT:
+			if (bundle != NULL) {
+				saveSlot(*((int*)bundle));
+				free(bundle);
+			} else {
+				saveSlotAs();
+			}
+		break;
 		default:
 		break;
 	}
@@ -304,6 +314,7 @@ void UIYabause::runActions() {
 		return;
 	}
 	int action = mLocker->popAction();
+	void *bundle = mLocker->popBundle();
 	switch (action) {
 		case ACTION_OPENTRAY:
 		{
@@ -321,6 +332,14 @@ void UIYabause::runActions() {
 		break;
 		case ACTION_SCREENSHOT:
 			takeScreenshot();
+		break;
+		case ACTION_SAVESLOT:
+			if (bundle != NULL) {
+				saveSlot(*((int*)bundle));
+				free(bundle);
+			} else {
+				saveSlotAs();
+			}
 		break;
 		default:
 		break;
@@ -729,15 +748,29 @@ void UIYabause::on_aFileOpenCDRom_triggered()
 	}
 }
 
+void UIYabause::saveSlot(int a) {
+	if ( YabSaveStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a ) != 0 )
+		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
+	else
+		refreshStatesActions();
+}
+
+void UIYabause::saveSlotAs() {
+	const QString fn = CommonDialogs::getSaveFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Choose a file to save your state" ), QtYabause::translate( "Kronos Save State (*.yss)" ) );
+	if ( fn.isNull() )
+		return;
+	if ( YabSaveState( fn.toLatin1().constData() ) != 0 )
+		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
+}
+
 void UIYabause::on_mFileSaveState_triggered( QAction* a )
 {
 	if ( a == aFileSaveStateAs )
 		return;
-	YabauseLocker locker( mYabauseThread );
-	if ( YabSaveStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a->data().toInt() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
-	else
-		refreshStatesActions();
+	int* bundle = (int*)malloc(sizeof(int));
+	*bundle = a->data().toInt();
+	mLocker = new YabauseLocker(mYabauseThread, ACTION_SAVESLOT, (void*)bundle);
+	mLocker->lock();
 }
 
 void UIYabause::on_mFileLoadState_triggered( QAction* a )
@@ -751,12 +784,8 @@ void UIYabause::on_mFileLoadState_triggered( QAction* a )
 
 void UIYabause::on_aFileSaveStateAs_triggered()
 {
-	YabauseLocker locker( mYabauseThread );
-	const QString fn = CommonDialogs::getSaveFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Choose a file to save your state" ), QtYabause::translate( "Kronos Save State (*.yss)" ) );
-	if ( fn.isNull() )
-		return;
-	if ( YabSaveState( fn.toLatin1().constData() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
+	mLocker = new YabauseLocker(mYabauseThread, ACTION_SAVESLOT);
+	mLocker->lock();
 }
 
 void UIYabause::on_aFileLoadStateAs_triggered()
