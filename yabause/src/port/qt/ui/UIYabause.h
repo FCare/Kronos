@@ -32,15 +32,13 @@ class QDockWidget;
 
 enum ACTIONS_ENUM
 {
-	ACTION_NONE = 0,
-	ACTION_OPENTRAY = 1,
-	ACTION_LOADFILE = 2,
+	ACTION_NONE = -1,
 };
 
 class YabauseLocker
 {
 public:
-	YabauseLocker( YabauseThread* yt, ACTIONS_ENUM action = ACTION_NONE )
+	YabauseLocker( YabauseThread* yt, int action = ACTION_NONE )
 	{
 		Q_ASSERT( yt );
 		mThread = yt;
@@ -48,8 +46,20 @@ public:
 		mRunning = mThread->emulationRunning();
 		mPaused = mThread->emulationPaused();
 		mAction = action;
-		if ( mRunning && !mPaused )
-			mThread->pauseEmulation( true, false );
+		if (action == ACTION_NONE) {
+			if ( mRunning && !mPaused )
+				mThread->pauseEmulation( true, false );
+			else
+				emit mThread->emulationAlreadyPaused();
+		}
+	}
+	void lock() {
+		if (mAction != ACTION_NONE) {
+			if ( mRunning && !mPaused )
+				mThread->pauseEmulation( true, false );
+			else
+				emit mThread->emulationAlreadyPaused();
+		}
 	}
 	void step(){
 		if ( mThread->emulationPaused() ) {
@@ -61,8 +71,10 @@ public:
 		return mRunning && !mPaused;
 	}
 
-	ACTIONS_ENUM getAction() {
-		return mAction;
+	int popAction() {
+		int ret = mAction;
+		mAction = ACTION_NONE;
+		return ret;
 	}
 	~YabauseLocker()
 	{
@@ -75,7 +87,7 @@ protected:
 	YabauseThread* mThread;
 	bool mRunning;
 	bool mPaused;
-	ACTIONS_ENUM mAction;
+	int mAction;
 	//bool mForceRun;
 };
 
@@ -92,7 +104,8 @@ public:
 
 	int loadGameFromFile(QString const & fullFilePath);
 	YabauseThread* mYabauseThread;
-
+private:
+	void takeScreenshot(void);
 protected:
 	YabauseGL* mYabauseGL;
 	YabauseLocker *mLocker;
@@ -126,8 +139,7 @@ protected:
 	virtual void mouseMoveEvent( QMouseEvent* event );
 	virtual void resizeEvent( QResizeEvent* event );
 	virtual void dragEnterEvent(QDragEnterEvent* e) override;
-	virtual void dropEvent(QDropEvent* e) override;
-	bool mIsCdIn;
+	// virtual void dropEvent(QDropEvent* e) override;
 
 public slots:
 	void appendLog( const char* msg );
@@ -143,6 +155,7 @@ public slots:
 	void breakpointHandlerSCUDSP();
 	void breakpointHandlerSCSPDSP();
 	void runActions();
+	void runActionsAlreadyPaused();
 protected slots:
 	void errorReceived( const QString& error, bool internal = true );
 	void sizeRequested( const QSize& size );
@@ -196,7 +209,6 @@ protected slots:
 	void on_aHelpAbout_triggered();
 	// toolbar
 	void on_aSound_triggered();
-	void on_aVideoDriver_triggered();
 	void on_cbSound_toggled( bool toggled );
 	void on_sVolume_valueChanged( int value );
 	void on_cbVideoDriver_currentIndexChanged( int id );

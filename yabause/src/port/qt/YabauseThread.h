@@ -40,6 +40,8 @@ public:
 	bool emulationPaused();
 	inline int init() const { return mInit; }
 
+	void SetCdInserted(bool state) {mIsCdIn=state;};
+	bool IsCDInserted() {return mIsCdIn;};
 	void OpenTray();
 	int CloseTray();
 
@@ -52,6 +54,7 @@ protected:
 
 	void deInitEmulation();
 	void resetYabauseConf();
+	bool mIsCdIn;
 
 
 public slots:
@@ -70,6 +73,7 @@ signals:
 	void pause( bool paused );
 	void reset();
 	void toggleEmulateMouse( bool enable, bool show );
+	void emulationAlreadyPaused();
 };
 
 #endif // YABAUSETHREAD_H

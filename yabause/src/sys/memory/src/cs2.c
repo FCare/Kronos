@@ -824,9 +824,14 @@ void Cs2ForceOpenTray(){
 int Cs2ForceCloseTray( int coreid, const char * cdpath ){
 
   int ret = 0;
-   if (Cs2Area == NULL) return -1;
-   if ((ret = Cs2ChangeCDCore(coreid, cdpath)) != 0)
-      return ret;
+   if (Cs2Area == NULL) {
+     printf("LA\n");
+     return -1;
+   }
+   if ((ret = Cs2ChangeCDCore(coreid, cdpath)) != 0) {
+     printf("ICI\n");
+     return ret;
+   }
 
   Cs2Reset();
 

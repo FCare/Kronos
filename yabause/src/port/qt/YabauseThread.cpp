@@ -38,6 +38,7 @@ YabauseThread::YabauseThread( QObject* o )
 	mInit = -1;
 	memset(&mYabauseConf, 0, sizeof(mYabauseConf));
 	showFPS = false;
+	mIsCdIn = false;
 }
 
 YabauseThread::~YabauseThread()
@@ -67,23 +68,17 @@ void YabauseThread::deInitEmulation()
 
 bool YabauseThread::pauseEmulation( bool pause, bool reset )
 {
-	if ( mPause == pause && !reset ) {
-		return true;
-	}
-
-	if ( mInit == 0 && reset ) {
-		deInitEmulation();
-	}
-
-	initEmulation();
-
 	if ( mInit < 0 )
 	{
-		emit error( QtYabause::translate( "Can't initialize Kronos." ), false );
+		emit error( QtYabause::translate( "Can't Pause kronos while not initialized." ), false );
 		return false;
 	}
 
 	mPause = pause;
+
+	if (mIsCdIn && !pause) {
+		CloseTray();
+	}
 
 	if ( mPause ) {
 		ScspMuteAudio(SCSP_MUTE_SYSTEM);
@@ -100,7 +95,6 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 		if (vs->value("autorun/load").toBool()) {
 			YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), vs->value("autorun/load/slot").toInt() );
 		}
-		vs->setValue("autostart", false);
 	}
 
 	emit this->pause( mPause );
@@ -111,6 +105,12 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 bool YabauseThread::resetEmulation()
 {
 	if ( mInit < 0 ) {
+		initEmulation();
+	}
+
+	if ( mInit < 0 )
+	{
+		emit error( QtYabause::translate( "Can't initialize Kronos." ), false );
 		return false;
 	}
 
@@ -448,7 +448,7 @@ int YabauseThread::CloseTray(){
 	mYabauseConf.cdcoretype = vs->value("General/CdRom", mYabauseConf.cdcoretype).toInt();
 	mYabauseConf.cdpath = strdup(vs->value("General/CdRomISO", mYabauseConf.cdpath).toString().toLatin1().constData());
 
-	return Cs2ForceCloseTray(mYabauseConf.cdcoretype, mYabauseConf.cdpath);
+	return (Cs2ForceCloseTray(mYabauseConf.cdcoretype, mYabauseConf.cdpath)==0);
 }
 
 void YabauseThread::resetYabauseConf()

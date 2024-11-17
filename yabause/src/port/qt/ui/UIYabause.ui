@@ -287,7 +287,6 @@
    <addaction name="aFileOpenCDRom"/>
    <addaction name="separator"/>
    <addaction name="aFileSettings"/>
-   <addaction name="aVideoDriver"/>
    <addaction name="aSound"/>
    <addaction name="aEmulationVSync"/>
    <addaction name="aViewFPS"/>
@@ -910,15 +909,6 @@
    </property>
    <property name="text">
     <string>Sound...</string>
-   </property>
-  </action>
-  <action name="aVideoDriver">
-   <property name="icon">
-    <iconset resource="../resources/resources.qrc">
-     <normaloff>:/actions/icons/actions/video.png</normaloff>:/actions/icons/actions/video.png</iconset>
-   </property>
-   <property name="text">
-    <string>Video Driver</string>
    </property>
   </action>
   <action name="aFileSaveState0">
