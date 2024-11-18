@@ -50,7 +50,7 @@ jobs:
       # Build your program with the given configuration
       run: |
         echo "Compiling"
-        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -DYAB_IS_WIP=ON --target package
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package
 
     #- name: Test
       #working-directory: ${{github.workspace}}/build
