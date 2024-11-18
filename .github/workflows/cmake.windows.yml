@@ -44,17 +44,17 @@ jobs:
         sdl2lib_DIR: ${{github.workspace}}\SDL2
         sdl2_DIR: ${{github.workspace}}\SDL2\cmake
       run: |
-        cmake -S ${{github.workspace}}/yabause -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+        cmake -S ${{github.workspace}}/yabause -B ${{github.workspace}}/build -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DYAB_IS_WIP=ON
 
     - name: Build
       # Build your program with the given configuration
       run: |
         echo "Compiling"
-        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} --target package
+        cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -DYAB_IS_WIP=ON --target package
 
     #- name: Test
       #working-directory: ${{github.workspace}}/build
-      # Execute tests defined by the CMake configuration.  
+      # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       #run: ctest -C ${{env.BUILD_TYPE}}
     - name: Prepare package
@@ -71,4 +71,4 @@ jobs:
       with:
         name: ${{env.ArtifactName}}
         path: ${{env.ReleaseFile}}
-      
+
