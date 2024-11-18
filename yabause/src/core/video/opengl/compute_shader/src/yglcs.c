@@ -43,6 +43,7 @@ extern int setupColorMode(Vdp2 *varVdp2Regs, int layer);
 extern int setupShadow(Vdp2 *varVdp2Regs, int layer);
 extern int setupBlur(Vdp2 *varVdp2Regs, int layer);
 extern int YglDrawBackScreen();
+extern int YglFillWithBackScreen();
 
 //////////////////////////////////////////////////////////////////////////////
 int VIDCSEraseWriteVdp1(int id) {
@@ -273,16 +274,6 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
 #endif
    glViewport(0, 0, GlWidth, GlHeight);
 
-   if (Vdp2Regs->TVMD & 0x100) {
-     //Use last border color to clear the screen
-     col[0] = _Ygl->last_back_color[0];
-     col[1] = _Ygl->last_back_color[1];
-     col[2] = _Ygl->last_back_color[2];
-     col[3] = _Ygl->last_back_color[3];
-   }
-   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
-   glClearBufferfv(GL_COLOR, 0, col);
-
    VIDCore->setupFrame();
 
     glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->original_fbo);
@@ -456,11 +447,27 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
   srcTexture = _Ygl->original_fbotex[0];
 
    int scali = (int)(scale);
+   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
 #ifndef __LIBRETRO__
+  if ((Vdp2Regs->TVMD & 0x8100) != 0) {
+    //Use last border color to clear the screen
+    glViewport(0, 0, GlWidth, GlHeight);
+    glScissor(0, 0, GlWidth, GlHeight);
+    glClearBufferfv(GL_COLOR, 0, _Ygl->last_back_color);
+    //draw back screen where other pixels are not drawn
+    glViewport(0, y, GlWidth, h);
+    glScissor(0, y, GlWidth, h-scali);
+    //Take care of border
+    YglFillWithBackScreen();
+  } else {
+    glViewport(0, 0, GlWidth, GlHeight);
+    glScissor(0, 0, GlWidth, GlHeight);
+    float black[4] = {0.0};
+    glClearBufferfv(GL_COLOR, 0, black);
+  }
    glViewport(x, y, w, h);
    glScissor(x, y, w-scali, h-scali);
 #endif
-   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
    YglBlitFramebuffer(srcTexture, _Ygl->width, _Ygl->height, w, h);
 
   finishCSRender();

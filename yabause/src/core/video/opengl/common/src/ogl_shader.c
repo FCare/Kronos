@@ -931,15 +931,13 @@ static const char fclear_img[] =
   "precision highp float;       \n"
   "#endif\n"
   "layout(origin_upper_left) in vec4 gl_FragCoord; \n"
-  "uniform float u_emu_height; \n"
-  "uniform float u_vheight; \n"
   "uniform sampler2D u_Clear;     \n"
   "out vec4 fragColor; \n"
   "void main()   \n"
   "{  \n"
 "    ivec2 linepos; \n "
 "    linepos.y = 0; \n "
-"    linepos.x = int( gl_FragCoord.y * u_emu_height);\n"
+"    linepos.x = int(gl_FragCoord.y);\n"
   "  fragColor = texelFetch( u_Clear, linepos,0 ); \n"
   "} \n";
 
@@ -1006,9 +1004,6 @@ int YglDrawBackScreen() {
   else{
     GLUSEPROG(clear_prg);
   }
-  glUniform1f(glGetUniformLocation(clear_prg, "u_emu_height"), (float)_Ygl->rheight / (float)_Ygl->rheight);
-  glUniform1f(glGetUniformLocation(clear_prg, "u_vheight"), (float)_Ygl->rheight);
-
   glDisable(GL_STENCIL_TEST);
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
@@ -1021,6 +1016,130 @@ int YglDrawBackScreen() {
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, _Ygl->back_tex);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+  // Clean up
+  glDisableVertexAttribArray(0);
+
+  return 0;
+}
+
+//----------------------------------------------------------------------------------------
+static int fill_prg = -1;
+
+static const char vfill_img[] =
+  SHADER_VERSION
+  "layout (location = 0) in vec2 a_position;   \n"
+  "layout (location = 1) in vec2 a_texcoord;   \n"
+  "out vec2 v_texcoord;     \n"
+  "void main()       \n"
+  "{ \n"
+  " gl_Position = vec4(a_position.x, a_position.y, 0.0, 1.0); \n"
+  " v_texcoord  = a_texcoord; \n"
+  "} \n";
+
+
+static const char ffill_img[] =
+  SHADER_VERSION
+  "#ifdef GL_ES\n"
+  "precision highp float;       \n"
+  "#endif\n"
+  "layout(origin_upper_left) in vec4 gl_FragCoord; \n"
+  "uniform sampler2D u_Fill;     \n"
+  "in vec2 v_texcoord;     \n"
+  "out vec4 fragColor; \n"
+  "void main()   \n"
+  "{  \n"
+  "  fragColor = texture(u_Fill, v_texcoord);\n"
+  "} \n";
+
+
+int YglFillWithBackScreen() {
+
+  float const vertexPosition[] = {
+    1.0f, -1.0f,
+    -1.0f, -1.0f,
+    1.0f, 1.0f,
+    -1.0f, 1.0f };
+  float const textureCoord[] = {
+    1.0f, 0.0f,
+    0.0f, 0.0f,
+    1.0f, 1.0f,
+    0.0f, 1.0f
+  };
+
+  if (fill_prg == -1){
+    GLuint vshader;
+    GLuint fshader;
+    GLint compiled, linked;
+
+    const GLchar * vfill_img_v[] = { vfill_img, NULL };
+    const GLchar * ffill_img_v[] = { ffill_img, NULL };
+
+    fill_prg = glCreateProgram();
+    if (fill_prg == 0){
+      fill_prg = -1;
+      return -1;
+    }
+
+    YGLLOG("DRAW_BACK_SCREEN\n");
+
+    vshader = glCreateShader(GL_VERTEX_SHADER);
+    fshader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    glShaderSource(vshader, 1, vfill_img_v, NULL);
+    glCompileShader(vshader);
+    glGetShaderiv(vshader, GL_COMPILE_STATUS, &compiled);
+    if (compiled == GL_FALSE) {
+      YGLLOG("Compile error in vertex shader.\n");
+      Ygl_printShaderError(vshader);
+      clear_prg = -1;
+      return -1;
+    }
+    glShaderSource(fshader, 1, ffill_img_v, NULL);
+    glCompileShader(fshader);
+    glGetShaderiv(fshader, GL_COMPILE_STATUS, &compiled);
+    if (compiled == GL_FALSE) {
+      YGLLOG("Compile error in fragment shader.\n");
+      Ygl_printShaderError(fshader);
+      clear_prg = -1;
+      return -1;
+    }
+
+    glAttachShader(fill_prg, vshader);
+    glAttachShader(fill_prg, fshader);
+    glLinkProgram(fill_prg);
+    glGetProgramiv(fill_prg, GL_LINK_STATUS, &linked);
+    if (linked == GL_FALSE) {
+      YGLLOG("Link error..\n");
+      Ygl_printShaderError(fill_prg);
+      fill_prg = -1;
+      return -1;
+    }
+
+    GLUSEPROG(fill_prg);
+    glUniform1i(glGetUniformLocation(fill_prg, "u_Fill"), 0);
+  }
+  else{
+    GLUSEPROG(fill_prg);
+  }
+  glDisable(GL_STENCIL_TEST);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+
+  glEnableVertexAttribArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, _Ygl->vertexPosition_buf);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertexPosition), vertexPosition, GL_STREAM_DRAW);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glBindBuffer(GL_ARRAY_BUFFER, _Ygl->textureCoord_buf);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(textureCoord), textureCoord, GL_STREAM_DRAW);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(1);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, _Ygl->back_fbotex);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
   // Clean up

@@ -43,7 +43,6 @@ extern u8 * Vdp1FrameBuffer[];
 static int rebuild_frame_buffer = 0;
 
 extern int WaitVdp2Async(int sync);
-extern int YglDrawBackScreen();
 
 static int YglGenerateBackBuffer();
 static int YglDestroyBackBuffer();
