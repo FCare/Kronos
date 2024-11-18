@@ -663,6 +663,7 @@ int VIDCSInit(void)
   for (int i=0; i<SPRITE; i++)
     YglReset(_Ygl->vdp2levels[i]);
 
+  memset(_Ygl->last_back_color, 0x0, 4*sizeof(float));
   _Ygl->vdp1ratio = 1.0;
   if (VIDCore->SetupVdp1Scale) VIDCore->SetupVdp1Scale((int)_Ygl->vdp1ratio);
 
@@ -3950,6 +3951,12 @@ static void Vdp2DrawBackScreen(Vdp2 *varVdp2Regs)
         b = Y_MAX((((dot & 0x7C00) >> 10) << 3) + info.cob, 0);
         a = ((~varVdp2Regs->CCRLB & 0x1F00) >> 5)|NONE;
         *back_pixel_data++ = (a << 24) | ((b&0xFF) << 16) | ((g&0xFF) << 8) | (r&0xFF);
+        if (i == _Ygl->rheight-1) {
+          _Ygl->last_back_color[0] = (float)r/255.0;
+          _Ygl->last_back_color[1] = (float)g/255.0;
+          _Ygl->last_back_color[2] = (float)b/255.0;
+          _Ygl->last_back_color[3] = 1.0;
+        }
       }
       YglSetBackColor(_Ygl->rheight);
     }

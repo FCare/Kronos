@@ -273,6 +273,13 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
 #endif
    glViewport(0, 0, GlWidth, GlHeight);
 
+   if (Vdp2Regs->TVMD & 0x100) {
+     //Use last border color to clear the screen
+     col[0] = _Ygl->last_back_color[0];
+     col[1] = _Ygl->last_back_color[1];
+     col[2] = _Ygl->last_back_color[2];
+     col[3] = _Ygl->last_back_color[3];
+   }
    glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
    glClearBufferfv(GL_COLOR, 0, col);
 

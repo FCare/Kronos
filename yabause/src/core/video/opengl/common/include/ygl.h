@@ -660,7 +660,7 @@ typedef struct {
    float vdp2hdensity;
 
    InterlaceMode interlace;
-
+   float last_back_color[4];
 } Ygl;
 
 extern Ygl * _Ygl;

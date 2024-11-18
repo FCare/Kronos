@@ -1624,6 +1624,10 @@ void YglSetClearColor(float r, float g, float b){
   _Ygl->clear[1] = g;
   _Ygl->clear[2] = b;
   _Ygl->clear[3] = (float)(0xF8|NONE)/255.0f;
+  _Ygl->last_back_color[0] = r;
+  _Ygl->last_back_color[1] = g;
+  _Ygl->last_back_color[2] = b;
+  _Ygl->last_back_color[3] = 1.0;
 }
 
 void YglCheckFBSwitch(int sync) {
