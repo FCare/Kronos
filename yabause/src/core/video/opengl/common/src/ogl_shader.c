@@ -1262,7 +1262,7 @@ int YglBlitTexture(int* prioscreens, int* modescreens, int* isRGB, int * isBlur,
   }
 
   glActiveTexture(gltext[7]);
-  glBindTexture(GL_TEXTURE_2D, _Ygl->back_fbotex[0]);
+  glBindTexture(GL_TEXTURE_2D, _Ygl->back_fbotex);
 
   if (_Ygl->linecolorscreen_tex != 0){
     glActiveTexture(gltext[8]);

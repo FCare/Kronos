@@ -743,9 +743,9 @@ static int YglGenerateScreenBuffer(){
 
 //////////////////////////////////////////////////////////////////////////////
 static int YglDestroyBackBuffer() {
-  if (_Ygl->back_fbotex[0] != 0) {
-    glDeleteTextures(2,&_Ygl->back_fbotex[0]);
-    _Ygl->back_fbotex[0] = 0;
+  if (_Ygl->back_fbotex != 0) {
+    glDeleteTextures(1,&_Ygl->back_fbotex);
+    _Ygl->back_fbotex = 0;
   }
   if (_Ygl->back_fbo != 0){
     glDeleteFramebuffers(1, &_Ygl->back_fbo);
@@ -760,20 +760,17 @@ static int YglGenerateBackBuffer(){
 
   YGLDEBUG("YglGenerateBackBuffer: %d,%d\n", _Ygl->width, _Ygl->height);
 
-  glGenTextures(2, &_Ygl->back_fbotex[0]);
-  for (int i=0; i<2; i++) {
-    glBindTexture(GL_TEXTURE_2D, _Ygl->back_fbotex[i]);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _Ygl->rwidth, _Ygl->rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  }
+  glGenTextures(1, &_Ygl->back_fbotex);
+  glBindTexture(GL_TEXTURE_2D, _Ygl->back_fbotex);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, _Ygl->rwidth, _Ygl->rheight, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
   glGenFramebuffers(1, &_Ygl->back_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->back_fbo);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _Ygl->back_fbotex[0], 0);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _Ygl->back_fbotex[1], 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _Ygl->back_fbotex, 0);
   status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
     YGLDEBUG("YglGenerateOriginalBuffer:Framebuffer status = %08X\n", status);

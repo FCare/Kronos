@@ -539,7 +539,7 @@ typedef struct {
    GLuint original_fbotex[NB_RENDER_LAYER];
 
    GLuint back_fbo;
-   GLuint back_fbotex[2];
+   GLuint back_fbotex;
 
    GLuint screen_fbo;
    GLuint screen_fbotex[SPRITE];
