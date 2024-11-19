@@ -1618,15 +1618,11 @@ SpriteMode getSpriteRenderMode(Vdp2* varVdp2Regs) {
   return ret;
 }
 
-void YglSetClearColor(float r, float g, float b){
-  _Ygl->clear[0] = r;
-  _Ygl->clear[1] = g;
-  _Ygl->clear[2] = b;
-  _Ygl->clear[3] = (float)(0xF8|NONE)/255.0f;
+void YglSetBackColor(float r, float g, float b){
   _Ygl->last_back_color[0] = r;
   _Ygl->last_back_color[1] = g;
   _Ygl->last_back_color[2] = b;
-  _Ygl->last_back_color[3] = 1.0;
+  _Ygl->last_back_color[3] = (float)(0xF8|NONE)/255.0f;
 }
 
 void YglCheckFBSwitch(int sync) {
@@ -1996,7 +1992,7 @@ u32* YglGetBackColorPointer() {
   return _Ygl->backcolor_buf;
 }
 
-void YglSetBackColor(int size) {
+void YglSetBackTextureColor(int size) {
   glBindTexture(GL_TEXTURE_2D, _Ygl->back_tex);
 #if 0
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, size, 1, GL_RGBA, GL_UNSIGNED_BYTE, _Ygl->backcolor_buf);

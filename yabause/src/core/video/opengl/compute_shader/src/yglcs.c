@@ -434,7 +434,7 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
     if ((varVdp2Regs->BKTAU & 0x8000) != 0) {
       YglDrawBackScreen();
     }else{
-      glClearBufferfv(GL_COLOR, 0, _Ygl->clear);
+      glClearBufferfv(GL_COLOR, 0, _Ygl->last_back_color);
     }
   }
 

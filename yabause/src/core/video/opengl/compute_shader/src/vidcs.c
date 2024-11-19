@@ -3958,12 +3958,12 @@ static void Vdp2DrawBackScreen(Vdp2 *varVdp2Regs)
           _Ygl->last_back_color[3] = 1.0;
         }
       }
-      YglSetBackColor(_Ygl->rheight);
+      YglSetBackTextureColor(_Ygl->rheight);
     }
   }
   else {
     dot = Vdp2RamReadWord(NULL, Vdp2Ram, scrAddr);
-    YglSetClearColor(
+    YglSetBackColor(
       (float)(((dot & 0x1F) << 3) + info.cor) / (float)(0xFF),
       (float)((((dot & 0x3E0) >> 5) << 3) + info.cog) / (float)(0xFF),
       (float)((((dot & 0x7C00) >> 10) << 3) + info.cob) / (float)(0xFF)

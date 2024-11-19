@@ -513,8 +513,6 @@ typedef struct {
    unsigned int width;
    unsigned int height;
 
-   float clear[4];
-
    // VDP1 Framebuffer
    int rwidth;
    int rheight;
@@ -703,7 +701,7 @@ void YglShowTexture(void);
 void YglChangeResolution(int, int);
 void YglCacheQuadGrowShading(YglSprite * input, float * colors, YglCache * cache, YglTextureManager *tm);
 int YglQuadGrowShading(YglSprite * input, YglTexture * output, float * colors,YglCache * c, YglTextureManager *tm);
-void YglSetClearColor(float r, float g, float b);
+void YglSetBackColor(float r, float g, float b);
 void YglStartWindow( vdp2draw_struct * info, int win0, int logwin0, int win1, int logwin1, int mode );
 void YglEndWindow( vdp2draw_struct * info );
 
@@ -759,7 +757,7 @@ u32 * YglGetLineColorOffsetPointer(int id, int start, int size);
 void YglSetLineColorOffset(u32 * pbuf, int start, int size, int id);
 
 u32* YglGetBackColorPointer();
-void YglSetBackColor(int size);
+void YglSetBackTextureColor(int size);
 
 void YglGetWindowPointer(int id);
 void YglSetWindow(int id);
