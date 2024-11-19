@@ -449,7 +449,7 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
    int scali = (int)(scale);
    glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
 #ifndef __LIBRETRO__
-  if ((Vdp2Regs->TVMD & 0x8100) != 0) {
+  if ((Vdp2Regs->TVMD & 0x100) != 0) {
     //Use last border color to clear the screen
     glViewport(0, 0, GlWidth, GlHeight);
     glScissor(0, 0, GlWidth, GlHeight);
