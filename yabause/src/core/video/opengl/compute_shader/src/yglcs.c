@@ -427,15 +427,10 @@ void VIDCSRender(Vdp2 *varVdp2Regs) {
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->back_fbo);
   glDrawBuffers(1, &DrawBuffers[0]);
   //glClearBufferfv(GL_COLOR, 0, col);
-  if ((Vdp2Regs->TVMD & 0x8100) == 0) {
-    float black[4] = {0.0};
-    glClearBufferfv(GL_COLOR, 0, black);
-  } else {
-    if ((varVdp2Regs->BKTAU & 0x8000) != 0) {
-      YglDrawBackScreen();
-    }else{
-      glClearBufferfv(GL_COLOR, 0, _Ygl->last_back_color);
-    }
+  if ((varVdp2Regs->BKTAU & 0x8000) != 0) {
+    YglDrawBackScreen();
+  }else{
+    glClearBufferfv(GL_COLOR, 0, _Ygl->last_back_color);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->original_fbo);
