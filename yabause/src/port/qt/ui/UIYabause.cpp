@@ -285,7 +285,7 @@ void UIYabause::runActionsAlreadyPaused() {
 			mYabauseThread->OpenTray();
 			if (bundle != NULL) {
 				loadGameFromFile(*((QString*)bundle));
-				delete bundle;
+				delete (QString*)bundle;
 			} else {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
 				loadGameFromFile(fn);
@@ -345,7 +345,7 @@ void UIYabause::runActions() {
 				mYabauseThread->SetCdInserted(false);
 				mYabauseThread->OpenTray();
 				loadGameFromFile(*((QString*)bundle));
-				delete bundle;
+				delete (QString*)bundle;
 				mYabauseThread->resetEmulation();
 			} else {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
