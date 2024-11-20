@@ -65,6 +65,8 @@ int g_frame_count = 0;
 
 //#define LOG yprintf
 
+static void updateCyclePattern();
+
 //////////////////////////////////////////////////////////////////////////////
 
 u8 Vdp2RamIsUpdated(void)
@@ -479,7 +481,7 @@ static int checkFrameSkip(void) {
   return !(yabsys.frame_count % (yabsys.skipframe+1) == 0);
 }
 
-void updateCyclePattern() {
+static void updateCyclePattern() {
   int i = 0;
   Vdp2External.AC_VRAM[0][0] = (Vdp2Regs->CYCA0L >> 12) & 0x0F;
   Vdp2External.AC_VRAM[0][1] = (Vdp2Regs->CYCA0L >> 8) & 0x0F;
