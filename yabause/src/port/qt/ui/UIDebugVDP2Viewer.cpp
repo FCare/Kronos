@@ -24,6 +24,10 @@
 #include <QImageWriter>
 #include <QGraphicsPixmapItem>
 
+void UIDebugVDP2Viewer::clearItems() {
+	while (cbScreen->count() != 0)
+		cbScreen->removeItem(0);
+}
 void UIDebugVDP2Viewer::addItem(int id) {
 	switch(id) {
 		case NBG0:

@@ -28,6 +28,7 @@ class UIDebugVDP2Viewer : public QDialog, public Ui::UIDebugVDP2Viewer
 public:
 	UIDebugVDP2Viewer( QWidget* parent = 0 );
 	void addItem(int i);
+	void clearItems();
 	int exec() override;
 	void showEvent(QShowEvent *) override;
 private:

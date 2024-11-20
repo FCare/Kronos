@@ -42,6 +42,7 @@ void UIDebugVDP2::updateScreenInfos() {
    if (Vdp2Regs)
    {
 		 	int index = 0;
+			viewer->clearItems();
 			for (int i=0; i<8; i++) {
 				DebugGrid->removeWidget(items[i].cb);
 				bool isVisible = updateInfoDisplay(items[i].debugStats, items[i].cb, items[i].pte);
