@@ -3021,7 +3021,7 @@ FASTCALL void SH2DebugInterpreterExecSave(SH2_struct *context, u32 cycles, sh2re
 
       // Execute it
       opcodes[context->instruction](context);
-      if(context->isAccessingCPUBUS != 0) {
+      if(context->isBlocked != 0) {
         context->cycles = context->target_cycles;
         memcpy(& context->regs, oldRegs, sizeof(sh2regs_struct));
         return;
@@ -3065,7 +3065,7 @@ FASTCALL void SH2InterpreterExecSave(SH2_struct *context, u32 cycles, sh2regs_st
 
       // Execute it
       opcodes[context->instruction](context);
-      if(context->isAccessingCPUBUS != 0) {
+      if(context->isBlocked != 0) {
         context->cycles = context->target_cycles;
         memcpy(& context->regs, oldRegs, sizeof(sh2regs_struct));
         return;

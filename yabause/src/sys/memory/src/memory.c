@@ -743,14 +743,14 @@ CACHE_LOG("rb %x %x\n", addr, addr >> 29);
    {
       case 0x1:
       {
-        context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+        SH2UpdateABusAccess(context, 1); //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
         return ReadByteList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr);
       }
       case 0x0:
       case 0x4:
       {
-         if (context->cacheOn) context->isAccessingCPUBUS &= ~A_BUS_ACCESS;
-         else context->isAccessingCPUBUS |= A_BUS_ACCESS;
+         if (context->cacheOn) SH2UpdateABusAccess(context, 0);
+         else SH2UpdateABusAccess(context, 1);
          return CacheReadByteList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr);
       }
       case 0x2:
@@ -802,12 +802,12 @@ u16 FASTCALL SH2MappedMemoryReadWord(SH2_struct *context, u32 addr)
    {
       case 0x1:
       {
-        context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+        SH2UpdateABusAccess(context, 1);; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
         return ReadWordList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr);
       }
       case 0x0: //0x0 cache
-      if (context->cacheOn) context->isAccessingCPUBUS &= ~A_BUS_ACCESS;
-      else context->isAccessingCPUBUS |= A_BUS_ACCESS;
+      if (context->cacheOn) SH2UpdateABusAccess(context, 0);
+      else SH2UpdateABusAccess(context, 1);
            return CacheReadWordList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr);
       case 0x2:
       case 0x5:
@@ -858,13 +858,13 @@ u32 FASTCALL SH2MappedMemoryReadLong(SH2_struct *context, u32 addr)
    {
       case 0x1: //0x0 no cache
       {
-        context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+        SH2UpdateABusAccess(context, 1); //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
         return ReadLongList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr);
       }
       case 0x0:
       {
-        if (context->cacheOn) context->isAccessingCPUBUS &= ~A_BUS_ACCESS;
-        else context->isAccessingCPUBUS |= A_BUS_ACCESS;
+        if (context->cacheOn) SH2UpdateABusAccess(context, 0);
+        else SH2UpdateABusAccess(context, 1);
          return CacheReadLongList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr);
       }
       case 0x2:
@@ -923,15 +923,15 @@ void FASTCALL SH2MappedMemoryWriteByte(SH2_struct *context, u32 addr, u8 val)
    {
       case 0x1:
       {
-        context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+        SH2UpdateABusAccess(context, 1); //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
         WriteByteList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr, val);
         return;
       }
       case 0x0:
       {
         CACHE_LOG("wb %x %x\n", addr, addr >> 29);
-        if (context->cacheOn) context->isAccessingCPUBUS &= ~A_BUS_ACCESS;
-        else context->isAccessingCPUBUS |= A_BUS_ACCESS;
+        if (context->cacheOn) SH2UpdateABusAccess(context, 0);
+        else SH2UpdateABusAccess(context, 1);
          CacheWriteByteList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr, val);
          return;
       }
@@ -992,7 +992,7 @@ void FASTCALL SH2MappedMemoryWriteWord(SH2_struct *context, u32 addr, u16 val)
    {
       case 0x1:
       {
-        context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+        SH2UpdateABusAccess(context, 1); //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
         WriteWordList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr, val);
         return;
       }
@@ -1000,8 +1000,8 @@ void FASTCALL SH2MappedMemoryWriteWord(SH2_struct *context, u32 addr, u16 val)
       {
 CACHE_LOG("ww %x %x\n", addr, addr >> 29);
          // Cache/Non-Cached
-         if (context->cacheOn) context->isAccessingCPUBUS &= ~A_BUS_ACCESS;
-         else context->isAccessingCPUBUS |= A_BUS_ACCESS;
+         if (context->cacheOn) SH2UpdateABusAccess(context, 0);
+         else SH2UpdateABusAccess(context, 1);
          CacheWriteWordList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr, val);
          return;
       }
@@ -1063,7 +1063,7 @@ void FASTCALL SH2MappedMemoryWriteLong(SH2_struct *context, u32 addr, u32 val)
    {
       case 0x1:
       {
-        context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+        SH2UpdateABusAccess(context, 1); //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
         WriteLongList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr, val);
         return;
       }
@@ -1071,8 +1071,8 @@ void FASTCALL SH2MappedMemoryWriteLong(SH2_struct *context, u32 addr, u32 val)
       {
 CACHE_LOG("wl %x %x\n", addr, addr >> 29);
          // Cache/Non-Cached
-         if (context->cacheOn) context->isAccessingCPUBUS &= ~A_BUS_ACCESS;
-         else context->isAccessingCPUBUS |= A_BUS_ACCESS;
+         if (context->cacheOn) SH2UpdateABusAccess(context, 0);
+         else SH2UpdateABusAccess(context, 1);
          CacheWriteLongList[(addr >> 16) & 0xFFF](context, *(MemoryBuffer[(addr >> 16) & 0xFFF]), addr, val);
          return;
       }

@@ -492,8 +492,8 @@ FASTCALL void SH2KronosInterpreterExecSave(SH2_struct *context, u32 cycles, sh2r
     int id = (context->regs.PC >> 20) & 0xFFF;
     // if (context == SSH2) YuiMsg("%x\n", context->regs.PC);
     u16 opcode = krfetchlist[id](context, context->regs.PC);
-    if(context->isAccessingCPUBUS == 0) opcodeTable[opcode](context);
-    if(context->isAccessingCPUBUS != 0) {
+    if(context->isBlocked == 0) opcodeTable[opcode](context);
+    if(context->isBlocked != 0) {
       context->cycles = context->target_cycles;
       memcpy(&context->regs, oldRegs, sizeof(sh2regs_struct));
       context->target_cycles = 0;
@@ -501,7 +501,6 @@ FASTCALL void SH2KronosInterpreterExecSave(SH2_struct *context, u32 cycles, sh2r
     }
   }
   context->target_cycles = 0;
-  if (context == MSH2) printf("done cycle %d\n", context->target_cycles);
 }
 
 static int enableTrace = 0;
@@ -597,14 +596,14 @@ FASTCALL void SH2KronosDebugInterpreterExecSave(SH2_struct *context, u32 cycles,
       if (shallExecute != 0) {
         context->instruction = krfetchlist[id](context, context->regs.PC);
         cacheCode[context->isslave][cacheId[id]][(context->regs.PC >> 1) & cacheMask[cacheId[id]]] = opcodeTable[context->instruction];
-        if(context->isAccessingCPUBUS == 0) {
+        if(context->isBlocked == 0) {
           SH2HandleBackTrace(context);
           SH2HandleStepOverOut(context);
           SH2HandleTrackInfLoop(context);
           opcodeTable[context->instruction](context);
         }
       }
-      if(context->isAccessingCPUBUS != 0) {
+      if(context->isBlocked != 0) {
         context->cycles = context->target_cycles;
         memcpy(&context->regs, oldRegs, sizeof(sh2regs_struct));
         return;

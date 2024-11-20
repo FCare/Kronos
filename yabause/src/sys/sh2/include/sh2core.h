@@ -430,6 +430,8 @@ typedef struct SH2_struct_s
    sh2regs_struct regs;
    Onchip_struct onchip;
    u8 isAccessingCPUBUS;
+   u8 isAccessingVram;
+   u8 isBlocked;
 
    struct
    {
@@ -600,8 +602,12 @@ void SH2TrackInfLoopClear(SH2_struct *context);
 void SH2Disasm(u32 v_addr, u16 op, int mode, sh2regs_struct *r, char *string);
 void SH2DumpHistory(SH2_struct *context);
 
-void SH2SetCPUConcurrency(SH2_struct *context, u8 on);
-void SH2ClearCPUConcurrency(SH2_struct *context, u8 on);
+void SH2UpdateBlockedState(SH2_struct *context);
+void SH2UpdateABusAccess(SH2_struct *context, int on);
+void SH2SetVRamAccess(SH2_struct *context, int mask);
+void SH2ClearVRamAccess(SH2_struct *context, int mask);
+void SH2SetCPUConcurrency(SH2_struct *context, u8 mask);
+void SH2ClearCPUConcurrency(SH2_struct *context, u8 mask);
 
 int BackupHandled(SH2_struct * sh, u32 addr);
 int isBackupHandled(u32 addr);

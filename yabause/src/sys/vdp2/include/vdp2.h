@@ -386,6 +386,7 @@ typedef struct {
    int cpu_cycle_a;
    int cpu_cycle_b;
    u8 AC_VRAM[4][8];
+   u8 vdp2_blocked[4];
 } Vdp2External_struct;
 
 extern Vdp2External_struct Vdp2External;

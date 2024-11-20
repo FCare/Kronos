@@ -112,20 +112,20 @@ ScspDsp scsp_dsp = { 0 };
 
 #ifndef NO_CLI
 void print_usage(const char *program_name) {
-   printf("Yabause v" VERSION "\n");
-   printf("\n"
+   YuiMsg("Yabause v" VERSION "\n");
+   YuiMsg("\n"
           "Purpose:\n"
           "  This program is intended to be a Sega Saturn emulator\n"
           "\n"
           "Usage: %s [OPTIONS]...\n", program_name);
-   printf("   -h         --help                 Print help and exit\n");
-   printf("   -b STRING  --bios=STRING          bios file\n");
-   printf("   -l STRING  --language=STRING      english, deutsch, french, spanish,\n                                     italian, japanese\n");
-   printf("   -i STRING  --iso=STRING           iso/cue file\n");
-   printf("   -c STRING  --cdrom=STRING         cdrom path\n");
-   printf("   -ns        --nosound              turn sound off\n");
-   printf("   -a         --autostart            autostart emulation\n");
-   printf("   -f         --fullscreen           start in fullscreen mode\n");
+   YuiMsg("   -h         --help                 Print help and exit\n");
+   YuiMsg("   -b STRING  --bios=STRING          bios file\n");
+   YuiMsg("   -l STRING  --language=STRING      english, deutsch, french, spanish,\n                                     italian, japanese\n");
+   YuiMsg("   -i STRING  --iso=STRING           iso/cue file\n");
+   YuiMsg("   -c STRING  --cdrom=STRING         cdrom path\n");
+   YuiMsg("   -ns        --nosound              turn sound off\n");
+   YuiMsg("   -a         --autostart            autostart emulation\n");
+   YuiMsg("   -f         --fullscreen           start in fullscreen mode\n");
 }
 #endif
 

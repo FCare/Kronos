@@ -139,52 +139,58 @@ static void SH2StandardExec(SH2_struct *context, u32 cycles) {
 
 static sh2regs_struct oldRegs;
 static void SH2BlockableExec(SH2_struct *context, u32 cycles) {
-  if (context->isAccessingCPUBUS == 0) {
+  if (context->isBlocked == 0) {
     SH2Core->ExecSave(context, cycles, &oldRegs);
   } else {
     context->cycles += cycles;
   }
 }
 
-static void updateSH2BlockedState(SH2_struct *context) {
-  if ((context->blockingMask != 0) && (context->SH2InterruptibleExec != SH2BlockableExec)) {
-    context->SH2InterruptibleExec = SH2BlockableExec;
+void SH2UpdateABusAccess(SH2_struct *context, int on) {
+  if (context->isAccessingCPUBUS != on) {
+    context->isAccessingCPUBUS = on;
+    SH2UpdateBlockedState(context);
   }
-  if ((context->blockingMask == 0) && (context->SH2InterruptibleExec != SH2StandardExec)) {
-    context->SH2InterruptibleExec = SH2StandardExec;
+}
+
+void SH2SetVRamAccess(SH2_struct *context, int mask) {
+  if (!(context->isAccessingVram & mask)) {
+    context->isAccessingVram |= mask;
+    SH2UpdateBlockedState(context);
   }
+}
+void SH2ClearVRamAccess(SH2_struct *context, int mask) {
+  if (context->isAccessingVram & mask) {
+    context->isAccessingVram &= ~mask;
+    SH2UpdateBlockedState(context);
+  }
+}
+
+static int isDMABlocked(SH2_struct *context) {
+  return (context->isAccessingCPUBUS != 0)&&((context->blockingMask & A_BUS_ACCESS)!=0);
+}
+
+void SH2UpdateBlockedState(SH2_struct *context){
+  context->isBlocked =  (context->isAccessingCPUBUS != 0)||((context->blockingMask & A_BUS_ACCESS)!=0);
+  context->isBlocked |= ((context->isAccessingVram & context->blockingMask)!=0);
 }
 
 void SH2SetCPUConcurrency(SH2_struct *context, u8 mask) {
-  context->blockingMask |= mask;
-  if (mask == A_BUS_ACCESS) context->isAccessingCPUBUS = 0;
-  updateSH2BlockedState(context);
-
-  // if (mask == A_BUS_ACCESS) {
-  //   if (context->SH2InterruptibleExec != SH2BlockableExec) {
-  //     context->isAccessingCPUBUS = 0;
-  //     context->SH2InterruptibleExec = SH2BlockableExec;
-  //   }
-  // }
-  // else {
-  //   context->blockingMask |= mask;
-  //   updateSH2BlockedState(context);
-  // }
+  if ((context->SH2InterruptibleExec != SH2BlockableExec) || !(context->blockingMask & mask)) {
+    context->blockingMask |= mask;
+    if (context->blockingMask != 0) context->SH2InterruptibleExec = SH2BlockableExec;
+    if (mask == A_BUS_ACCESS) SH2UpdateABusAccess(context, 0);
+    else SH2ClearVRamAccess(context, mask);
+  }
 }
 
 void SH2ClearCPUConcurrency(SH2_struct *context, u8 mask) {
-  context->blockingMask &= ~mask;
-  if (mask == A_BUS_ACCESS) context->isAccessingCPUBUS = 0;
-  updateSH2BlockedState(context);
-  // if (mask == A_BUS_ACCESS) {
-  //   if (context->SH2InterruptibleExec != SH2StandardExec) {
-  //     context->isAccessingCPUBUS = 0;
-  //     context->SH2InterruptibleExec = SH2StandardExec;
-  //   }
-  // } else {
-  //   context->blockingMask &= ~mask;
-  //   updateSH2BlockedState(context);
-  // }
+  if ((context->SH2InterruptibleExec != SH2StandardExec) && (context->blockingMask & mask)) {
+    context->blockingMask &= ~mask;
+    if (context->blockingMask == 0) context->SH2InterruptibleExec = SH2StandardExec;
+    if (mask == A_BUS_ACCESS) SH2UpdateABusAccess(context, 0);
+    else SH2ClearVRamAccess(context, mask);
+  }
 }
 
 int SH2Init(int coreid)
@@ -202,6 +208,8 @@ int SH2Init(int coreid)
    MSH2->isslave = 0;
    MSH2->isAccessingCPUBUS = 0;
    MSH2->interruptReturnAddress = 0;
+   MSH2->isAccessingVram = 0;
+   MSH2->isBlocked = 0;
 
 
     MSH2->dma_ch0.CHCR = &MSH2->onchip.CHCR0;
@@ -230,6 +238,8 @@ int SH2Init(int coreid)
     SSH2->onchip.BCR1 = 0x8000;
     SSH2->isslave = 1;
     SSH2->isAccessingCPUBUS = 0;
+    SSH2->isAccessingVram = 0;
+    SSH2->isBlocked = 0;
 
     SSH2->dma_ch0.CHCR = &SSH2->onchip.CHCR0;
     SSH2->dma_ch0.CHCRM = &SSH2->onchip.CHCR0M;
@@ -1596,7 +1606,7 @@ static u8 getLRU(SH2_struct *context, u32 tag, u8 line) {
 }
 
 static inline void CacheWriteThrough(SH2_struct *context, u8* mem, u32 addr, u32 val, u8 size) {
-  context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+  SH2UpdateABusAccess(context, 1); //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
   switch(size) {
   case 1:
     WriteByteList[(addr >> 16) & 0xFFF](context, mem, addr, val);
@@ -1740,7 +1750,7 @@ void disableCache(SH2_struct *context) {
 void CacheFetch(SH2_struct *context, u8* memory, u32 addr, u8 way) {
   u8 line = (addr>>4)&0x3F;
   u32 tag = (addr>>10)&0x7FFFF;
-  context->isAccessingCPUBUS |= A_BUS_ACCESS; //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
+  SH2UpdateABusAccess(context, 1); //When cpu access CPU-BUs at the same time as SCU, there might be a penalty
   UpdateLRU(context, line, way);
   context->tagWay[line][tag] = way;
   context->cacheTagArray[line][way] = tag;
@@ -2181,6 +2191,9 @@ void DMATransferCycles(SH2_struct *context, Dmac * dmac, int cycles ){
    int count;
 
    //LOG("sh2 dma src=%08X,dst=%08X,%d type:%d cycle:%d\n", *dmac->SAR, *dmac->DAR, *dmac->TCR, ((*dmac->CHCR & 0x0C00) >> 10), cycles);
+   if (isDMABlocked(context)) {
+     return;
+   }
 
    if (!(*dmac->CHCR & 0x2)) { // TE is not set
       int srcInc;
