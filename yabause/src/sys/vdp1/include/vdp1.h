@@ -73,6 +73,7 @@ typedef struct {
    int manualerase;
    int manualchange;
    int onecycleerase;
+   int onelasterase;
    int onecyclechange;
    int useVBlankErase;
    int current_frame;

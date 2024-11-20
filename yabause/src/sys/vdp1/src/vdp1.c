@@ -594,7 +594,8 @@ static void updateFBCRErase() {
     // Only at frame change the order is executed.
     //This allows to have both a manual clear and a manual change at the same frame without continuously clearing the VDP1
     //The mechanism is used by the official bios animation
-    Vdp1External.onecycleerase = ((Vdp1Regs->FBCR & 3) == 0) || ((Vdp1Regs->FBCR & 3) == 1);
+    Vdp1External.onecycleerase = ((Vdp1Regs->FBCR & 3) == 0) || ((Vdp1Regs->FBCR & 3) == 1) || Vdp1External.onelasterase;
+    Vdp1External.onelasterase = 0;
     Vdp1External.manualerase = ((Vdp1Regs->FBCR & 3) == 2);
   }
   FBCREraseUpdated = 0;
@@ -663,6 +664,11 @@ void FASTCALL Vdp1WriteWord(SH2_struct *context, u8* mem, u32 addr, u16 val) {
       FRAMELOG("TVMR => Write VBE=%d FCM=%d FCT=%d line = %d (%d)\n", (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount, yabsys.DecilineCount);
     break;
     case 0x2:
+      if (((Vdp1Regs->FBCR & 0x2)==0) && ((val & 0x2)!=0) && (((Vdp1Regs->TVMR >> 3) & 0x01) != 1))
+      {
+        //Need a last erase
+        Vdp1External.onelasterase = 1;
+      }
       Vdp1Regs->FBCR = val;
       FRAMELOG("FBCR => Write %x VBE=%d FCM=%d FCT=%d line = %d (%d) (VBlank %d, max %d)\n", val, (Vdp1Regs->TVMR >> 3) & 0x01, (Vdp1Regs->FBCR & 0x02) >> 1, (Vdp1Regs->FBCR & 0x01),  yabsys.LineCount, yabsys.DecilineCount, yabsys.VBlankLineCount, yabsys.MaxLineCount);
       FBCREraseUpdated = 1;
