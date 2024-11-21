@@ -144,7 +144,7 @@ void UIDebugVDP2Viewer::on_pbSaveAsBitmap_clicked ()
 	// write image if ok
 	if ( !s.isEmpty() )
 		if ( !img.save( s ) )
-			CommonDialogs::information( QtYabause::translate( "An error occured while writing file." ) );
+			CommonDialogs::error( QtYabause::translate( "An error occured while writing file." ) );
 }
 
 void UIDebugVDP2Viewer::on_cbOpaque_toggled(bool enable) {

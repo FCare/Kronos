@@ -148,7 +148,7 @@ void UIMemorySearch::accept()
 
    if (startAddress >= endAddress)
    {
-      CommonDialogs::information(QtYabause::translate("Invalid Start/End Address Combination"), QtYabause::translate("Error"));
+      CommonDialogs::error(QtYabause::translate("Invalid Start/End Address Combination"), QtYabause::translate("Error"));
       return;
    }
 

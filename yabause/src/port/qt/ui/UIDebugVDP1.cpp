@@ -247,7 +247,7 @@ void UIDebugVDP1::on_pbSaveRawSprite_clicked ()
     }
 
 		if (!fileWritten)
-			CommonDialogs::information( QtYabause::translate( "An error occured while writing file." ) );
+			CommonDialogs::error( QtYabause::translate( "An error occured while writing file." ) );
   }
 }
 
@@ -270,7 +270,7 @@ void UIDebugVDP1::on_pbSaveBitmap_clicked ()
 	// write image if ok
 	if ( !s.isEmpty() )
 		if ( !img.save( s ) )
-			CommonDialogs::information( QtYabause::translate( "An error occured while writing file." ) );
+			CommonDialogs::error( QtYabause::translate( "An error occured while writing file." ) );
 }
 
 void UIDebugVDP1::on_pbNextButton_clicked() {

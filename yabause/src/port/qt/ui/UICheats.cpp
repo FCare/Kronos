@@ -79,14 +79,14 @@ void UICheats::addARCode( const QString& c, const QString& d )
 	// add code
 	if ( CheatAddARCode( c.toLatin1().constData() ) != 0 )
 	{
-		CommonDialogs::information( QtYabause::translate( "Unable to add code" ) );
+		CommonDialogs::error( QtYabause::translate( "Unable to add code" ) );
 		return;
 	}
 	// change the description
 	int cheatsCount;
 	mCheats = CheatGetList( &cheatsCount );
 	if ( CheatChangeDescriptionByIndex( cheatsCount -1, d.toLatin1().data() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Unable to change description" ) );
+		CommonDialogs::error( QtYabause::translate( "Unable to change description" ) );
 	// add code in treewidget
 	addCode( cheatsCount -1 );
 }
@@ -100,20 +100,20 @@ void UICheats::addRawCode( int t, const QString& a, const QString& v, const QStr
 	u = a.toUInt( &b, 16 );
 	if ( !b )
 	{
-		CommonDialogs::information( QtYabause::translate( "Invalid Address" ) );
+		CommonDialogs::error( QtYabause::translate( "Invalid Address" ) );
 		return;
 	}
 	// check value
 	u = v.toUInt( &b, 16 );
 	if ( !b )
 	{
-		CommonDialogs::information( QtYabause::translate( "Invalid Value" ) );
+		CommonDialogs::error( QtYabause::translate( "Invalid Value" ) );
 		return;
 	}
 	// add value
 	if ( CheatAddCode( t, a.toUInt(NULL, 16), v.toUInt() ) != 0 )
 	{
-		CommonDialogs::information( QtYabause::translate( "Unable to add code" ) );
+		CommonDialogs::error( QtYabause::translate( "Unable to add code" ) );
 		return;
 	}
 	// get cheats and cheats count
@@ -121,7 +121,7 @@ void UICheats::addRawCode( int t, const QString& a, const QString& v, const QStr
 	mCheats = CheatGetList( &cheatsCount );
 	// change description
 	if ( CheatChangeDescriptionByIndex( cheatsCount -1, d.toLatin1().data() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Unable to change description" ) );
+		CommonDialogs::error( QtYabause::translate( "Unable to change description" ) );
 	// add code in treewidget
 	addCode( cheatsCount -1 );
 }
@@ -160,7 +160,7 @@ void UICheats::on_pbDelete_clicked()
 		// remove cheat
 		if ( CheatRemoveCodeByIndex( id ) != 0 )
 		{
-			CommonDialogs::information( QtYabause::translate( "Unable to remove code" ) );
+			CommonDialogs::error( QtYabause::translate( "Unable to remove code" ) );
 			return;
 		}
 		// delete item
@@ -202,7 +202,7 @@ void UICheats::on_pbSaveFile_clicked()
 	const QString s = CommonDialogs::getSaveFileName( ".", QtYabause::translate( "Choose a cheat file to save to" ), QtYabause::translate( "Kronos Cheat Files (*.yct);;All Files (*)" ) );
 	if ( !s.isEmpty() )
 		if ( CheatSave( s.toLatin1().constData() ) != 0 )
-			CommonDialogs::information( QtYabause::translate( "Unable to open file for loading" ) );
+			CommonDialogs::error( QtYabause::translate( "Unable to open file for loading" ) );
 }
 
 void UICheats::on_pbLoadFile_clicked()
@@ -222,6 +222,6 @@ void UICheats::on_pbLoadFile_clicked()
 				addCode( i );
 		}
 		else
-			CommonDialogs::information( QtYabause::translate( "Unable to open file for saving" ) );
+			CommonDialogs::error( QtYabause::translate( "Unable to open file for saving" ) );
 	}
 }

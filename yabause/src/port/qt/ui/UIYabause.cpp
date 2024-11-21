@@ -522,7 +522,7 @@ void UIYabause::errorReceived( const QString& error, bool internal )
 		QtYabause::appendLog( error.toLocal8Bit().constData() );
 	}
 	else {
-		if (!CommonDialogs::information( error )) exit(-1);
+		if (!CommonDialogs::error( error )) exit(-1);
 	}
 }
 
@@ -800,14 +800,14 @@ void UIYabause::on_aFileOpenCDRom_triggered()
 
 void UIYabause::saveSlot(int a) {
 	if ( YabSaveStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
+		CommonDialogs::error( QtYabause::translate( "Couldn't save state file" ) );
 	else
 		refreshStatesActions();
 }
 
 void UIYabause::loadSlot(int a) {
 	if ( YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
+		CommonDialogs::error( QtYabause::translate( "Couldn't load state file" ) );
 }
 
 void UIYabause::saveSlotAs() {
@@ -815,7 +815,7 @@ void UIYabause::saveSlotAs() {
 	if ( fn.isNull() )
 		return;
 	if ( YabSaveState( fn.toLatin1().constData() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
+		CommonDialogs::error( QtYabause::translate( "Couldn't save state file" ) );
 }
 
 void UIYabause::loadSlotAs() {
@@ -823,7 +823,7 @@ void UIYabause::loadSlotAs() {
 	if ( fn.isNull() )
 		return;
 	if ( YabLoadState( fn.toLatin1().constData() ) != 0 )
-		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
+		CommonDialogs::error( QtYabause::translate( "Couldn't load state file" ) );
 	else
 		aEmulationRun->trigger();
 }
@@ -887,7 +887,7 @@ void UIYabause::takeScreenshot(void) {
 			QImageWriter iw( s );
 			if ( !iw.write( screenshot ))
 			{
-				CommonDialogs::information( QtYabause::translate( "An error occur while writing the screenshot: " + iw.errorString()) );
+				CommonDialogs::error( QtYabause::translate( "An error occur while writing the screenshot: " + iw.errorString()) );
 			}
 		}
 }
@@ -942,7 +942,7 @@ void UIYabause::on_aToolsBackupManager_triggered()
 	YabauseLocker locker( mYabauseThread );
 	if ( mYabauseThread->init() < 0 )
 	{
-		CommonDialogs::information( QtYabause::translate( "Kronos is not initialized, can't manage backup ram." ) );
+		CommonDialogs::error( QtYabause::translate( "Kronos is not initialized, can't manage backup ram." ) );
 		return;
 	}
 	UIBackupRam( this ).exec();
@@ -1006,38 +1006,48 @@ void UIYabause::on_aViewFullscreen_triggered( bool b )
 
 void UIYabause::breakpointHandlerMSH2(bool displayMessage)
 {
-	YabauseLocker locker( mYabauseThread );
-	if (displayMessage)
-		CommonDialogs::information( QtYabause::translate( "Breakpoint Reached" ) );
-	UIDebugSH2(UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
+	ScspMuteAudio(SCSP_MUTE_SYSTEM);
+	if (displayMessage) {
+		if (CommonDialogs::information( QtYabause::translate( "MSH2 reached breakpoint at " ).append("0x%1").arg(MSH2->regs.PC, 0, 16)))
+			UIDebugSH2(UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
+		else
+			ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+	} else {
+		UIDebugSH2(UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
+	}
 }
 
 void UIYabause::breakpointHandlerSSH2(bool displayMessage)
 {
-	YabauseLocker locker( mYabauseThread );
-	if (displayMessage)
-		CommonDialogs::information( QtYabause::translate( "Breakpoint Reached" ) );
-	UIDebugSH2(UIDebugCPU::PROC_SSH2, mYabauseThread, this ).exec();
+	ScspMuteAudio(SCSP_MUTE_SYSTEM);
+	if (displayMessage) {
+		if (CommonDialogs::information( QtYabause::translate( "SSH2 reached breakpoint at " ).append("0x%1").arg(SSH2->regs.PC, 0, 16)))
+			UIDebugSH2(UIDebugCPU::PROC_SSH2, mYabauseThread, this ).exec();
+		else
+			ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+	} else {
+		UIDebugSH2(UIDebugCPU::PROC_SSH2, mYabauseThread, this ).exec();
+	}
 }
 
 void UIYabause::breakpointHandlerM68K()
 {
 	YabauseLocker locker( mYabauseThread );
-	CommonDialogs::information( QtYabause::translate( "Breakpoint Reached" ) );
+	CommonDialogs::error( QtYabause::translate( "Breakpoint Reached" ) );
 	UIDebugM68K( mYabauseThread, this ).exec();
 }
 
 void UIYabause::breakpointHandlerSCUDSP()
 {
 	YabauseLocker locker( mYabauseThread );
-	CommonDialogs::information( QtYabause::translate( "Breakpoint Reached" ) );
+	CommonDialogs::error( QtYabause::translate( "Breakpoint Reached" ) );
 	UIDebugSCUDSP( mYabauseThread, this ).exec();
 }
 
 void UIYabause::breakpointHandlerSCSPDSP()
 {
 	YabauseLocker locker( mYabauseThread );
-	CommonDialogs::information( QtYabause::translate( "Breakpoint Reached" ) );
+	CommonDialogs::error( QtYabause::translate( "Breakpoint Reached" ) );
 	UIDebugSCSPDSP( mYabauseThread, this ).exec();
 }
 

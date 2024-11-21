@@ -296,7 +296,7 @@ void UICheatSearch::on_pbAddCheat_clicked()
    {
       if ( CheatAddCode( d.type(), d.leAddress->text().toUInt(&b, 16), d.leValue->text().toUInt(&b, 16) ) != 0 )
       {
-         CommonDialogs::information( QtYabause::translate( "Unable to add code" ) );
+         CommonDialogs::error( QtYabause::translate( "Unable to add code" ) );
          return;
       }
       else

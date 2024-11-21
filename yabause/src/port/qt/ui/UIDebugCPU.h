@@ -55,6 +55,8 @@ public:
    virtual void reserved3();
    virtual void reserved4();
    virtual void reserved5();
+   int exec() override;
+   void done(int) override;
 
 protected:
    YabauseThread *mYabauseThread;

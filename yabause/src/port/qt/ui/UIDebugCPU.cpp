@@ -62,6 +62,16 @@ UIDebugCPU::UIDebugCPU( PROCTYPE proc, YabauseThread *mYabauseThread, QWidget* p
 	QtYabause::retranslateWidget( this );
 }
 
+int UIDebugCPU::exec() {
+	ScspMuteAudio(SCSP_MUTE_SYSTEM);
+	return QDialog::exec();
+}
+
+void UIDebugCPU::done(int r){
+	ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+	QDialog::done(r);
+}
+
 void UIDebugCPU::on_lwRegisters_itemDoubleClicked ( QListWidgetItem * item )
 {
 	int size;

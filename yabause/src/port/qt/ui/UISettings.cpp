@@ -289,7 +289,7 @@ void UISettings::tbBrowse_clicked()
 	{
 		if ( cbCdRom->currentText().contains( "dummy", Qt::CaseInsensitive ) )
 		{
-			CommonDialogs::information( QtYabause::translate( "The dummies cores don't need configuration." ) );
+			CommonDialogs::error( QtYabause::translate( "The dummies cores don't need configuration." ) );
 			return;
 		}
 		else if ( cbCdRom->currentText().contains( "iso", Qt::CaseInsensitive ) )

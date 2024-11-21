@@ -25,8 +25,12 @@ bool CommonDialogs::question( const QString& m, const QString& c )
 void CommonDialogs::warning( const QString& m, const QString& c )
 { QMessageBox::warning( QApplication::activeWindow(), c, m ); }
 
-bool CommonDialogs::information( const QString& m, const QString& c )
+bool CommonDialogs::error( const QString& m, const QString& c )
 { return QMessageBox::question( QApplication::activeWindow(), QtYabause::translate( c ), m, QMessageBox::Ok | QMessageBox::Abort, QMessageBox::Ok ) == QMessageBox::Ok; }
+
+bool CommonDialogs::information( const QString& m, const QString& c )
+{ return QMessageBox::question( QApplication::activeWindow(), QtYabause::translate( c ), m, QMessageBox::Ok | QMessageBox::Ignore, QMessageBox::Ok ) == QMessageBox::Ok; }
+
 
 QString CommonDialogs::getItem( const QStringList i, const QString& l, const QString& c )
 {

@@ -235,7 +235,7 @@ void UIMemoryEditor::searchResult(bool found, bool cancel, u32 address)
             }
          }
          else
-            CommonDialogs::information( "No matches found." );
+            CommonDialogs::error( "No matches found." );
       }
    }
 }
