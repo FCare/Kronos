@@ -759,26 +759,31 @@ void UIYabause::on_aFileOpenISO_triggered()
 	}
 }
 
-void UIYabause::loadCDRom()
+int UIYabause::loadCDRom()
 {
 	QStringList list = getCdDriveList();
 	int current = list.indexOf(QtYabause::volatileSettings()->value( "Recents/CDs").toString());
+	bool ok;
 	QString fn = QInputDialog::getItem(this, QtYabause::translate("Open CD Rom"),
 													QtYabause::translate("Choose a cdrom drive/mount point") + ":",
-													list, current, false);
+													list, current, false, &ok);
+	Settings* s = QtYabause::settings();
+	if (!ok) fn.clear();
+	s->setValue( "General/CdRomISO", fn );
+	s->setValue( "Recents/CDs", fn );
+	QtYabause::updateTitle(fn);
+	s->sync();
 	if (!fn.isEmpty())
 	{
-		VolatileSettings* vs = QtYabause::volatileSettings();
-
-		QtYabause::settings()->setValue( "Recents/CDs", fn );
-
 		// vs->setValue( "autostart", false );
-		vs->setValue( "General/CdRom", QtYabause::defaultCDCore().id );
-		vs->setValue( "General/CdRomISO", fn );
+		s->setValue( "General/CdRom", QtYabause::defaultCDCore().id );
 		mYabauseThread->SetCdInserted(true);
 		mYabauseThread->CloseTray();
-		refreshStatesActions();
+	} else {
+		s->setValue("General/CdRom", DummyCD.id);
 	}
+	refreshStatesActions();
+	return fn.isEmpty();
 }
 
 void UIYabause::on_aFileOpenCDRom_triggered()
@@ -1166,19 +1171,23 @@ void UIYabause::toggleEmulateMouse( bool enable, bool show )
 
 int UIYabause::loadGameFromFile(QString const& fileName)
 {
+	int ret = 1;
+	Settings* s = QtYabause::settings();
+	s->setValue("General/CdRomISO", fileName);
+	s->setValue("Recents/ISOs", fileName);
+	QtYabause::updateTitle(fileName);
 	if (QFile::exists(fileName))
 	{
-		VolatileSettings* vs = QtYabause::volatileSettings();
-
-		QtYabause::settings()->setValue("Recents/ISOs", fileName);
-
-		vs->setValue("General/CdRom", ISOCD.id);
-		vs->setValue("General/CdRomISO", fileName);
+		s->setValue("General/CdRom", ISOCD.id);
 		mYabauseThread->SetCdInserted(true);
+		ret = 0;
+	} else {
+		s->setValue("General/CdRom", DummyCD.id);
 	}
-
+	s->sync();
 	refreshStatesActions();
-	return 0;
+
+	return ret;
 }
 
 void UIYabause::dragEnterEvent(QDragEnterEvent* e)

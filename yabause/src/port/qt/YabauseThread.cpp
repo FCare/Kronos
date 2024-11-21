@@ -393,6 +393,7 @@ void YabauseThread::reloadSettings()
 
 	mYabauseConf.smpcpath = strdup( vs->value( "General/BiosSettings", mYabauseConf.smpcpath ).toString().toLatin1().constData() );
 	mYabauseConf.cdpath = strdup( vs->value( "General/CdRomISO", mYabauseConf.cdpath ).toString().toLatin1().constData() );
+	QtYabause::updateTitle(mYabauseConf.cdpath);
 	showFPS = vs->value( "General/ShowFPS", false ).toBool();
 	mYabauseConf.vsyncon = vs->value("General/EnableVSync", true).toBool();
 	mYabauseConf.usecache = vs->value("General/SH2Cache", false).toBool();

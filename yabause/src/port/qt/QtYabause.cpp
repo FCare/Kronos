@@ -234,6 +234,19 @@ UIYabause* QtYabause::mainWindow( bool create )
 	return mUIYabause;
 }
 
+void QtYabause::updateTitle(const QString& filename) {
+	QString title( "Kronos v%1" );
+	title=title.arg( VERSION );
+	if (filename != NULL) {
+		QFileInfo fi(filename);
+		if (fi.exists()) {
+			QString name = fi.fileName();
+			title.append(" ").append(name);
+		}
+	}
+	mainWindow()->setWindowTitle(title);
+}
+
 Settings* QtYabause::settings( bool create )
 {
 	if ( !mSettings && create )

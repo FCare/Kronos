@@ -179,6 +179,7 @@ namespace Arguments
 		VolatileSettings * vs = QtYabause::volatileSettings();
 		vs->setValue("General/CdRom", CDCORE_ARCH);
 		vs->setValue("General/CdRomISO", param);
+		QtYabause::updateTitle(param);
 	}
 
 	void fullscreen(const QString& param)

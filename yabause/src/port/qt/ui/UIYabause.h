@@ -109,7 +109,6 @@ public:
 	void swapBuffers();
 	virtual bool eventFilter( QObject* o, QEvent* e );
 
-	int loadGameFromFile(QString const & fullFilePath);
 	YabauseThread* mYabauseThread;
 private:
 	void takeScreenshot(void);
@@ -117,7 +116,8 @@ private:
 	void loadSlot(int a);
 	void saveSlotAs();
 	void loadSlotAs();
-	void loadCDRom();
+	int loadGameFromFile(QString const & fullFilePath);
+	int loadCDRom();
 protected:
 	YabauseGL* mYabauseGL;
 	YabauseLocker *mLocker;

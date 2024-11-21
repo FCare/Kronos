@@ -624,6 +624,7 @@ void UISettings::loadSettings()
 	cbUseCache->setChecked( s->value( "General/SH2Cache" ).toBool() );
 	cbCdRom->setCurrentIndex( cbCdRom->findData( s->value( "General/CdRom", QtYabause::defaultCDCore().id ).toInt() ) );
 	leCdRom->setText( s->value( "General/CdRomISO" ).toString() );
+	QtYabause::updateTitle(s->value( "General/CdRomISO" ).toString());
 	if (s->value( "General/CdRom", QtYabause::defaultCDCore().id ).toInt() == CDCORE_ARCH)
 		cbCdDrive->setCurrentIndex(leCdRom->text().isEmpty() ? 0 : cbCdDrive->findText(leCdRom->text()));
 

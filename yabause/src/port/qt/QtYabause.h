@@ -116,6 +116,7 @@ namespace QtYabause
 	void retranslateWidgetOnly( QWidget* widget );
 	void retranslateWidget( QWidget* widget );
 	void retranslateApplication();
+	void updateTitle( const QString& filename = NULL);
 
 	// get cd serial
 	const char* getCurrentCdSerial();
