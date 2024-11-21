@@ -77,7 +77,7 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 
 	mPause = pause;
 
-	if (mIsCDDirty && mIsCdIn && !pause) {
+	if (mIsCDDirty && mIsCdIn && !pause && (mYabauseConf.cdpath!= NULL) && (strlen(mYabauseConf.cdpath)>0)) {
 		CloseTray();
 		mIsCDDirty = false;
 	}

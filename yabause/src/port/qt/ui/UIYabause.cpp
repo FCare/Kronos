@@ -282,15 +282,16 @@ void UIYabause::runActionsAlreadyPaused() {
 		case ACTION_OPENTRAY:
 		case ACTION_LOADFILE:
 		{
+			int needReset = 0;
 			mYabauseThread->OpenTray();
 			if (bundle != NULL) {
-				loadGameFromFile(*((QString*)bundle));
+				needReset = (loadGameFromFile(*((QString*)bundle))==0);
 				delete (QString*)bundle;
 			} else {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
-				loadGameFromFile(fn);
+				needReset = (loadGameFromFile(fn)==0);
 			}
-			mYabauseThread->resetEmulation();
+			if (needReset) mYabauseThread->resetEmulation();
 		}
 			break;
 		case ACTION_RESET:
@@ -317,8 +318,8 @@ void UIYabause::runActionsAlreadyPaused() {
 		break;
 		case ACTION_LOADCDROM:
 			mYabauseThread->OpenTray();
-			loadCDRom();
-			mYabauseThread->resetEmulation();
+			if (loadCDRom() == 0)
+				mYabauseThread->resetEmulation();
 		break;
 		default:
 		break;
@@ -341,12 +342,13 @@ void UIYabause::runActions() {
 		break;
 		case ACTION_LOADFILE:
 		{
+			int needReset = 0;
 			if (bundle != NULL) {
 				mYabauseThread->SetCdInserted(false);
 				mYabauseThread->OpenTray();
-				loadGameFromFile(*((QString*)bundle));
+				needReset = (loadGameFromFile(*((QString*)bundle))==0);
 				delete (QString*)bundle;
-				mYabauseThread->resetEmulation();
+				if (needReset)mYabauseThread->resetEmulation();
 			} else {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
 				loadGameFromFile(fn);
@@ -697,9 +699,7 @@ void UIYabause::on_aFileSettings_triggered()
 			newhash["General/FixedBaseTime"]!=hash["General/FixedBaseTime"]
 		)
 		{
-			if ( mYabauseThread->pauseEmulation( true, true ) )
 				refreshStatesActions();
-			return;
 		}
 #ifdef HAVE_LIBMINI18N
 		if(newhash["General/Translation"] != hash["General/Translation"])
