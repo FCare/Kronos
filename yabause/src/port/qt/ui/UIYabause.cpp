@@ -940,11 +940,7 @@ void UIYabause::on_aEmulationVSync_toggled( bool toggled )
 void UIYabause::on_aToolsBackupManager_triggered()
 {
 	YabauseLocker locker( mYabauseThread );
-	if ( mYabauseThread->init() < 0 )
-	{
-		CommonDialogs::error( QtYabause::translate( "Kronos is not initialized, can't manage backup ram." ) );
-		return;
-	}
+	mYabauseThread->initEmulation();
 	UIBackupRam( this ).exec();
 }
 
