@@ -28,6 +28,7 @@
 #include "debug.h"
 #include "memory.h"
 #include "sh2core.h"
+#include "vdp1.h"
 #include "yabause.h"
 #include <inttypes.h>
 
@@ -39,6 +40,7 @@ static void ScuTestInterruptMask(u8 id);
 static void ScuTestAllInterrupt();
 
 static u8 accessCPUBus;
+static u8 accessVdp1Ram;
 
 static u8 currentInterrupt = 0xFF;
 static u8 needEvaluate = 0;
@@ -66,6 +68,7 @@ int ScuInit(void) {
    ScuRegs->dma2.id = 3;
 
    accessCPUBus = 0;
+   accessVdp1Ram = 0;
 
    if ((ScuDsp = (scudspregs_struct *) calloc(1, sizeof(scudspregs_struct))) == NULL)
       return -1;
@@ -1122,10 +1125,33 @@ static void setupBusConcurrency(scudmainfo_struct * dma) {
     }
   }
 }
+static int isOnVDp1Ram(u32 addr) {
+  addr &= 0x1FFFFFFF;
+  if ((addr >= 0x5C00000) && (addr < 0x5C80000)) return 1; //VDP1Ram
+  return 0;
+}
+
+static void setupVdp1Concurrency(scudmainfo_struct * dma) {
+  u8 oldaccessVdp1Ram = accessVdp1Ram;
+  accessVdp1Ram &= ~(1<<dma->id);
+  if (dma->TransferNumber > 0) {
+    if (isOnVDp1Ram(dma->WriteAddress) || isOnVDp1Ram(dma->ReadAddress)) {
+       accessVdp1Ram |= (1<<dma->id);
+     }
+  }
+  if (accessVdp1Ram != oldaccessVdp1Ram) {
+    if (accessVdp1Ram != 0) {
+      Vdp1SetDMAConcurrency();
+    } else {
+      Vdp1ClearDMAConcurrency();
+    }
+  }
+}
 
 static void ScuDmaProc(scudmainfo_struct * dma, int time) {
   ScuDmaCheck(dma, time);
   setupBusConcurrency(dma);
+  setupVdp1Concurrency(dma);
 }
 
 static void ScuDspExec(u32 timing) {

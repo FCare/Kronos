@@ -104,6 +104,13 @@ static void RequestVdp1ToDraw() {
 }
 
 
+void Vdp1SetDMAConcurrency() {
+  Vdp1External.blocked = 1;
+}
+void Vdp1ClearDMAConcurrency() {
+  Vdp1External.blocked = 0;
+}
+
 static void abortVdp1() {
   if ((Vdp1External.status&VDP1_STATUS_MASK) == VDP1_STATUS_RUNNING) {
     FRAMELOG("Aborting VDP1 %d\n", yabsys.LineCount);
@@ -396,6 +403,7 @@ int Vdp1Init(void) {
       return -1;
 
    Vdp1External.disptoggle = 1;
+   Vdp1External.blocked = 0;
 
    Vdp1Regs->TVMR = 0;
    Vdp1Regs->FBCR = 0;
@@ -1286,7 +1294,7 @@ void Vdp1SetRaster(int is352) {
 
 static int getVdp1CyclesPerLine(void)
 {
-  return rasterValue;
+  return (Vdp1External.blocked!=0)?0:rasterValue;
 }
 
 static u32 returnAddr = 0xffffffff;

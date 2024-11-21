@@ -80,6 +80,7 @@ typedef struct {
    int updateVdp1Ram;
    int checkEDSR;
    int status;
+   int blocked;
 } Vdp1External_struct;
 
 extern Vdp1External_struct Vdp1External;
@@ -221,6 +222,8 @@ int VideoChangeCore(int coreid);
 void VideoDeInit(void);
 void Vdp1Reset(void);
 int VideoSetSetting(int type, int value);
+void Vdp1SetDMAConcurrency();
+void Vdp1ClearDMAConcurrency();
 
 u8 FASTCALL	Vdp1ReadByte(SH2_struct *context, u8*, u32);
 u16 FASTCALL	Vdp1ReadWord(SH2_struct *context, u8*, u32);
