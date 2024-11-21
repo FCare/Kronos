@@ -890,7 +890,8 @@ void FASTCALL SmpcWriteByte(SH2_struct *context, u8* mem, u32 addr, u8 val) {
                SmpcRegs->SF = 0;
                break;
             }
-            else if ((SmpcRegs->IREG[0] & 0x80)^(oldVal& 0x80)) {
+            // else if ((SmpcRegs->IREG[0] & 0x80)^(oldVal& 0x80)) {
+            else if (SmpcRegs->IREG[0] & 0x80) {
                // Continue
                SMPCLOG("INTBACK Continue\n");
                SmpcSetTiming();
