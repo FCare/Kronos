@@ -85,9 +85,9 @@ const Items mCartridgeTypes = Items()
 	<< Item( "8", "Netlink", false, false, true )
 	<< Item( "9", "16 Mbit ROM", true, false )
 	<< Item( "10", "Japanese Modem", false, false, true )
-	<< Item( "12", "STV Rom game", true, false, false, true )
-	<< Item( "13", "128 Mbit Dram", false, false )
-	<< Item( "14", "Development Extension", false, false );
+	<< Item( "11", "STV Rom game", true, false, false, true )
+	<< Item( "12", "128 Mbit Dram", false, false )
+	<< Item( "13", "Development Extension", false, false );
 
 const Items mVideoFilterMode = Items()
 	<< Item("0", "None")
@@ -421,8 +421,10 @@ void UISettings::changeUpscaleMode(int id)
 
 void UISettings::on_cbCartridge_currentIndexChanged( int id )
 {
+	if (id < 0) return;
 	Settings const* const s = QtYabause::settings();
 	auto const path = s->value(getCartridgePathSettingsKey(id)).toString();
+	mLastCart = s->value("Cartridge/LastCart", CART_NONE).toInt();
 
 	if (mCartridgeTypes[id].enableFlag)
 	{
@@ -452,7 +454,15 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 	leCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	lCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
 	leCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
-	yabsys.isSTV = 2;
+	if (id == CART_ROMSTV)
+	{
+		yabsys.isSTV = 2;
+		mLastCart = s->value( "Cartridge/Type", mCartridgeTypes.at( 7 ).id ).toInt();
+	}
+	if ((mLastCart == CART_ROMSTV) && (id != CART_ROMSTV))
+	{
+		yabsys.isSTV = 2;
+	}
     if (mCartridgeTypes[id].pathFlag) {
 		QString const & str = leCartridge->text();
     	int const nbGames = STVGetRomList(str.toStdString().c_str(), 0);
@@ -624,6 +634,7 @@ void UISettings::loadSettings()
 	// get settings pointer
 	Settings const * const s = QtYabause::settings();
 
+	mLastCart = s->value("Cartridge/LastCart", CART_NONE).toInt();
 	// general
 	leBios->setText( s->value( "General/Bios" ).toString() );
 	leBiosSettings->setText( s->value( "General/BiosSettings" ).toString() );
@@ -636,7 +647,6 @@ void UISettings::loadSettings()
 		cbCdDrive->setCurrentIndex(leCdRom->text().isEmpty() ? 0 : cbCdDrive->findText(leCdRom->text()));
 
 	leSaveStates->setText( s->value( "General/SaveStates", getDataDirPath() ).toString() );
-
 	//screenshots
 	{
 		auto const defaultScreenshotsPath = QtYabause::DefaultPaths::Screenshots();
@@ -804,6 +814,7 @@ void UISettings::saveSettings()
 	s->setValue( "Cartridge/ModemPort", leCartridgeModemPort->text() );
   s->setValue( "Cartridge/STVGame", cbSTVGame->itemData( cbSTVGame->currentIndex() ).toInt() );
   s->setValue( "Cartridge/STVGameName", QString(getSTVGameName(cbSTVGame->currentIndex()) ));
+	s->setValue( "Cartridge/LastCart", mLastCart);
 	s->setValue( "Memory/Path", leMemory->text() );
 	s->setValue( "MpegROM/Path", leMpegROM->text() );
   s->setValue("Memory/ExtendMemory", checkBox_extended_internal_backup->isChecked());

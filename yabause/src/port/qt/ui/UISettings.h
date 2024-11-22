@@ -73,6 +73,7 @@ private:
 	void updateVolatileSettings() const;
 
 	int selectedCartridgeType = 0;
+	int mLastCart = 0;
 };
 
 #endif // UISETTINGS_H

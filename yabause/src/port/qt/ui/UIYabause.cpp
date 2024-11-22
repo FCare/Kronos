@@ -789,7 +789,8 @@ int UIYabause::loadCDRom()
 		s->setValue("General/CdRom", DummyCD.id);
 	}
 	if (yabsys.isSTV == 1) {
-		s->setValue("Cartridge/Type", CART_NONE);
+		int cartId = s->value("Cartridge/LastCart", CART_NONE).toInt();
+		s->setValue("Cartridge/Type", cartId);
 		yabsys.isSTV = 2;
 	}
 	refreshStatesActions();
@@ -1202,11 +1203,11 @@ int UIYabause::loadGameFromFile(QString const& fileName)
 	}
 	s->sync();
 	if (yabsys.isSTV == 1) {
-		s->setValue("Cartridge/Type", CART_NONE);
+		int cartId = s->value("Cartridge/LastCart", CART_NONE).toInt();
+		s->setValue("Cartridge/Type", cartId);
 		ret = 1;
 		yabsys.isSTV = 2;
 	}
-
 	refreshStatesActions();
 
 	return ret;

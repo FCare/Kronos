@@ -237,7 +237,7 @@ UIYabause* QtYabause::mainWindow( bool create )
 void QtYabause::updateTitle() {
 VolatileSettings* vs = QtYabause::volatileSettings();
 QString name;
-if (vs->value( "Cartridge/Type", 0 ).toInt() == 12) { //STV ROM
+if (vs->value( "Cartridge/Type", 0 ).toInt() == CART_ROMSTV) { //STV ROM
 	name = QString("STV: %1").arg(vs->value("Cartridge/STVGameName").toString());
 } else {
 	QString filename = vs->value("General/CdRomISO").toString();

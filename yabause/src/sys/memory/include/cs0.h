@@ -38,10 +38,10 @@ extern "C" {
 #define CART_NETLINK            8
 #define CART_ROM16MBIT          9
 #define CART_JAPMODEM          10
-#define CART_USBDEV            11
-#define CART_ROMSTV            12
-#define CART_DRAM128MBIT       13
-#define CART_DEV               14
+#define CART_ROMSTV            11
+#define CART_DRAM128MBIT       12
+#define CART_DEV               13
+#define CART_USBDEV            25 //Not used
 
 #define CART_BUP4MBIT_SIZE  0x080000
 #define CART_BUP8MBIT_SIZE  0x100000

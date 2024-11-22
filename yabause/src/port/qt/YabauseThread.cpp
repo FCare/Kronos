@@ -355,6 +355,7 @@ void YabauseThread::reloadSettings()
 	mYabauseConf.sndcoretype = vs->value( "Sound/SoundCore", mYabauseConf.sndcoretype ).toInt();
 	mYabauseConf.cdcoretype = vs->value( "General/CdRom", mYabauseConf.cdcoretype ).toInt();
 	mYabauseConf.carttype = vs->value( "Cartridge/Type", mYabauseConf.carttype ).toInt();
+	if (mYabauseConf.carttype == CART_ROMSTV) mYabauseConf.cdcoretype = CDCORE_DUMMY;
 	mYabauseConf.stvgame = vs->value( "Cartridge/STVGame", mYabauseConf.stvgame ).toInt();
 	mYabauseConf.regionid = 0;
 	const QString r = vs->value( "STV/Region", mYabauseConf.regionid ).toString();

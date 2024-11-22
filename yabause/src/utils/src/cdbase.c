@@ -120,6 +120,8 @@ static int ISOCDReadSectorFAD(u32, void *);
 static void ISOCDReadAheadFAD(u32);
 static void ISOCDSetStatus(int status);
 
+static int ISOCDInitStatus = 0;
+
 CDInterface ISOCD = {
 CDCORE_ISO,
 "ISO-File Virtual Drive",
@@ -1656,6 +1658,7 @@ static int ISOCDInit(const char * iso) {
    }
 
    BuildTOC();
+   ISOCDInitStatus = 1;
    return 0;
 }
 
@@ -1663,6 +1666,7 @@ static int ISOCDInit(const char * iso) {
 
 static void ISOCDDeInit(void) {
    int i, j, k;
+   if( ISOCDInitStatus == 0) return;
    if (disc.session != NULL)
    {
       for (i = 0; i < disc.session_num; i++)
@@ -1717,6 +1721,7 @@ static void ISOCDDeInit(void) {
       if (disc.endRecord != NULL)
         disc.endRecord = NULL;
    }
+   ISOCDInitStatus = 0;
 }
 
 //////////////////////////////////////////////////////////////////////////////
