@@ -454,14 +454,16 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 	leCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	lCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
 	leCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
-	if (id == CART_ROMSTV)
-	{
-		yabsys.isSTV = 2;
-		mLastCart = s->value( "Cartridge/Type", mCartridgeTypes.at( 7 ).id ).toInt();
-	}
 	if ((mLastCart == CART_ROMSTV) && (id != CART_ROMSTV))
 	{
-		yabsys.isSTV = 2;
+		yabsys.isReloadingImage = 2;
+		mLastCart = id;
+	}
+	if (id == CART_ROMSTV)
+	{
+		yabsys.isReloadingImage = 2;
+	} else {
+		mLastCart = s->value( "Cartridge/Type", mCartridgeTypes.at( 7 ).id ).toInt();
 	}
     if (mCartridgeTypes[id].pathFlag) {
 		QString const & str = leCartridge->text();
@@ -481,7 +483,7 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 }
 
 void UISettings::on_cbSTVGame_currentIndexChanged( int id ) {
-	yabsys.isSTV = 2;
+	yabsys.isReloadingImage = 2;
 }
 
 void UISettings::loadCores()

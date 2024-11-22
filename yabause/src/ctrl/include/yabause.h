@@ -121,6 +121,7 @@ typedef struct
    int IsPal;
    int isRotated;
    u8 isSTV;
+   u8 isReloadingImage;
    u8 IsSSH2Running;
    u64 OneFrameTime;
    u64 tickfreq;

@@ -106,7 +106,8 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 
 bool YabauseThread::resetEmulation()
 {
-	if (yabsys.isSTV == 2) mInit = -1;
+	if (yabsys.isReloadingImage == 2) mInit = -1;
+	yabsys.isReloadingImage = 0;
 	if ( mInit < 0 ) {
 		initEmulation();
 	}

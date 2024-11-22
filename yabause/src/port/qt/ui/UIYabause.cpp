@@ -291,7 +291,10 @@ void UIYabause::runActionsAlreadyPaused() {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
 				needReset = (loadGameFromFile(fn)==0);
 			}
-			if (needReset) mYabauseThread->resetEmulation();
+			if (needReset) {
+				yabsys.isReloadingImage = 2;
+				mYabauseThread->resetEmulation();
+			}
 		}
 			break;
 		case ACTION_RESET:
@@ -318,8 +321,10 @@ void UIYabause::runActionsAlreadyPaused() {
 		break;
 		case ACTION_LOADCDROM:
 			mYabauseThread->OpenTray();
-			if (loadCDRom() == 0)
+			if (loadCDRom() == 0) {
+				yabsys.isReloadingImage = 2;
 				mYabauseThread->resetEmulation();
+			}
 		break;
 		default:
 		break;
@@ -348,11 +353,14 @@ void UIYabause::runActions() {
 				mYabauseThread->OpenTray();
 				needReset = (loadGameFromFile(*((QString*)bundle))==0);
 				delete (QString*)bundle;
-				if (needReset)mYabauseThread->resetEmulation();
+				if (needReset){
+					yabsys.isReloadingImage = 2;
+					mYabauseThread->resetEmulation();
+				}
 			} else {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
 				loadGameFromFile(fn);
-				if (yabsys.isSTV == 2)
+				if (yabsys.isReloadingImage == 2)
 					mYabauseThread->resetEmulation();
 			}
 		}
@@ -381,7 +389,7 @@ void UIYabause::runActions() {
 		break;
 		case ACTION_LOADCDROM:
 			loadCDRom();
-			if (yabsys.isSTV == 2)
+			if (yabsys.isReloadingImage == 2)
 				mYabauseThread->resetEmulation();
 		break;
 		default:
@@ -747,7 +755,7 @@ void UIYabause::on_aFileSettings_triggered()
 		mYabauseThread->reloadControllers();
 		refreshStatesActions();
 
-		if (yabsys.isSTV == 2) mYabauseThread->resetEmulation();
+		if (yabsys.isReloadingImage == 2) mYabauseThread->resetEmulation();
 	}
 }
 
@@ -786,14 +794,13 @@ int UIYabause::loadCDRom()
 		// vs->setValue( "autostart", false );
 		s->setValue( "General/CdRom", QtYabause::defaultCDCore().id );
 		mYabauseThread->SetCdInserted(true);
-		mYabauseThread->CloseTray();
 	} else {
 		s->setValue("General/CdRom", DummyCD.id);
 	}
 	if ((yabsys.isSTV == 1)||(s->value( "Cartridge/Type", 0 ).toInt() == CART_ROMSTV)) {
 		int cartId = s->value("Cartridge/LastCart", CART_NONE).toInt();
 		s->setValue("Cartridge/Type", cartId);
-		yabsys.isSTV = 2;
+		yabsys.isReloadingImage = 2;
 	}
 	refreshStatesActions();
 	return fn.isEmpty();
@@ -1209,7 +1216,7 @@ int UIYabause::loadGameFromFile(QString const& fileName)
 		int cartId = s->value("Cartridge/LastCart", CART_NONE).toInt();
 		s->setValue("Cartridge/Type", cartId);
 		ret = 0;
-		yabsys.isSTV = 2;
+		yabsys.isReloadingImage = 2;
 	}
 	refreshStatesActions();
 
