@@ -1675,16 +1675,20 @@ static void ISOCDDeInit(void) {
                {
                  if(disc.session[i].track[j].tr != NULL)
                  {
-                   if (disc.session[i].track[j].tr->zipBuffer != NULL) {
-                     free(disc.session[i].track[j].tr->zipBuffer);
-                   }
-                   disc.session[i].track[j].tr->zipBuffer = NULL;
-                   if (disc.session[i].track[j].tr->filename != NULL)
+                   int shallDelete = (j==0);
+                   if (j>0) shallDelete |= disc.session[i].track[j].tr != disc.session[i].track[j-1].tr;
+                   if (shallDelete == 0) continue;
+                   else {
+                     if (disc.session[i].track[j].tr->zipBuffer != NULL) {
+                       free(disc.session[i].track[j].tr->zipBuffer);
+                     }
+                     disc.session[i].track[j].tr->zipBuffer = NULL;
+                     if (disc.session[i].track[j].tr->filename != NULL)
                      free(disc.session[i].track[j].tr->filename);
-                   disc.session[i].track[j].tr->filename = NULL;
-                   free(disc.session[i].track[j].tr);
+                     disc.session[i].track[j].tr->filename = NULL;
+                     free(disc.session[i].track[j].tr);
+                   }
                  }
-                 disc.session[i].track[j].tr = NULL;
                }
 
 
