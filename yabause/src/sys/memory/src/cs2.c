@@ -826,8 +826,10 @@ int Cs2ForceCloseTray( int coreid, const char * cdpath ){
    if (Cs2Area == NULL) {
      return -1;
    }
-   if ((ret = Cs2ChangeCDCore(coreid, cdpath)) != 0) {
-     return ret;
+   if (Cs2Area->cdi->id != coreid) {
+     if ((ret = Cs2ChangeCDCore(coreid, cdpath)) != 0) {
+       return ret;
+     }
    }
   Cs2Reset();
 
