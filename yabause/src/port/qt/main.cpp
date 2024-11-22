@@ -23,6 +23,7 @@
 #include "QtYabause.h"
 #include "VolatileSettings.h"
 #include "Settings.h"
+#include "stv.h"
 #include "ui/UIYabause.h"
 #ifndef NO_CLI
 #include "Arguments.h"
@@ -63,8 +64,7 @@ int main( int argc, char** argv )
 	Arguments::parse();
 #endif
 	// show main window
-	VolatileSettings* vs = QtYabause::volatileSettings();
-	QtYabause::updateTitle(vs->value("General/CdRomISO").toString());
+	QtYabause::updateTitle();
 	QtYabause::mainWindow()->show();
 	// connection
 	QObject::connect( &app, SIGNAL( lastWindowClosed() ), &app, SLOT( quit() ) );

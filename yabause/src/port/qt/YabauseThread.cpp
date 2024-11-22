@@ -106,6 +106,7 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset )
 
 bool YabauseThread::resetEmulation()
 {
+	if (yabsys.isSTV == 2) mInit = -1;
 	if ( mInit < 0 ) {
 		initEmulation();
 	}
@@ -115,7 +116,6 @@ bool YabauseThread::resetEmulation()
 		emit error( QtYabause::translate( "Can't initialize Kronos." ), false );
 		return false;
 	}
-
 	YabauseReset();
 
 	emit reset();
@@ -393,7 +393,7 @@ void YabauseThread::reloadSettings()
 
 	mYabauseConf.smpcpath = strdup( vs->value( "General/BiosSettings", mYabauseConf.smpcpath ).toString().toLatin1().constData() );
 	mYabauseConf.cdpath = strdup( vs->value( "General/CdRomISO", mYabauseConf.cdpath ).toString().toLatin1().constData() );
-	QtYabause::updateTitle(mYabauseConf.cdpath);
+	QtYabause::updateTitle();
 	showFPS = vs->value( "General/ShowFPS", false ).toBool();
 	mYabauseConf.vsyncon = vs->value("General/EnableVSync", true).toBool();
 	mYabauseConf.usecache = vs->value("General/SH2Cache", false).toBool();
@@ -446,7 +446,6 @@ void YabauseThread::OpenTray(){
 }
 
 int YabauseThread::CloseTray(){
-
 	VolatileSettings* vs = QtYabause::volatileSettings();
 	mYabauseConf.cdcoretype = vs->value("General/CdRom", mYabauseConf.cdcoretype).toInt();
 	mYabauseConf.cdpath = strdup(vs->value("General/CdRomISO", mYabauseConf.cdpath).toString().toLatin1().constData());

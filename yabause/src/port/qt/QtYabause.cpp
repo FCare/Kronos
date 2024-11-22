@@ -234,16 +234,29 @@ UIYabause* QtYabause::mainWindow( bool create )
 	return mUIYabause;
 }
 
-void QtYabause::updateTitle(const QString& filename) {
-	QString title( "Kronos v%1" );
-	title=title.arg( VERSION );
+void QtYabause::updateTitle() {
+VolatileSettings* vs = QtYabause::volatileSettings();
+QString name;
+if (vs->value( "Cartridge/Type", 0 ).toInt() == 12) { //STV ROM
+	name = QString("STV: %1").arg(vs->value("Cartridge/STVGameName").toString());
+} else {
+	QString filename = vs->value("General/CdRomISO").toString();
 	if (filename != NULL) {
+		QString core = QString("CDROM: %1");
+		if (vs->value( "General/CdRom", CDCORE_ISO ).toInt() == CDCORE_ISO) {
+			core = QString("ISO: %1");
+		}
 		QFileInfo fi(filename);
 		if (fi.exists()) {
-			QString name = fi.fileName();
-			title.append(" ").append(name);
+			name = core.arg(fi.fileName());
 		}
 	}
+}
+
+	QString title( "Kronos v%1" );
+	title=title.arg( VERSION );
+	title.append(" ").append(name);
+
 	mainWindow()->setWindowTitle(title);
 }
 

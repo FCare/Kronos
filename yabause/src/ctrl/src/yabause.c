@@ -342,9 +342,8 @@ void StopTracing(std::unique_ptr<perfetto::TracingSession> tracing_session) {
 }
 #endif
 
-int YabauseInit(yabauseinit_struct *init)
+static int YabauseFullInit(yabauseinit_struct *init)
 {
-
 #ifdef _USE_PERFETTO_TRACE_
   InitializePerfetto();
   myTracingSession = StartTracing();
@@ -543,6 +542,86 @@ TRACE_EMULATOR("YabauseInit");
 
    fpsticks = YabauseGetTicks();
    return 0;
+}
+
+static int YabauseRefreshInit(yabauseinit_struct *init) {
+  Cs2DeInit();
+  if (Cs2Init(init->cdcoretype, init->cdpath, init->mpegpath) != 0)
+  {
+     YabSetError(YAB_ERR_CANNOTINIT, _("CS2"));
+     return -1;
+  }
+
+  if (init->auto_cart != 0)
+     DBLookup(&init->carttype, &init->cartpath, init->supportdir);
+
+  if (CartInit(init->cartpath, init->carttype) != 0)
+  {
+     YabSetError(YAB_ERR_CANNOTINIT, _("Cartridge"));
+     return -1;
+  }
+
+  if (STVSingleInit(init->stvgamepath, init->stvbiospath, init->eepromdir, init->stv_favorite_region) != 0) {
+    if (STVInit(init->stvgame, init->cartpath, init->eepromdir, init->stv_favorite_region) != 0)
+    {
+      YabSetError(YAB_ERR_CANNOTINIT, _("STV emulation"));
+      return -1;
+    }
+  }
+
+  MappedMemoryInit();
+
+  if (yabsys.isSTV == 0) {
+    if (init->biospath != NULL && strlen(init->biospath))
+    {
+      if (LoadBios(init->biospath) != 0)
+      {
+        YabSetError(YAB_ERR_FILENOTFOUND, (void *)init->biospath);
+        return -2;
+      }
+      yabsys.emulatebios = 0;
+    }
+    else {
+      yabsys.emulatebios = 1;
+      T2WriteLong(BiosRom, 0x04, 0x06002000); // set base stack pointer
+    }
+  }
+  else {
+    yabsys.emulatebios = 0;
+  }
+
+  yabsys.usequickload = 0;
+
+  YabauseResetNoLoad();
+
+  if (init->skip_load)
+  {
+    return 0;
+  }
+
+  if (yabsys.usequickload || yabsys.emulatebios)
+  {
+     if (YabauseQuickLoadGame() != 0)
+     {
+        if (yabsys.emulatebios)
+        {
+           YabSetError(YAB_ERR_CANNOTINIT, _("Game"));
+           return -2;
+        }
+        else
+           YabauseResetNoLoad();
+     }
+  }
+
+  if (Cs2GetRegionID() >= 0xA) YabauseSetVideoFormat(VIDEOFORMATTYPE_PAL);
+  else YabauseSetVideoFormat(VIDEOFORMATTYPE_NTSC);
+  return 0;
+}
+
+int YabauseInit(yabauseinit_struct *init)
+{
+  if (BiosRom == NULL) return YabauseFullInit(init);
+  else return YabauseRefreshInit(init);
 }
 
 //////////////////////////////////////////////////////////////////////////////

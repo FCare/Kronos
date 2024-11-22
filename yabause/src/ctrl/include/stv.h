@@ -98,4 +98,6 @@ typedef struct BiosLink_s{
   char path[MAX_LENGTH_FILEPATH];
 } BiosLink;
 
+extern char* getSTVGameName(int id);
+
 #endif

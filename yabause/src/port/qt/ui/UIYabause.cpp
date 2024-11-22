@@ -351,7 +351,8 @@ void UIYabause::runActions() {
 				if (needReset)mYabauseThread->resetEmulation();
 			} else {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
-				loadGameFromFile(fn);
+				needReset = loadGameFromFile(fn);
+				if (needReset) mYabauseThread->resetEmulation();
 			}
 		}
 		break;
@@ -379,6 +380,8 @@ void UIYabause::runActions() {
 		break;
 		case ACTION_LOADCDROM:
 			loadCDRom();
+			if (yabsys.isSTV == 2)
+				mYabauseThread->resetEmulation();
 		break;
 		default:
 		break;
@@ -686,6 +689,7 @@ void UIYabause::on_aFileSettings_triggered()
 		}
 		if(newhash["General/Bios"]!=hash["General/Bios"] ||
 			newhash["General/EnableEmulatedBios"]!=hash["General/EnableEmulatedBios"] ||
+			newhash["Cartridge/STVGame"]!=hash["Cartridge/STVGame"] ||
 			newhash["STV/Region"]!=hash["STV/Region"] ||
 			newhash["Cartridge/Type"]!=hash["Cartridge/Type"] ||
 			newhash["Memory/Path"]!=hash["Memory/Path"] ||
@@ -741,13 +745,15 @@ void UIYabause::on_aFileSettings_triggered()
 
 		mYabauseThread->reloadControllers();
 		refreshStatesActions();
+
+		if (yabsys.isSTV == 2) mYabauseThread->resetEmulation();
 	}
 }
 
 void UIYabause::on_aFileOpenISO_triggered()
 {
 
-	if (mYabauseThread->IsCDInserted()){
+	if (mYabauseThread->IsCDInserted() && (yabsys.isSTV == 0)){
 		mYabauseThread->SetCdInserted(false);
 		mLocker = new YabauseLocker(mYabauseThread, ACTION_OPENTRAY);
 		mLocker->lock();
@@ -771,7 +777,7 @@ int UIYabause::loadCDRom()
 	if (!ok) fn.clear();
 	s->setValue( "General/CdRomISO", fn );
 	s->setValue( "Recents/CDs", fn );
-	QtYabause::updateTitle(fn);
+	QtYabause::updateTitle();
 	s->sync();
 	if (!fn.isEmpty())
 	{
@@ -782,13 +788,17 @@ int UIYabause::loadCDRom()
 	} else {
 		s->setValue("General/CdRom", DummyCD.id);
 	}
+	if (yabsys.isSTV == 1) {
+		s->setValue("Cartridge/Type", CART_NONE);
+		yabsys.isSTV = 2;
+	}
 	refreshStatesActions();
 	return fn.isEmpty();
 }
 
 void UIYabause::on_aFileOpenCDRom_triggered()
 {
-	if (mYabauseThread->IsCDInserted()){
+	if (mYabauseThread->IsCDInserted() && (yabsys.isSTV == 0)){
 		mYabauseThread->SetCdInserted(false);
 		mLocker = new YabauseLocker(mYabauseThread, ACTION_OPENTRAY);
 		mLocker->lock();
@@ -1181,7 +1191,7 @@ int UIYabause::loadGameFromFile(QString const& fileName)
 	Settings* s = QtYabause::settings();
 	s->setValue("General/CdRomISO", fileName);
 	s->setValue("Recents/ISOs", fileName);
-	QtYabause::updateTitle(fileName);
+	QtYabause::updateTitle();
 	if (QFile::exists(fileName))
 	{
 		s->setValue("General/CdRom", ISOCD.id);
@@ -1191,6 +1201,12 @@ int UIYabause::loadGameFromFile(QString const& fileName)
 		s->setValue("General/CdRom", DummyCD.id);
 	}
 	s->sync();
+	if (yabsys.isSTV == 1) {
+		s->setValue("Cartridge/Type", CART_NONE);
+		ret = 1;
+		yabsys.isSTV = 2;
+	}
+
 	refreshStatesActions();
 
 	return ret;

@@ -452,19 +452,26 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 	leCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	lCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
 	leCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
+	yabsys.isSTV = 2;
     if (mCartridgeTypes[id].pathFlag) {
 		QString const & str = leCartridge->text();
     	int const nbGames = STVGetRomList(str.toStdString().c_str(), 0);
         cbSTVGame->clear();
         for(int i = 0; i < nbGames; i++){
-			cbSTVGame->addItem(getSTVGameName(i),i);
+						cbSTVGame->addItem(getSTVGameName(i),i);
         }
         cbSTVGame->model()->sort(0);
+				VolatileSettings * const vs = QtYabause::volatileSettings();
+				cbSTVGame->setCurrentIndex(vs->value( "Cartridge/STVGame", 0 ).toInt());
     }
     cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
 	lRegion->setVisible(mCartridgeTypes[id].pathFlag);
 	cbRegion->setVisible(mCartridgeTypes[id].pathFlag);
 	selectedCartridgeType = id;
+}
+
+void UISettings::on_cbSTVGame_currentIndexChanged( int id ) {
+	yabsys.isSTV = 2;
 }
 
 void UISettings::loadCores()
@@ -624,7 +631,7 @@ void UISettings::loadSettings()
 	cbUseCache->setChecked( s->value( "General/SH2Cache" ).toBool() );
 	cbCdRom->setCurrentIndex( cbCdRom->findData( s->value( "General/CdRom", QtYabause::defaultCDCore().id ).toInt() ) );
 	leCdRom->setText( s->value( "General/CdRomISO" ).toString() );
-	QtYabause::updateTitle(s->value( "General/CdRomISO" ).toString());
+	QtYabause::updateTitle();
 	if (s->value( "General/CdRom", QtYabause::defaultCDCore().id ).toInt() == CDCORE_ARCH)
 		cbCdDrive->setCurrentIndex(leCdRom->text().isEmpty() ? 0 : cbCdDrive->findText(leCdRom->text()));
 
@@ -795,7 +802,8 @@ void UISettings::saveSettings()
 	s->setValue(getCartridgePathSettingsKey(), leCartridge->text() );
 	s->setValue( "Cartridge/ModemIP", leCartridgeModemIP->text() );
 	s->setValue( "Cartridge/ModemPort", leCartridgeModemPort->text() );
-        s->setValue( "Cartridge/STVGame", cbSTVGame->itemData( cbSTVGame->currentIndex() ).toInt() );
+  s->setValue( "Cartridge/STVGame", cbSTVGame->itemData( cbSTVGame->currentIndex() ).toInt() );
+  s->setValue( "Cartridge/STVGameName", QString(getSTVGameName(cbSTVGame->currentIndex()) ));
 	s->setValue( "Memory/Path", leMemory->text() );
 	s->setValue( "MpegROM/Path", leMpegROM->text() );
   s->setValue("Memory/ExtendMemory", checkBox_extended_internal_backup->isChecked());
@@ -825,6 +833,7 @@ void UISettings::saveSettings()
 
 	// debug
 	s->setValue( "Debug/Addr2Line", leAddr2Line->text() );
+	QtYabause::updateTitle();
 }
 
 void UISettings::accept()

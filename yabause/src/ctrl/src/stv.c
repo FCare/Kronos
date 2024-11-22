@@ -386,7 +386,7 @@ Game GameList[NB_STV_GAMES]={
         GAME_END, "", 0, 0, 0
     },
     STV,
-  },  
+  },
   {
     "decathlt",
     NULL,
@@ -2931,7 +2931,8 @@ int STVGetRomList(const char* path, int force){
 #endif
 
 char* getSTVGameName(int id) {
-  return availableGames[id].entry->name;
+  if ((id>=0) && (id<NB_STV_GAMES)) return availableGames[id].entry->name;
+  return NULL;
 }
 
 int loadGames(char* path) {
@@ -2996,6 +2997,7 @@ int STVGetSingle(const char *pathfile, const char *biospath, int* id){
 int STVSingleInit(const char *gamepath, const char *biospath, const char *eepromdir, int favorite_region) {
   int nbGame = 0;
   int id = -1;
+  yabsys.isSTV = 0;
   if (favorite_region != 0) stv_favorite_region = favorite_region;
   if ((gamepath == NULL) || (biospath == NULL)) return -1;
   nbGame = STVGetSingle(gamepath, biospath, &id);
@@ -3010,6 +3012,7 @@ int STVSingleInit(const char *gamepath, const char *biospath, const char *eeprom
 }
 
 int STVInit(int id, const char *path, const char *eepromdir, int favorite_region){
+  yabsys.isSTV = 0;
   if (favorite_region != 0) stv_favorite_region = favorite_region;
   cryptoReset();
   if (CartridgeArea->carttype != CART_ROMSTV) return 0;

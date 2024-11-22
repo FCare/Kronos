@@ -58,6 +58,7 @@ protected slots:
 	void on_cbCdRom_currentIndexChanged( int id );
 	void on_cbClockSync_stateChanged( int state );
 	void on_cbCartridge_currentIndexChanged( int id );
+	void on_cbSTVGame_currentIndexChanged( int id );
 	void on_cbAutostart_toggled(bool enable);
 	void accept();
 	void changeResolution(int id);
