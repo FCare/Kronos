@@ -3017,11 +3017,13 @@ int STVSingleInit(const char *gamepath, const char *biospath, const char *eeprom
 
 int STVInit(const char* romset, const char *path, const char *eepromdir, int favorite_region){
   yabsys.isSTV = 0;
+  if (romset == NULL) return -1;
   if (favorite_region != 0) stv_favorite_region = favorite_region;
   cryptoReset();
   if (CartridgeArea->carttype != CART_ROMSTV) return 0;
   int id = 0;
   for (id = 0; id < NB_STV_GAMES; id++) {
+    if (availableGames[id].entry == NULL) break;
     if (strcmp(availableGames[id].entry->romset, romset) == 0) break;
   }
 #ifndef __LIBRETRO__
