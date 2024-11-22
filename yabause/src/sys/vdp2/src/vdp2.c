@@ -127,9 +127,9 @@ static int updateBlockedBank(int bank){
         hasAccessState = 1;
       break;
       case 0xF:
-      // No Access
-        // if (hasWaitState) hasAccessState = 1;
-        // else
+      // No
+        if (hasWaitState || (!partitioned)) hasAccessState = 1;
+        else
         hasWaitState = 1;
       break;
       case 0x8:
