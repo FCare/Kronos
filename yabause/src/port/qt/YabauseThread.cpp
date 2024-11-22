@@ -356,7 +356,7 @@ void YabauseThread::reloadSettings()
 	mYabauseConf.cdcoretype = vs->value( "General/CdRom", mYabauseConf.cdcoretype ).toInt();
 	mYabauseConf.carttype = vs->value( "Cartridge/Type", mYabauseConf.carttype ).toInt();
 	if (mYabauseConf.carttype == CART_ROMSTV) mYabauseConf.cdcoretype = CDCORE_DUMMY;
-	mYabauseConf.stvgame = vs->value( "Cartridge/STVGame", mYabauseConf.stvgame ).toInt();
+	mYabauseConf.stvgame = strdup( vs->value( "Cartridge/STVGame", mYabauseConf.stvgame ).toString().toLatin1().constData());
 	mYabauseConf.regionid = 0;
 	const QString r = vs->value( "STV/Region", mYabauseConf.regionid ).toString();
 	if ( r.isEmpty() || r == "Auto" )
@@ -474,7 +474,7 @@ void YabauseThread::resetYabauseConf()
 	mYabauseConf.buppath = 0;
 	mYabauseConf.mpegpath = 0;
 	mYabauseConf.cartpath = 0;
-        mYabauseConf.stvgame = -1;
+  mYabauseConf.stvgame = 0;
 	mYabauseConf.skip_load = 0;
 	int numThreads = QThread::idealThreadCount();
 	mYabauseConf.usethreads = numThreads <= 1 ? 0 : 1;

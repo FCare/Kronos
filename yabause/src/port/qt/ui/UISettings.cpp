@@ -211,7 +211,7 @@ void UISettings::requestSTVFolder( const QString& c, QLineEdit* e, QString propo
 	int const nbGames = STVGetRomList(existingDirectoryPath.toStdString().c_str(), 1);
 	cbSTVGame->clear();
 	for(int i = 0; i< nbGames; i++){
-		cbSTVGame->addItem(getSTVGameName(i),i);
+		cbSTVGame->addItem(getSTVGameName(i),getSTVRomset(i));
 	}
 	cbSTVGame->model()->sort(0);
 }
@@ -468,11 +468,11 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
     	int const nbGames = STVGetRomList(str.toStdString().c_str(), 0);
         cbSTVGame->clear();
         for(int i = 0; i < nbGames; i++){
-						cbSTVGame->addItem(getSTVGameName(i),i);
+						cbSTVGame->addItem(getSTVGameName(i),getSTVRomset(i));
         }
         cbSTVGame->model()->sort(0);
 				VolatileSettings * const vs = QtYabause::volatileSettings();
-				cbSTVGame->setCurrentIndex(vs->value( "Cartridge/STVGame", 0 ).toInt());
+			  cbSTVGame->setCurrentIndex( cbSTVGame->findData( vs->value( "Cartridge/STVGame" ).toString() ) );
     }
     cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
 	lRegion->setVisible(mCartridgeTypes[id].pathFlag);
@@ -713,7 +713,7 @@ void UISettings::loadSettings()
 	leCartridge->setText( s->value(getCartridgePathSettingsKey()).toString() );
 	leCartridgeModemIP->setText( s->value( "Cartridge/ModemIP", QString("127.0.0.1") ).toString() );
 	leCartridgeModemPort->setText( s->value( "Cartridge/ModemPort", QString("1337") ).toString() );
-        cbSTVGame->setCurrentIndex( cbSTVGame->findData( s->value( "Cartridge/STVGame", -1 ).toInt() ) );
+  cbSTVGame->setCurrentIndex( cbSTVGame->findData( s->value( "Cartridge/STVGame" ).toString() ) );
 	leMemory->setText( s->value( "Memory/Path", getDataDirPath().append( "/bkram.bin" ) ).toString() );
 	leMpegROM->setText( s->value( "MpegROM/Path" ).toString() );
 	checkBox_extended_internal_backup->setChecked(s->value("Memory/ExtendMemory").toBool());
@@ -812,8 +812,8 @@ void UISettings::saveSettings()
 	s->setValue(getCartridgePathSettingsKey(), leCartridge->text() );
 	s->setValue( "Cartridge/ModemIP", leCartridgeModemIP->text() );
 	s->setValue( "Cartridge/ModemPort", leCartridgeModemPort->text() );
-  s->setValue( "Cartridge/STVGame", cbSTVGame->itemData( cbSTVGame->currentIndex() ).toInt() );
-  s->setValue( "Cartridge/STVGameName", QString(getSTVGameName(cbSTVGame->currentIndex()) ));
+  s->setValue( "Cartridge/STVGame", cbSTVGame->currentData().toString() );
+  s->setValue( "Cartridge/STVGameName", cbSTVGame->currentText() );
 	s->setValue( "Cartridge/LastCart", mLastCart);
 	s->setValue( "Memory/Path", leMemory->text() );
 	s->setValue( "MpegROM/Path", leMpegROM->text() );

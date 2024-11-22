@@ -37,9 +37,9 @@ typedef struct
    int m68kcoretype;
    int cdcoretype;
    int carttype;
-   int stvgame;
    u8 regionid;
    u8 languageid;
+   const char* stvgame;
    const char *biospath;
    const char *cdpath;
    const char *buppath;
