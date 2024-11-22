@@ -782,6 +782,7 @@ int UIYabause::loadCDRom()
 	s->sync();
 	if (!fn.isEmpty())
 	{
+		yabsys.isRotated = 0;
 		// vs->setValue( "autostart", false );
 		s->setValue( "General/CdRom", QtYabause::defaultCDCore().id );
 		mYabauseThread->SetCdInserted(true);
@@ -1196,6 +1197,7 @@ int UIYabause::loadGameFromFile(QString const& fileName)
 	QtYabause::updateTitle();
 	if (QFile::exists(fileName))
 	{
+		yabsys.isRotated = 0;
 		s->setValue("General/CdRom", ISOCD.id);
 		mYabauseThread->SetCdInserted(true);
 		ret = 0;
