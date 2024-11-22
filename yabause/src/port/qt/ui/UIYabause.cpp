@@ -351,8 +351,9 @@ void UIYabause::runActions() {
 				if (needReset)mYabauseThread->resetEmulation();
 			} else {
 				const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "Recents/ISOs" ).toString(), QtYabause::translate( "Select your iso/cue/bin/zip/chd file" ), QtYabause::translate( "CD Images (*.iso *.ISO *.cue *.CUE *.bin *.BIN *.mds *.MDS *.ccd *.CCD *.zip *.ZIP *.chd *.CHD)" ) );
-				needReset = loadGameFromFile(fn);
-				if (needReset) mYabauseThread->resetEmulation();
+				loadGameFromFile(fn);
+				if (yabsys.isSTV == 2)
+					mYabauseThread->resetEmulation();
 			}
 		}
 		break;
