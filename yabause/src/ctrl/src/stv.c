@@ -13,6 +13,8 @@
 #include <file/file_path.h>
 #endif
 
+#include <libgen.h>
+
 #include "stv.h"
 #include "cs0.h"
 #include "junzip.h"
@@ -125,17 +127,17 @@ Game GameList[NB_STV_GAMES]={
     NULL,
     NULL,
     {
-        HEADER_BLOB,	"epr20825.13",	0x0000001, 0x0100000, 0x00000000,
-        GAME_BYTE_BLOB, "epr20825.13",	0x0200000, 0x0100000, 0x00000000,
-        GAME_BYTE_BLOB, "epr20825.13",	0x0300000, 0x0100000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20827.2",	0x0400000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20828.3",	0x0800000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20829.4",	0x0c00000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20830.5",	0x1000000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20831.6",	0x1400000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20826.1",	0x1800000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20832.8",	0x1c00000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr20833.9",	0x2000000, 0x0400000, 0x00000000,
+        HEADER_BLOB,	"epr20825.13",	0x0000001, 0x0100000, 0x94a9ad8f,
+        GAME_BYTE_BLOB, "epr20825.13",	0x0200000, 0x0100000, 0x94a9ad8f,
+        GAME_BYTE_BLOB, "epr20825.13",	0x0300000, 0x0100000, 0x94a9ad8f,
+        GAME_WORD_BLOB, "mpr20827.2",	0x0400000, 0x0400000, 0x65cabbb3,
+        GAME_WORD_BLOB, "mpr20828.3",	0x0800000, 0x0400000, 0x3934d44a,
+        GAME_WORD_BLOB, "mpr20829.4",	0x0c00000, 0x0400000, 0x814308c3,
+        GAME_WORD_BLOB, "mpr20830.5",	0x1000000, 0x0400000, 0xff97fd19,
+        GAME_WORD_BLOB, "mpr20831.6",	0x1400000, 0x0400000, 0x4408e6fb,
+        GAME_WORD_BLOB, "mpr20826.1",	0x1800000, 0x0400000, 0xbdc4b941,
+        GAME_WORD_BLOB, "mpr20832.8",	0x1c00000, 0x0400000, 0xaf1b0985,
+        GAME_WORD_BLOB, "mpr20833.9",	0x2000000, 0x0400000, 0xcb6af231,
         GAME_END, "", 0, 0, 0
     },
     STV6B,
@@ -302,18 +304,18 @@ Game GameList[NB_STV_GAMES]={
     sanjeon_init,
     NV_2P,
     {
-        HEADER_BLOB,	"ic11",	0x0000001, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic13", 0x0400000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic14", 0x0600000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic15", 0x0800000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic16", 0x0a00000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic17", 0x0c00000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic18", 0x0e00000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic19", 0x1000000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic20", 0x1200000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic21", 0x1400000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic22", 0x1600000, 0x0200000, 0x00000000,
-        GAME_BYTE_BLOB,	"ic12",	0x1800000, 0x0400000, 0x00000000,
+        HEADER_BLOB,	"ic11",	0x0000001, 0x0200000, 0x9abae8d4,
+        GAME_BYTE_BLOB,	"ic13", 0x0400000, 0x0200000, 0xf72c1d13,
+        GAME_BYTE_BLOB,	"ic14", 0x0600000, 0x0200000, 0xbcd72105,
+        GAME_BYTE_BLOB,	"ic15", 0x0800000, 0x0200000, 0x8c9c8352,
+        GAME_BYTE_BLOB,	"ic16", 0x0a00000, 0x0200000, 0x07e11512,
+        GAME_BYTE_BLOB,	"ic17", 0x0c00000, 0x0200000, 0x46b7b344,
+        GAME_BYTE_BLOB,	"ic18", 0x0e00000, 0x0200000, 0xd48404e1,
+        GAME_BYTE_BLOB,	"ic19", 0x1000000, 0x0200000, 0x33d23bb9,
+        GAME_BYTE_BLOB,	"ic20", 0x1200000, 0x0200000, 0xf8cc1038,
+        GAME_BYTE_BLOB,	"ic21", 0x1400000, 0x0200000, 0x74ceb649,
+        GAME_BYTE_BLOB,	"ic22", 0x1600000, 0x0200000, 0x85f31277,
+        GAME_BYTE_BLOB,	"ic12",	0x1800000, 0x0400000, 0xd5ebc84e,
         GAME_END, "", 0, 0, 0
     },
     STV,
@@ -382,7 +384,7 @@ Game GameList[NB_STV_GAMES]={
         GAME_WORD_BLOB, "9",   0x2000000, 0x0400000, 0x00000000,
         GAME_WORD_BLOB, "10",  0x2400000, 0x0400000, 0x00000000,
         GAME_WORD_BLOB, "11",  0x2800000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "12",  0x2c00000, 0x0400000, 0x00000000,
+        // GAME_WORD_BLOB, "12",  0x2c00000, 0x0400000, 0x00000000, //NO_DUMP
         GAME_END, "", 0, 0, 0
     },
     STV,
@@ -2437,8 +2439,6 @@ int processBios(JZFile *zip,void *input) {
       if (header.crc32 == BiosList.blobs[j].crc32) {
         // file is the same but has a different filename, let's replace it
         strncpy(BiosList.blobs[j].filename, filename, MAX_LENGTH_FILENAME);
-      }
-      if (strncmp(BiosList.blobs[j].filename, filename, MAX_LENGTH_FILENAME) == 0) {
         //Compatible file found
         biosFound[j] = 1;
       }
@@ -2450,18 +2450,20 @@ int processBios(JZFile *zip,void *input) {
 
 int processFile(JZFile *zip,void *input) {
     JZFileHeader header;
-    char filename[MAX_LENGTH_FILENAME];
+    char *filename;
+    char long_filename[MAX_LENGTH_FILENAME];
     int i,j;
     rominfo* info = (rominfo*) input;
 
     if (info != NULL)
         if (info->gameId != -1)  return copyFile(zip, input);
 
-    if(jzReadLocalFileHeader(zip, &header, filename, sizeof(filename))) {
+    if(jzReadLocalFileHeader(zip, &header, long_filename, sizeof(long_filename))) {
         LOGSTV("Couldn't read local file header!\n");
         return -1;
     }
-
+    filename = basename(long_filename);
+    LOGSTV("CRC32 0x%x %s\n", header.crc32, filename);
     //LOGSTV("%s, %d / %d bytes at offset %08X\n", filename, header.compressedSize, header.uncompressedSize, header.offset);
     for (i=0; i<NB_STV_GAMES; i++) {
       j=0;
@@ -2469,10 +2471,9 @@ int processFile(JZFile *zip,void *input) {
         if (header.crc32 == GameList[i].blobs[j].crc32) {
           // file is the same but has a different filename, let's replace it
           strncpy(GameList[i].blobs[j].filename, filename, MAX_LENGTH_FILENAME);
-        }
-        if (strncmp(GameList[i].blobs[j].filename, filename, MAX_LENGTH_FILENAME) == 0) {
           //Compatible file found
           fileFound[i][j] = 1;
+          LOGSTV("File %s from %s Goes to romset %s\n",filename, info->filename,GameList[i].romset);
         }
         j++;
       }
@@ -2562,17 +2563,19 @@ int copyBios(JZFile *zip, void* id) {
 
 int copyFile(JZFile *zip, void* id) {
     JZFileHeader header;
-    char filename[MAX_LENGTH_FILENAME];
+    char long_filename[MAX_LENGTH_FILENAME];
+    char* filename;
     u8* data;
     int i,j, dataAvailable;
     rominfo* info = (rominfo*)id;
     int gameId = -1;
     if (info != NULL) gameId = info->gameId;
 
-    if(jzReadLocalFileHeader(zip, &header, filename, sizeof(filename))) {
+    if(jzReadLocalFileHeader(zip, &header, long_filename, sizeof(long_filename))) {
         LOGSTV("Couldn't read local file header!\n");
         return -1;
     }
+    filename = basename(long_filename);
 
     if((data = (u8*)malloc(header.uncompressedSize)) == NULL) {
         LOGSTV("Couldn't allocate memory!\n");
@@ -2673,6 +2676,8 @@ char * updateGameList(const char* file, int *nbGames){
   info.filename = file;
   info.gameId = -1;
   info.bios = 0;
+
+  LOGSTV("updateGameList %s\n", file);
 
   memset(fileFound, 0x0, NB_STV_GAMES*MAX_GAME_FILES);
 
@@ -2846,7 +2851,7 @@ int STVGetRomList(const char* path, int force){
   int i, nbGames = 0;
   char savefile[MAX_LENGTH_FILEPATH];
   memset(availableGames, 0x0, sizeof(GameLink)*NB_STV_GAMES);
-  snprintf(savefile, MAX_LENGTH_FILEPATH, "%s/gamelist.save", path);
+  snprintf(savefile, MAX_LENGTH_FILEPATH, "%s/gamelistv2.save", path);
   if (force == 0) {
     nbGames = loadGames(savefile);
     if (nbGames != 0) return nbGames;
@@ -2893,7 +2898,7 @@ int STVGetRomList(const char* path, int force){
   char savefile[MAX_LENGTH_FILEPATH];
   char pathfile[MAX_LENGTH_FILEPATH];
   memset(availableGames, 0x0, sizeof(GameLink)*NB_STV_GAMES);
-  snprintf(savefile, MAX_LENGTH_FILEPATH, "%s/gamelist.save", path);
+  snprintf(savefile, MAX_LENGTH_FILEPATH, "%s/gamelistv2.save", path);
   snprintf(pathfile, MAX_LENGTH_FILEPATH, "%s/*.zip", path);
   if (force == 0) {
     nbGames = loadGames(savefile);
