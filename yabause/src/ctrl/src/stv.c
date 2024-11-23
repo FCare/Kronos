@@ -75,11 +75,11 @@ const u8 ShienryuNV[0x80]={
 char *get_basename(char* path) {
   char *ssc;
   int l = 0;
-  ssc = strstr(path, "\");
+  ssc = strstr(path, "\\");
   do{
     l = strlen(ssc) + 1;
     path = &path[strlen(path)-l+2];
-    ssc = strstr(path, "\");
+    ssc = strstr(path, "\\");
   }while(ssc);
   return path;
 }
