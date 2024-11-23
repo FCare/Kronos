@@ -76,11 +76,11 @@ char *get_basename(char* path) {
   char *ssc;
   int l = 0;
   ssc = strstr(path, "\\");
-  do{
+  while(ssc){
     l = strlen(ssc) + 1;
     path = &path[strlen(path)-l+2];
     ssc = strstr(path, "\\");
-  }while(ssc);
+  }
   return path;
 }
 #else
