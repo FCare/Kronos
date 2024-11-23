@@ -456,34 +456,25 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 	leCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
 	if ((mLastCart == CART_ROMSTV) && (id != CART_ROMSTV))
 	{
-		yabsys.isReloadingImage = 2;
 		mLastCart = id;
 	}
-	if (id == CART_ROMSTV)
-	{
-		yabsys.isReloadingImage = 2;
-	} else {
-		mLastCart = s->value( "Cartridge/Type", mCartridgeTypes.at( 7 ).id ).toInt();
-	}
-    if (mCartridgeTypes[id].pathFlag) {
+	if (mCartridgeTypes[id].pathFlag) {
 		QString const & str = leCartridge->text();
-    	int const nbGames = STVGetRomList(str.toStdString().c_str(), 0);
-        cbSTVGame->clear();
-        for(int i = 0; i < nbGames; i++){
-						cbSTVGame->addItem(getSTVGameName(i),getSTVRomset(i));
-        }
-        cbSTVGame->model()->sort(0);
-				VolatileSettings * const vs = QtYabause::volatileSettings();
-			  cbSTVGame->setCurrentIndex( cbSTVGame->findData( vs->value( "Cartridge/STVGame" ).toString() ) );
-    }
-    cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
+		int const nbGames = STVGetRomList(str.toStdString().c_str(), 0);
+		cbSTVGame->clear();
+		for(int i = 0; i < nbGames; i++){
+			cbSTVGame->addItem(getSTVGameName(i),getSTVRomset(i));
+		}
+		cbSTVGame->model()->sort(0);
+		VolatileSettings * const vs = QtYabause::volatileSettings();
+		int curGame = cbSTVGame->findData( vs->value( "Cartridge/STVGame" ).toString());
+		cbSTVGame->setCurrentIndex( selectedGame );
+	}
+	cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
 	lRegion->setVisible(mCartridgeTypes[id].pathFlag);
 	cbRegion->setVisible(mCartridgeTypes[id].pathFlag);
+	mLastCart = s->value( "Cartridge/Type", mCartridgeTypes.at( 7 ).id ).toInt();
 	selectedCartridgeType = id;
-}
-
-void UISettings::on_cbSTVGame_currentIndexChanged( int id ) {
-	yabsys.isReloadingImage = 2;
 }
 
 void UISettings::loadCores()
@@ -810,10 +801,16 @@ void UISettings::saveSettings()
 	s->setValue( "Sound/SoundCore", cbSoundCore->itemData( cbSoundCore->currentIndex() ).toInt() );
 
 	// cartridge/memory
+	if (s->value( "Cartridge/Type").toInt() != cbCartridge->itemData( cbCartridge->currentIndex() ).toInt()) {
+		yabsys.isReloadingImage = 2;
+	}
 	s->setValue( "Cartridge/Type", cbCartridge->itemData( cbCartridge->currentIndex() ).toInt() );
 	s->setValue(getCartridgePathSettingsKey(), leCartridge->text() );
 	s->setValue( "Cartridge/ModemIP", leCartridgeModemIP->text() );
 	s->setValue( "Cartridge/ModemPort", leCartridgeModemPort->text() );
+	if (s->value( "Cartridge/STVGame").toString() != cbSTVGame->currentData().toString()) {
+		yabsys.isReloadingImage = 2;
+	}
   s->setValue( "Cartridge/STVGame", cbSTVGame->currentData().toString() );
   s->setValue( "Cartridge/STVGameName", cbSTVGame->currentText() );
 	s->setValue( "Cartridge/LastCart", mLastCart);
