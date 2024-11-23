@@ -2078,7 +2078,7 @@ Game GameList[NB_STV_GAMES]={
     STV_REGION_JP,
     0x0,
     0,
-    NULL,
+    sanjeon_init,
     NV_1P,
     {
         HEADER_BLOB,	"epr-18790.ic13",	0x0000001, 0x0080000, 0xd95155dc,
