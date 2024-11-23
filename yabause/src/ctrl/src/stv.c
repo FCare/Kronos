@@ -5,6 +5,7 @@
 #ifndef WIN32
 #include <sys/types.h>
 #include <dirent.h>
+#include <libgen.h>
 #else
 #include <windows.h>
 #endif
@@ -13,7 +14,6 @@
 #include <file/file_path.h>
 #endif
 
-#include <libgen.h>
 
 #include "stv.h"
 #include "cs0.h"
@@ -71,6 +71,23 @@ const u8 ShienryuNV[0x80]={
     0x00,0x00,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,
     0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
 
+#ifdef WIN32
+char *get_basename(char* path) {
+  char *ssc;
+  int l = 0;
+  ssc = strstr(path, "\");
+  do{
+    l = strlen(ssc) + 1;
+    path = &path[strlen(path)-l+2];
+    ssc = strstr(path, "\");
+  }while(ssc);
+  return path;
+}
+#else
+char *get_basename(char* path) {
+  return basename(path);
+}
+#endif
 
 static u8 bitswap8(u8 in, const u8* vec)
 {
@@ -2462,7 +2479,7 @@ int processFile(JZFile *zip,void *input) {
         LOGSTV("Couldn't read local file header!\n");
         return -1;
     }
-    filename = basename(long_filename);
+    filename = get_basename(long_filename);
     LOGSTV("CRC32 0x%x %s\n", header.crc32, filename);
     //LOGSTV("%s, %d / %d bytes at offset %08X\n", filename, header.compressedSize, header.uncompressedSize, header.offset);
     for (i=0; i<NB_STV_GAMES; i++) {
@@ -2575,7 +2592,7 @@ int copyFile(JZFile *zip, void* id) {
         LOGSTV("Couldn't read local file header!\n");
         return -1;
     }
-    filename = basename(long_filename);
+    filename = get_basename(long_filename);
 
     if((data = (u8*)malloc(header.uncompressedSize)) == NULL) {
         LOGSTV("Couldn't allocate memory!\n");
