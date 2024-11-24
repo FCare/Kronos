@@ -166,7 +166,7 @@ extern "C"
 		  mbstowcs(wtext, str, strlen(str) + 1);//Plus null
 		  LPWSTR ptr = wtext;
 		    ::OutputDebugString(ptr);
-			QtYabause::mainWindow()->appendLog( str );
+			if (mUIYabause) mUIYabause->appendLog( str );
 	      free(str);
 	  }
        }
@@ -179,7 +179,7 @@ extern "C"
 		va_end(argptr);
 		printf("%s", dest);
 		fflush(stdout);
-		QtYabause::mainWindow()->appendLog( dest );
+		if (mUIYabause) mUIYabause->appendLog( dest );
 }
 
 #endif
