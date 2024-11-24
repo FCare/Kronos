@@ -354,7 +354,7 @@ Game GameList[NB_STV_GAMES]={
         GAME_WORD_BLOB, "mpr21973.5",    0x1000000, 0x0400000, 0xb0f23f14,
         GAME_END, "", 0, 0, 0
     },
-    STVMP,
+    STV,
   },
   {
     "danchiq",
@@ -1641,7 +1641,7 @@ Game GameList[NB_STV_GAMES]={
         EEPROM_BLOB,	"kiwames.nv",	0x0000, 0x0080, 0xc7002732,
         GAME_END, "", 0, 0, 0
     },
-    STVMP,
+    STV,
   },
   {
     "puyosun",
