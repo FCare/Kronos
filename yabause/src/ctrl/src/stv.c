@@ -2759,7 +2759,7 @@ char * updateGameList(const char* file, int *nbGames){
         strncpy(availableGames[*nbGames].path, file, MAX_LENGTH_FILEPATH);
         romset = strdup(GameList[i].romset);
         (*nbGames)++;
-        break;
+        //break;
       }
     }
   }
