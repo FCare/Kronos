@@ -1679,7 +1679,7 @@ Game GameList[NB_STV_GAMES]={
     0,
     0,
     NULL,
-    NULL,
+    NV_2P,
     {
         HEADER_BLOB,    "2.ic13_2",      0x0200000, 0x0080000, 0x6cae2926,
         HEADER_BLOB,    "1.ic13_1",      0x0200001, 0x0080000, 0x460727c8,
