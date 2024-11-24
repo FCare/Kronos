@@ -2455,9 +2455,7 @@ int processBios(JZFile *zip,void *input) {
     //LOGSTV("%s, %d / %d bytes at offset %08X\n", filename, header.compressedSize, header.uncompressedSize, header.offset);
     j=0;
     while(BiosList.blobs[j].type != GAME_END) {
-      if (header.crc32 == BiosList.blobs[j].crc32) {
-        // file is the same but has a different filename, let's replace it
-        strncpy(BiosList.blobs[j].filename, filename, MAX_LENGTH_FILENAME);
+      if ((header.crc32 == BiosList.blobs[j].crc32) && (strcmp(BiosList.blobs[j].filename,filename)==0)) {
         //Compatible file found
         biosFound[j] = 1;
       }
@@ -2487,9 +2485,7 @@ int processFile(JZFile *zip,void *input) {
     for (i=0; i<NB_STV_GAMES; i++) {
       j=0;
       while(GameList[i].blobs[j].type != GAME_END) {
-        if (header.crc32 == GameList[i].blobs[j].crc32) {
-          // file is the same but has a different filename, let's replace it
-          strncpy(GameList[i].blobs[j].filename, filename, MAX_LENGTH_FILENAME);
+        if ((header.crc32 == GameList[i].blobs[j].crc32) && (strcmp(GameList[i].blobs[j].filename,filename)==0)) {
           //Compatible file found
           fileFound[i][j] = 1;
           LOGSTV("File %s from %s Goes to romset %s\n",filename, info->filename,GameList[i].romset);
