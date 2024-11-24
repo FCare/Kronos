@@ -2212,7 +2212,7 @@ Game GameList[NB_STV_GAMES]={
     0,
     0,
     NULL,
-    NULL,
+    NV_2P,
     {
         HEADER_BLOB,	"epr17944.13",	0x0000001, 0x0080000, 0x3304c175,
         HEADER_BLOB,	"epr17944.13",	0x0100001, 0x0080000, 0x3304c175,
