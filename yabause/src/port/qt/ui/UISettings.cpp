@@ -448,7 +448,13 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 
 	leCartridge->setVisible(mCartridgeTypes[id].enableFlag);
 	tbCartridge->setVisible(mCartridgeTypes[id].enableFlag);
-	lCartridgePath->setVisible(mCartridgeTypes[id].enableFlag);
+	if (id == CART_ROMSTV) {
+		lCartridgeSTVPath->setVisible(mCartridgeTypes[id].enableFlag);
+		lCartridgePath->setVisible(false);
+	} else {
+		lCartridgeSTVPath->setVisible(false);
+		lCartridgePath->setVisible(mCartridgeTypes[id].enableFlag);
+	}
 	lCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	leCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	lCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);

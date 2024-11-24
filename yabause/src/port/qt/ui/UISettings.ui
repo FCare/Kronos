@@ -624,7 +624,7 @@
          </property>
         </widget>
        </item>
-       <item row="7" column="0">
+       <item row="8" column="0">
         <widget class="QLabel" name="lRegion">
          <property name="font">
           <font>
@@ -640,7 +640,7 @@
          </property>
         </widget>
        </item>
-       <item row="10" column="0" colspan="3">
+       <item row="11" column="0" colspan="3">
         <widget class="QLineEdit" name="leMemory"/>
        </item>
        <item row="14" column="1">
@@ -656,7 +656,7 @@
          </property>
         </spacer>
        </item>
-       <item row="11" column="0" colspan="4">
+       <item row="12" column="0" colspan="4">
         <widget class="QLabel" name="lMpegROM">
          <property name="font">
           <font>
@@ -679,20 +679,20 @@
          </property>
         </widget>
        </item>
-       <item row="12" column="0" colspan="3">
+       <item row="13" column="0" colspan="3">
         <widget class="QLineEdit" name="leMpegROM"/>
        </item>
-       <item row="13" column="0">
+       <item row="14" column="0">
         <widget class="QCheckBox" name="checkBox_extended_internal_backup">
          <property name="text">
           <string>Extend Internal backup memory to 8MB</string>
          </property>
         </widget>
        </item>
-       <item row="8" column="0">
+       <item row="9" column="0">
         <widget class="QComboBox" name="cbRegion"/>
        </item>
-       <item row="6" column="0" colspan="3">
+       <item row="7" column="0" colspan="3">
         <widget class="QLineEdit" name="leCartridge">
          <property name="inputMask">
           <string/>
@@ -702,8 +702,18 @@
        <item row="5" column="0">
         <widget class="QLabel" name="lCartridgePath">
          <property name="text">
-          <string>Cartridge Path</string>
+          <string>Cartridge Path:</string>
          </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="lCartridgeSTVPath">
+         <property name="text">
+          <string>Mame romset 0.269:</string>
+         </property>
+         <property name="visible">
+          <bool>false</bool>
+        </property>
         </widget>
        </item>
       </layout>
