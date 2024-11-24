@@ -615,6 +615,11 @@ static int YabauseRefreshInit(yabauseinit_struct *init) {
 
   if (Cs2GetRegionID() >= 0xA) YabauseSetVideoFormat(VIDEOFORMATTYPE_PAL);
   else YabauseSetVideoFormat(VIDEOFORMATTYPE_NTSC);
+
+  YabSemTryWait(g_cpu_ready);
+  YabSemPost(g_cpu_ready);
+  YabSemTryWait(g_scsp_ready);
+  YabSemPost(g_scsp_ready);
   return 0;
 }
 
