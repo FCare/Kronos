@@ -74,6 +74,7 @@ signals:
 	void reset();
 	void toggleEmulateMouse( bool enable, bool show );
 	void emulationAlreadyPaused();
+	void initDone();
 };
 
 #endif // YABAUSETHREAD_H

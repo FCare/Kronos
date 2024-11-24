@@ -70,6 +70,14 @@ void UIYabause::sendThreadReset()
 	mLocker->lock();
 };
 
+void UIYabause::threadInitialized() {
+	VolatileSettings* vs = QtYabause::volatileSettings();
+	if (vs->value( "Cartridge/Type") == CART_ROMSTV) {
+		char *path = strdup( vs->value("Cartridge/Path").toString().toLatin1().constData() );
+		STVGetRomList(path, 0);
+	}
+}
+
 UIYabause::UIYabause( QWidget* parent )
 	: QMainWindow( parent )
 {
@@ -159,6 +167,7 @@ UIYabause::UIYabause( QWidget* parent )
 	connect( mYabauseThread, SIGNAL( toggleEmulateMouse( bool, bool ) ), this, SLOT( toggleEmulateMouse( bool, bool ) ) );
 	connect( mYabauseGL, SIGNAL( emulationPaused()), this, SLOT (runActions()));
 	connect( mYabauseThread, SIGNAL( emulationAlreadyPaused()), this, SLOT (runActionsAlreadyPaused()));
+	connect( mYabauseThread, SIGNAL( initDone()), this, SLOT (threadInitialized()));
 
 	// Load shortcuts
 	VolatileSettings* vs = QtYabause::volatileSettings();

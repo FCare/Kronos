@@ -225,6 +225,7 @@ protected slots:
 	void on_sVolume_valueChanged( int value );
 	void on_cbVideoDriver_currentIndexChanged( int id );
 	void sendThreadReset();
+	void threadInitialized();
 signals:
 	void requestReset();
 };

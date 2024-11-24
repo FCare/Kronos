@@ -40,11 +40,7 @@ YabauseThread::YabauseThread( QObject* o )
 	showFPS = false;
 	mIsCdIn = false;
 	mIsCDDirty = false;
-	VolatileSettings* vs = QtYabause::volatileSettings();
-	if (vs->value( "Cartridge/Type") == CART_ROMSTV) {
-		char *path = strdup( vs->value("Cartridge/Path").toString().toLatin1().constData() );
-		STVGetRomList(path, 0);
-	}
+	emit initDone();
 }
 
 YabauseThread::~YabauseThread()

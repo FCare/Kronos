@@ -2984,7 +2984,7 @@ int loadGames(char* path) {
   char gameName[1024];
   char gamePath[MAX_LENGTH_FILEPATH];
   FILE *fp;
-  LOGSTV("Load Games from %s\n", path);
+  if (path != NULL) LOGSTV("Load Games from %s\n", path);
   fp = fopen(path, "r");
   if (fp == NULL) return 0;
   for(;;) {
