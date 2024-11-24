@@ -1591,14 +1591,14 @@ Game GameList[NB_STV_GAMES]={
     NULL,
     NV_1P,
     {
-        GAME_WORD_BLOB, "pclbyov1.ic22",    0x0200000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "pclbyov2.ic24",    0x0400000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "pclbyov2.ic26",    0x0600000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "pclbyov2.ic28",    0x0800000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "pclbyov2.ic30",    0x0a00000, 0x0200000, 0x00000000,
-        EEPROM_BLOB,	"pclubyo2.nv",		0x0000, 0x0080, 0x00000000,
-        EEPROM_BLOB,	"315-6055.ic12",	0x0000, 0x0000, 0x00000000,
-        EEPROM_BLOB,	"315-6056.ic13",	0x0000, 0x0200, 0x01170000,
+        GAME_WORD_BLOB, "pclbyov1.ic22",    0x0200000, 0x0200000, 0x769468d1,
+        GAME_WORD_BLOB, "pclbyov2.ic24",    0x0400000, 0x0200000, 0xb25885bf,
+        GAME_WORD_BLOB, "pclbyov2.ic26",    0x0600000, 0x0200000, 0xcefc697f,
+        GAME_WORD_BLOB, "pclbyov2.ic28",    0x0800000, 0x0200000, 0x3c330c9b,
+        GAME_WORD_BLOB, "pclbyov2.ic30",    0x0a00000, 0x0200000, 0x00a0c702,
+        EEPROM_BLOB,	"pclubyo2.nv",		0x0000, 0x0080, 0x2021e0e5,
+        // EEPROM_BLOB,	"315-6055.ic12",	0x0000, 0x0000, 0x00000000, // PALCE16V8H-10JC on the front side of the cart
+        // EEPROM_BLOB,	"315-6056.ic13",	0x0000, 0x0200, 0x01170000, // PALCE16V8H-10JC on the back side of the cart
         GAME_END, "", 0, 0, 0
     },
     STV,
