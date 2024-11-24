@@ -2280,14 +2280,14 @@ Game GameList[NB_STV_GAMES]={
     0x0,
     0,
     NULL,
-    NULL,
+    NV_1P,
     {
-        GAME_WORD_BLOB, "ic22.bin",	0x0200000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "ic24.bin",	0x0400000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "ic26.bin",	0x0600000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "ic28.bin",	0x0800000, 0x0200000, 0x00000000,
-        GAME_WORD_BLOB, "ic30.bin",	0x0a00000, 0x0200000, 0x00000000,
-        EEPROM_BLOB,	"wasafari.nv",	0x0000, 0x0080, 0x00000000,
+        GAME_WORD_BLOB, "ic22.bin",	0x0200000, 0x0200000, 0xd8bb2e2c,
+        GAME_WORD_BLOB, "ic24.bin",	0x0400000, 0x0200000, 0xc1b0e173,
+        GAME_WORD_BLOB, "ic26.bin",	0x0600000, 0x0200000, 0xa5c0577c,
+        GAME_WORD_BLOB, "ic28.bin",	0x0800000, 0x0200000, 0x2a8cfa97,
+        GAME_WORD_BLOB, "ic30.bin",	0x0a00000, 0x0200000, 0x9a4109e5,
+        EEPROM_BLOB,	"wasafari.nv",	0x0000, 0x0080, 0x50861c5a,
         GAME_END, "", 0, 0, 0
     },
     STV,
@@ -2326,19 +2326,20 @@ Game GameList[NB_STV_GAMES]={
     NULL,
     NULL,
     {
-        HEADER_BLOB,    "epr-21122.ic13",	0x0000001, 0x0100000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21125.ic02",	0x0200000, 0x0100000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21130.ic03",	0x0300000, 0x0100000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21126.ic04",	0x0400000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21131.ic05",	0x0800000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21127.ic06",	0x0c00000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21127.ic06",	0x1000000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21128.ic08",	0x1400000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21133.ic09",	0x1800000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21129.ic10",	0x1c00000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21124.ic11",	0x1400000, 0x0400000, 0x00000000,
-        GAME_WORD_BLOB, "mpr-21123.ic12",	0x1800000, 0x0400000, 0x00000000,
-        EEPROM_BLOB,    "epr-21121.bin", 	0x0000, 0x2000, 0x00000000,
+        GAME_WORD_BLOB, "epr-21122.ic13",	0x0000000, 0x0080000, 0x49f56e32,
+        GAME_WORD_BLOB, "mpr-21125.ic02",	0x0400000, 0x0400000, 0x40f5f119,
+        GAME_WORD_BLOB, "mpr-21130.ic03",	0x0800000, 0x0400000, 0x84cb4e9c,
+        GAME_WORD_BLOB, "mpr-21126.ic04",	0x0c00000, 0x0400000, 0x36095649,
+        GAME_WORD_BLOB, "mpr-21131.ic05",	0x1000000, 0x0400000, 0xb1c860d8,
+        GAME_WORD_BLOB, "mpr-21127.ic06",	0x1400000, 0x0400000, 0xf55901d7,
+        GAME_WORD_BLOB, "mpr-21132.ic07",	0x1800000, 0x0400000, 0x809b1b0e,
+        GAME_WORD_BLOB, "mpr-21128.ic08",	0x1c00000, 0x0400000, 0xc2e2f72e,
+        GAME_WORD_BLOB, "mpr-21133.ic09",	0x2000000, 0x0400000, 0x2dc21956,
+        GAME_WORD_BLOB, "mpr-21129.ic10",	0x2400000, 0x0400000, 0x997d67bd,
+        GAME_WORD_BLOB, "mpr-21124.ic11",	0x2800000, 0x0400000, 0x10f073ac,
+        GAME_WORD_BLOB, "mpr-21123.ic12",	0x2c00000, 0x0400000, 0x491b9166,
+        EEPROM_BLOB,    "epr-21121.bin", 	0x0000, 0x2000, 0xd615bce0,
+        // EEPROM_BLOB,    "315-5930.ic19", 	0x0000, 0x0117, 0xd1201563,		
         GAME_END, "", 0, 0, 0
     },
     STV,
@@ -2758,7 +2759,7 @@ char * updateGameList(const char* file, int *nbGames){
         strncpy(availableGames[*nbGames].path, file, MAX_LENGTH_FILEPATH);
         romset = strdup(GameList[i].romset);
         (*nbGames)++;
-        // break;
+        break;
       }
     }
   }
