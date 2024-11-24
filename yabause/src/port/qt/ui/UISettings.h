@@ -72,7 +72,6 @@ private:
 	void updateVolatileSettings() const;
 
 	int selectedCartridgeType = 0;
-	int selectedGame = 0;
 };
 
 #endif // UISETTINGS_H

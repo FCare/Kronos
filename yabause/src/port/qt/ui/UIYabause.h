@@ -224,6 +224,9 @@ protected slots:
 	void on_cbSound_toggled( bool toggled );
 	void on_sVolume_valueChanged( int value );
 	void on_cbVideoDriver_currentIndexChanged( int id );
+	void sendThreadReset();
+signals:
+	void requestReset();
 };
 
 #endif // UIYABAUSE_H
