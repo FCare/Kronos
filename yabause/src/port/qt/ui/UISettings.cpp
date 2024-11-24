@@ -796,15 +796,21 @@ void UISettings::saveSettings()
 
 	// cartridge/memory
 	int currentCart = s->value( "Cartridge/Type").toInt();
-	if ( currentCart != cbCartridge->itemData( cbCartridge->currentIndex() ).toInt()) {
-		yabsys.isReloadingImage = 2;
-		s->setValue( "Cartridge/LastCart", currentCart);
+	int newCart = cbCartridge->itemData( cbCartridge->currentIndex() ).toInt();
+	if ( currentCart != newCart) {
+		if (currentCart != CART_ROMSTV) {
+			s->setValue( "Cartridge/LastCart", currentCart);
+		}
+		if ((currentCart == CART_ROMSTV) || (newCart == CART_ROMSTV)) {
+			yabsys.isReloadingImage = 2;
+		}
 	}
 	s->setValue( "Cartridge/Type", cbCartridge->itemData( cbCartridge->currentIndex() ).toInt() );
 	s->setValue(getCartridgePathSettingsKey(), leCartridge->text() );
 	s->setValue( "Cartridge/ModemIP", leCartridgeModemIP->text() );
 	s->setValue( "Cartridge/ModemPort", leCartridgeModemPort->text() );
 	if (s->value( "Cartridge/STVGame").toString() != cbSTVGame->currentData().toString()) {
+		printf("ICI 2\n");
 		yabsys.isReloadingImage = 2;
 	}
   s->setValue( "Cartridge/STVGame", cbSTVGame->currentData().toString() );
