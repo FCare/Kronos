@@ -3074,8 +3074,8 @@ int STVInit(const char* romset, const char *path, const char *eepromdir, int fav
     snprintf(eeprom_path, sizeof(eeprom_path), "%s/%s.nv", eepromdir, romset);
     eeprom_init(eeprom_path);
     yabsys.isSTV = 1;
-    return 0;
     LOGSTV("Load is ok\n");
+    return 0;
   }
   LOGSTV("Load is nok\n");
   return -1;
