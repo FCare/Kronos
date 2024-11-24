@@ -2915,10 +2915,10 @@ int STVGetRomList(const char* path, int force){
     closedir(d);
     fp = fopen(savefile, "w");
     if (biosLink.entry != NULL) {
-      fprintf(fp, "%s,%s\n", biosLink.entry->name, biosLink.path);
+      fprintf(fp, "%s$%s\n", biosLink.entry->name, biosLink.path);
     }
     for (i=0; i<nbGames; i++) {
-      fprintf(fp, "%s,%s\n", availableGames[i].entry->name, availableGames[i].path);
+      fprintf(fp, "%s$%s\n", availableGames[i].entry->name, availableGames[i].path);
     }
     fclose(fp);
   }
@@ -2958,10 +2958,10 @@ int STVGetRomList(const char* path, int force){
     FindClose(hFind);
     fp = fopen(savefile, "w");
     if (biosLink.entry != NULL) {
-        fprintf(fp, "%s,%s\n", biosLink.entry->name, biosLink.path);
+        fprintf(fp, "%s$%s\n", biosLink.entry->name, biosLink.path);
     }
     for (i=0; i<nbGames; i++) {
-      fprintf(fp, "%s,%s\n", availableGames[i].entry->name, availableGames[i].path);
+      fprintf(fp, "%s$%s\n", availableGames[i].entry->name, availableGames[i].path);
     }
     fclose(fp);
   }
@@ -2998,7 +2998,7 @@ int loadGames(char* path) {
         break;
       }
       else {
-        if (field[i] == ',') {
+        if (field[i] == '$') {
           field[i] = '\0';
           field = &gamePath[0];
           i = 0;
