@@ -464,7 +464,7 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 		cbSTVGame->model()->sort(0);
 		VolatileSettings * const vs = QtYabause::volatileSettings();
 		int curGame = cbSTVGame->findData( vs->value( "Cartridge/STVGame" ).toString());
-		cbSTVGame->setCurrentIndex( selectedGame );
+		cbSTVGame->setCurrentIndex( curGame );
 	}
 	cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
 	lRegion->setVisible(mCartridgeTypes[id].pathFlag);
