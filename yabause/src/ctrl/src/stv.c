@@ -2804,15 +2804,28 @@ int loadBios(int id){
   return isBiosFound;
 }
 
-int loadGame(int gameId){
+int loadGame(const char *romset){
   FILE *fp;
   JZEndRecord endRecord;
   JZFile *zip;
   int i = 0;
+  int gameId = 0;
   u8 isBiosFound = 0;
   u8 isBlobFound = 1;
   u8 hasBios = 0;
   rominfo info;
+
+  if (romset != NULL) {
+    for (int l=0; l<NB_STV_GAMES; l++) {
+      if (availableGames[l].entry == NULL) break;
+      LOGSTV("Compare %s with %s\n", availableGames[l].entry->romset, romset);
+      if (strcmp(availableGames[l].entry->romset, romset) == 0) {
+        LOGSTV("Found game %d for romset %s\n", l, romset);
+        gameId = l;
+        break;
+      }
+    }
+  }
   LOGSTV("loadGame %d path = %s\n", gameId, availableGames[gameId].path);
 
   info.filename = availableGames[gameId].path;
@@ -2849,6 +2862,7 @@ int loadGame(int gameId){
     }
     i++;
   }
+  LOGSTV("isBlobFound %d isBiosFound %d hasBios %d\n",isBlobFound,isBiosFound,hasBios);
   if (isBlobFound & (isBiosFound|hasBios)) {
     LOGSTV("%s has been sucessfully loaded\n", availableGames[gameId].entry->name);
     if (availableGames[gameId].entry->eeprom != NULL || hasEeprom == 0)
@@ -2859,6 +2873,7 @@ int loadGame(int gameId){
     if (availableGames[gameId].entry->init != NULL) availableGames[gameId].entry->init();
     return 0;
   }
+  LOGSTV("Should not go there\n");
   return -1;
 }
 
@@ -2970,6 +2985,7 @@ int loadGames(char* path) {
   char gameName[1024];
   char gamePath[MAX_LENGTH_FILEPATH];
   FILE *fp;
+  LOGSTV("Load Games from %s\n", path);
   fp = fopen(path, "r");
   if (fp == NULL) return 0;
   for(;;) {
@@ -3026,10 +3042,11 @@ int STVSingleInit(const char *gamepath, const char *biospath, const char *eeprom
   int nbGame = 0;
   char *romset = NULL;
   yabsys.isSTV = 0;
+  LOGSTV("Single Init\n");
   if (favorite_region != 0) stv_favorite_region = favorite_region;
   if ((gamepath == NULL) || (biospath == NULL)) return -1;
   nbGame = STVGetSingle(gamepath, biospath, &romset);
-  if (loadGame(0) == 0) {
+  if (loadGame(romset) == 0) {
     char eeprom_path[4096];
     snprintf(eeprom_path, sizeof(eeprom_path), "%s/%s.nv", eepromdir, romset);
     eeprom_init(eeprom_path);
@@ -3041,27 +3058,26 @@ int STVSingleInit(const char *gamepath, const char *biospath, const char *eeprom
 
 int STVInit(const char* romset, const char *path, const char *eepromdir, int favorite_region){
   yabsys.isSTV = 0;
+  LOGSTV("Stv Init\n");
   if (romset == NULL) return -1;
   if (favorite_region != 0) stv_favorite_region = favorite_region;
   cryptoReset();
   if (CartridgeArea->carttype != CART_ROMSTV) return 0;
-  int id = 0;
-  for (id = 0; id < NB_STV_GAMES; id++) {
-    if (availableGames[id].entry == NULL) break;
-    if (strcmp(availableGames[id].entry->romset, romset) == 0) break;
-  }
-#ifndef __LIBRETRO__
-  int nbGames = STVGetRomList(path, 0);
-  if (nbGames == 0) return -1;
-  if (nbGames <= id) return -1;
-#endif
-  if (loadGame(id) == 0) {
+// #ifndef __LIBRETRO__
+// printf("Load romset %s from %s\n",romset, path);
+//   int nbGames = STVGetRomList(path, 0);
+//   if (nbGames == 0) return -1;
+//   if (nbGames <= id) return -1;
+// #endif
+  if (loadGame(romset) == 0) {
     char eeprom_path[4096];
     snprintf(eeprom_path, sizeof(eeprom_path), "%s/%s.nv", eepromdir, romset);
     eeprom_init(eeprom_path);
     yabsys.isSTV = 1;
     return 0;
+    LOGSTV("Load is ok\n");
   }
+  LOGSTV("Load is nok\n");
   return -1;
 }
 
