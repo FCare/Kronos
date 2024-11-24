@@ -2008,7 +2008,7 @@ Game GameList[NB_STV_GAMES]={
     0,
     0,
     NULL,
-    NULL,
+    NV_2P,
     {
         HEADER_BLOB,	"fpr17834.13",	0x0000001, 0x0100000, 0x746ef686,
         GAME_BYTE_BLOB,	"fpr17834.13",	0x0200000, 0x0100000, 0x746ef686,
