@@ -421,7 +421,6 @@ void UISettings::changeUpscaleMode(int id)
 
 void UISettings::on_cbCartridge_currentIndexChanged( int id )
 {
-	printf("La\n");
 	if (id < 0) return;
 	Settings const* const s = QtYabause::settings();
 	auto const path = s->value(getCartridgePathSettingsKey(id)).toString();
@@ -810,7 +809,6 @@ void UISettings::saveSettings()
 	s->setValue( "Cartridge/ModemIP", leCartridgeModemIP->text() );
 	s->setValue( "Cartridge/ModemPort", leCartridgeModemPort->text() );
 	if (s->value( "Cartridge/STVGame").toString() != cbSTVGame->currentData().toString()) {
-		printf("ICI 2\n");
 		yabsys.isReloadingImage = 2;
 	}
   s->setValue( "Cartridge/STVGame", cbSTVGame->currentData().toString() );
