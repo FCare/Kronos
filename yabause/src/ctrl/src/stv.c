@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 
-#define LOGSTV
+#define LOGSTV YuiMsg
 //YuiMsg
 #define ROTATED 1
 
