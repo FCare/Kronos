@@ -2440,22 +2440,23 @@ typedef struct {
 
 int processBios(JZFile *zip,void *input) {
     JZFileHeader header;
-    char filename[MAX_LENGTH_FILENAME];
+    char long_filename[MAX_LENGTH_FILENAME];
+    char* filename;
     int j;
     rominfo* info = (rominfo*) input;
 
    if ((info != NULL) && (info->gameId != -1)) return copyBios(zip, input);
 
 
-    if(jzReadLocalFileHeader(zip, &header, filename, sizeof(filename))) {
+    if(jzReadLocalFileHeader(zip, &header, long_filename, sizeof(long_filename))) {
         LOGSTV("Couldn't read local file header!\n");
         return -1;
     }
-
+    filename = get_basename(long_filename);
     //LOGSTV("%s, %d / %d bytes at offset %08X\n", filename, header.compressedSize, header.uncompressedSize, header.offset);
     j=0;
     while(BiosList.blobs[j].type != GAME_END) {
-      if ((header.crc32 == BiosList.blobs[j].crc32) && (strcmp(BiosList.blobs[j].filename,filename)==0)) {
+      if ((header.crc32 == BiosList.blobs[j].crc32) && (strcasecmp(BiosList.blobs[j].filename,filename)==0)) {
         //Compatible file found
         biosFound[j] = 1;
       }
@@ -2485,7 +2486,7 @@ int processFile(JZFile *zip,void *input) {
     for (i=0; i<NB_STV_GAMES; i++) {
       j=0;
       while(GameList[i].blobs[j].type != GAME_END) {
-        if ((header.crc32 == GameList[i].blobs[j].crc32) && (strcmp(GameList[i].blobs[j].filename,filename)==0)) {
+        if ((header.crc32 == GameList[i].blobs[j].crc32) && (strcasecmp(GameList[i].blobs[j].filename,filename)==0)) {
           //Compatible file found
           fileFound[i][j] = 1;
           LOGSTV("File %s from %s Goes to romset %s\n",filename, info->filename,GameList[i].romset);
@@ -2500,7 +2501,8 @@ int biosloaded = 0xFF;
 
 int copyBios(JZFile *zip, void* id) {
     JZFileHeader header;
-    char filename[MAX_LENGTH_FILENAME];
+    char long_filename[MAX_LENGTH_FILENAME];
+    char* filename;
     char* biosname = NULL;
     u8* data;
     unsigned int i,j, dataAvailable;
@@ -2508,10 +2510,11 @@ int copyBios(JZFile *zip, void* id) {
     int gameId = -1;
     if (info != NULL) gameId = info->gameId;
 
-    if(jzReadLocalFileHeader(zip, &header, filename, sizeof(filename))) {
+    if(jzReadLocalFileHeader(zip, &header, long_filename, sizeof(long_filename))) {
         LOGSTV("Couldn't read local file header!\n");
         return -1;
     }
+    filename = get_basename(long_filename);
 
     if((data = (u8*)malloc(header.uncompressedSize)) == NULL) {
         LOGSTV("Couldn't allocate memory!\n");
