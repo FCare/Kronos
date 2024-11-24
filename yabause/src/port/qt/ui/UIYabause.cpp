@@ -799,6 +799,8 @@ int UIYabause::loadCDRom()
 	}
 	if ((yabsys.isSTV == 1)||(s->value( "Cartridge/Type", 0 ).toInt() == CART_ROMSTV)) {
 		int cartId = s->value("Cartridge/LastCart", CART_NONE).toInt();
+		if (cartId == CART_ROMSTV) //should never happen
+			cartId = CART_NONE;
 		s->setValue("Cartridge/Type", cartId);
 		yabsys.isReloadingImage = 2;
 	}
@@ -1214,7 +1216,10 @@ int UIYabause::loadGameFromFile(QString const& fileName)
 	s->sync();
 	if ((yabsys.isSTV == 1)||(s->value( "Cartridge/Type", 0 ).toInt() == CART_ROMSTV)) {
 		int cartId = s->value("Cartridge/LastCart", CART_NONE).toInt();
+		if (cartId == CART_ROMSTV) //should never happen
+			cartId = CART_NONE;
 		s->setValue("Cartridge/Type", cartId);
+		printf("Last Cart was %d\n", cartId);
 		ret = 0;
 		yabsys.isReloadingImage = 2;
 	}

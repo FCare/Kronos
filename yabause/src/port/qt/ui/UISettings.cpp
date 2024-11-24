@@ -421,10 +421,10 @@ void UISettings::changeUpscaleMode(int id)
 
 void UISettings::on_cbCartridge_currentIndexChanged( int id )
 {
+	printf("La\n");
 	if (id < 0) return;
 	Settings const* const s = QtYabause::settings();
 	auto const path = s->value(getCartridgePathSettingsKey(id)).toString();
-	mLastCart = s->value("Cartridge/LastCart", CART_NONE).toInt();
 
 	if (mCartridgeTypes[id].enableFlag)
 	{
@@ -454,10 +454,6 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 	leCartridgeModemIP->setVisible(mCartridgeTypes[id].ipFlag);
 	lCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
 	leCartridgeModemPort->setVisible(mCartridgeTypes[id].ipFlag);
-	if ((mLastCart == CART_ROMSTV) && (id != CART_ROMSTV))
-	{
-		mLastCart = id;
-	}
 	if (mCartridgeTypes[id].pathFlag) {
 		QString const & str = leCartridge->text();
 		int const nbGames = STVGetRomList(str.toStdString().c_str(), 0);
@@ -473,7 +469,6 @@ void UISettings::on_cbCartridge_currentIndexChanged( int id )
 	cbSTVGame->setVisible(mCartridgeTypes[id].pathFlag);
 	lRegion->setVisible(mCartridgeTypes[id].pathFlag);
 	cbRegion->setVisible(mCartridgeTypes[id].pathFlag);
-	mLastCart = s->value( "Cartridge/Type", mCartridgeTypes.at( 7 ).id ).toInt();
 	selectedCartridgeType = id;
 }
 
@@ -627,7 +622,6 @@ void UISettings::loadSettings()
 	// get settings pointer
 	Settings const * const s = QtYabause::settings();
 
-	mLastCart = s->value("Cartridge/LastCart", CART_NONE).toInt();
 	// general
 	leBios->setText( s->value( "General/Bios" ).toString() );
 	leBiosSettings->setText( s->value( "General/BiosSettings" ).toString() );
@@ -801,8 +795,10 @@ void UISettings::saveSettings()
 	s->setValue( "Sound/SoundCore", cbSoundCore->itemData( cbSoundCore->currentIndex() ).toInt() );
 
 	// cartridge/memory
-	if (s->value( "Cartridge/Type").toInt() != cbCartridge->itemData( cbCartridge->currentIndex() ).toInt()) {
+	int currentCart = s->value( "Cartridge/Type").toInt();
+	if ( currentCart != cbCartridge->itemData( cbCartridge->currentIndex() ).toInt()) {
 		yabsys.isReloadingImage = 2;
+		s->setValue( "Cartridge/LastCart", currentCart);
 	}
 	s->setValue( "Cartridge/Type", cbCartridge->itemData( cbCartridge->currentIndex() ).toInt() );
 	s->setValue(getCartridgePathSettingsKey(), leCartridge->text() );
@@ -813,7 +809,6 @@ void UISettings::saveSettings()
 	}
   s->setValue( "Cartridge/STVGame", cbSTVGame->currentData().toString() );
   s->setValue( "Cartridge/STVGameName", cbSTVGame->currentText() );
-	s->setValue( "Cartridge/LastCart", mLastCart);
 	s->setValue( "Memory/Path", leMemory->text() );
 	s->setValue( "MpegROM/Path", leMpegROM->text() );
   s->setValue("Memory/ExtendMemory", checkBox_extended_internal_backup->isChecked());

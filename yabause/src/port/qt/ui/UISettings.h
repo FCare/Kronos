@@ -73,7 +73,6 @@ private:
 
 	int selectedCartridgeType = 0;
 	int selectedGame = 0;
-	int mLastCart = 0;
 };
 
 #endif // UISETTINGS_H
