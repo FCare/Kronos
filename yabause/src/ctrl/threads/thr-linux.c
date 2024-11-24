@@ -219,6 +219,12 @@ void YabSemPost( YabSem * mtx ){
     sem_post(&pmtx->sem);
 }
 
+int YabSemTryWait(YabSem * mtx ){
+  YabSem_pthread * pmtx;
+  pmtx = (YabSem_pthread *)mtx;
+  return sem_trywait(&pmtx->sem);
+}
+
 void YabSemWait( YabSem * mtx ){
     YabSem_pthread * pmtx;
     pmtx = (YabSem_pthread *)mtx;

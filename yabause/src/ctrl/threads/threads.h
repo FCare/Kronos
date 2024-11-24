@@ -119,6 +119,7 @@ typedef void * YabSem;
 
 void YabSemPost( YabSem * mtx );
 void YabSemWait( YabSem * mtx );
+int YabSemTryWait( YabSem * mtx );
 YabSem * YabThreadCreateSem(int val);
 void YabThreadFreeMutex( YabSem * mtx);
 

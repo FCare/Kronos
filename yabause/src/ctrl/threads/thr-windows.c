@@ -222,6 +222,12 @@ void YabSemWait( YabSem * mtx ){
     WaitForSingleObject(pmtx->sem, 0L);
 }
 
+int YabSemTryWait( YabSem * mtx ){
+    YabSem_win32 * pmtx;
+    pmtx = (YabSem_win32 *)mtx;
+    return WaitForSingleObject(pmtx->sem, 100L);
+}
+
 YabSem * YabThreadCreateSem(int val){
     YabSem_win32 * mtx = (YabSem_win32 *)malloc(sizeof(YabSem_win32));
     mtx->sem = CreateSemaphore( NULL, val, val, NULL);
