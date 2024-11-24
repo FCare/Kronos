@@ -1916,7 +1916,7 @@ Game GameList[NB_STV_GAMES]={
     0,
     0,
     NULL,
-    NULL,
+    NV_1P
     {
         BIOS_BLOB, "epr18343.bin",        0x0000000, 0x0080000, 0x48e2eecf,
         HEADER_BLOB, "epr-18427.ic13",    0x0000001, 0x0100000, 0x3f25bec8,
@@ -1937,7 +1937,7 @@ Game GameList[NB_STV_GAMES]={
     0,
     0,
     NULL,
-    NULL,
+    NV_1P
     {
         BIOS_BLOB, "epr18343.bin",       0x0000000, 0x0080000, 0x48e2eecf,
         HEADER_BLOB, "epr18344.a",       0x0000001, 0x0100000, 0x5a7de018,
