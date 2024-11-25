@@ -177,6 +177,7 @@
     <addaction name="separator"/>
     <addaction name="aFileOpenISO"/>
     <addaction name="aFileOpenCDRom"/>
+    <addaction name="aFileOpenSTV"/>
     <addaction name="separator"/>
     <addaction name="mFileSaveState"/>
     <addaction name="mFileLoadState"/>
@@ -285,6 +286,7 @@
    <addaction name="separator"/>
    <addaction name="aFileOpenISO"/>
    <addaction name="aFileOpenCDRom"/>
+   <addaction name="aFileOpenSTV"/>
    <addaction name="separator"/>
    <addaction name="aFileSettings"/>
    <addaction name="aSound"/>
@@ -870,6 +872,18 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+C</string>
+   </property>
+  </action>
+  <action name="aFileOpenSTV">
+   <property name="icon">
+    <iconset resource="../resources/resources.qrc">
+     <normaloff>:/actions/icons/actions/stv.png</normaloff>:/actions/icons/actions/stv.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select Cartridge...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+I</string>
    </property>
   </action>
   <action name="aHelpReport">

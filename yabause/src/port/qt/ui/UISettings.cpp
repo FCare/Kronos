@@ -172,8 +172,21 @@ UISettings::UISettings(QList <translation_struct> *translations, QWidget* p )
 		connect( tb, SIGNAL( clicked() ), this, SLOT( tbBrowse_clicked() ) );
 	}
 
+}
+
+void UISettings::setCurrentOpenedTab(int idx)
+{
+	twPages->setCurrentIndex(3);
+}
+
+int UISettings::exec()
+{
+	// load settings
+	loadSettings();
 	// retranslate widgets
 	QtYabause::retranslateWidget( this );
+
+	return QDialog::exec();
 }
 
 void UISettings::requestFile( const QString& c, QLineEdit* e, const QString& filters, QString proposedPath)

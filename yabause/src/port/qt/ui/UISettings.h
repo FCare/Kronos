@@ -33,6 +33,8 @@ class UISettings : public QDialog, public Ui::UISettings
 
 public:
 	UISettings(QList <translation_struct> *translations, QWidget* parent = 0 );
+	int exec() override;
+	void setCurrentOpenedTab(int idx);
 
 protected:
 	QList <translation_struct> trans;
@@ -61,12 +63,12 @@ protected slots:
 	void on_cbAutostart_toggled(bool enable);
 	void accept();
 	void changeResolution(int id);
-        void changeFilterMode(int id);
-        void changeUpscaleMode(int id);
-        void changeAspectRatio(int id);
-				void changeWireframe(int id);
-				void changeMeshMode(int id);
-				void changeBandingMode(int id);
+  void changeFilterMode(int id);
+  void changeUpscaleMode(int id);
+  void changeAspectRatio(int id);
+	void changeWireframe(int id);
+	void changeMeshMode(int id);
+	void changeBandingMode(int id);
 private:
 	QString getCartridgePathSettingsKey(int cartridgeType = -1) const;
 	void updateVolatileSettings() const;

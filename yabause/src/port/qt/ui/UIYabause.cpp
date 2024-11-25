@@ -19,9 +19,9 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 */
 #include "UIYabause.h"
+#include "UISettings.h"
 #include "../Settings.h"
 #include "../VolatileSettings.h"
-#include "UISettings.h"
 #include "UIBackupRam.h"
 #include "UICheats.h"
 #include "UICheatSearch.h"
@@ -676,8 +676,7 @@ void UIYabause::refreshStatesActions()
 	}
 }
 
-void UIYabause::on_aFileSettings_triggered()
-{
+void UIYabause::openSettingsOnTabs(int index) {
 	Settings *s = (QtYabause::settings());
 	QHash<QString, QVariant> hash;
 	const QStringList keys = s->allKeys();
@@ -686,7 +685,9 @@ void UIYabause::on_aFileSettings_triggered()
 	}
 
 	YabauseLocker locker( mYabauseThread );
-	if ( UISettings(&translations, window() ).exec() )
+	UISettings *settings = new UISettings(&translations, window() );
+	settings->setCurrentOpenedTab(4);
+	if ( settings->exec() )
 	{
 		VolatileSettings* vs = QtYabause::volatileSettings();
 		aEmulationVSync->setChecked( vs->value( "General/EnableVSync", 1 ).toBool() );
@@ -772,6 +773,16 @@ void UIYabause::on_aFileSettings_triggered()
 
 		if (yabsys.isReloadingImage == 2) emit requestReset();
 	}
+}
+
+void UIYabause::on_aFileOpenSTV_triggered()
+{
+	openSettingsOnTabs(4);
+}
+
+void UIYabause::on_aFileSettings_triggered()
+{
+	openSettingsOnTabs(0);
 }
 
 void UIYabause::on_aFileOpenISO_triggered()
