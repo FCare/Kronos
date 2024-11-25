@@ -1098,13 +1098,15 @@ void UIYabause::breakpointHandlerSCSPDSP()
 void UIYabause::on_aViewDebugMSH2_triggered()
 {
 	YabauseLocker locker( mYabauseThread );
-	UIDebugSH2( UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
+	UIDebugSH2 mView( UIDebugCPU::PROC_MSH2, mYabauseThread, this );
+	emit mView.exec();
 }
 
 void UIYabause::on_aViewDebugSSH2_triggered()
 {
 	YabauseLocker locker( mYabauseThread );
-	UIDebugSH2( UIDebugCPU::PROC_SSH2, mYabauseThread, this ).exec();
+	UIDebugSH2 mView( UIDebugCPU::PROC_SSH2, mYabauseThread, this );
+	emit mView.exec();
 }
 
 void UIYabause::on_aViewDebugVDP1_triggered()
