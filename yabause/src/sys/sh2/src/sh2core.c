@@ -2609,7 +2609,13 @@ static u8 FASTCALL SH2MemoryBreakpointReadByte(SH2_struct *sh, u8* mem, u32 addr
       if (((sh->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
          return sh->bp.memorybreakpoint[i].oldreadbyte(sh, mem, addr);
    }
-
+   SH2_struct *otherSH = (sh == MSH2)?SSH2:MSH2;
+   // the breakpoint might have been set for the other core.
+   for (i = 0; i < otherSH->bp.nummemorybreakpoints; i++)
+   {
+      if (((otherSH->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
+         return otherSH->bp.memorybreakpoint[i].oldreadbyte(sh, mem, addr);
+   }
    return 0;
 }
 
@@ -2639,6 +2645,13 @@ static u16 FASTCALL SH2MemoryBreakpointReadWord(SH2_struct *sh, u8* mem, u32 add
       if (((sh->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
          return sh->bp.memorybreakpoint[i].oldreadword(sh, mem, addr);
    }
+   SH2_struct *otherSH = (sh == MSH2)?SSH2:MSH2;
+   // the breakpoint might have been set for the other core.
+   for (i = 0; i < otherSH->bp.nummemorybreakpoints; i++)
+   {
+      if (((otherSH->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
+         return otherSH->bp.memorybreakpoint[i].oldreadword(sh, mem, addr);
+   }
    return 0;
 }
 
@@ -2667,6 +2680,13 @@ static u32 FASTCALL SH2MemoryBreakpointReadLong(SH2_struct *sh, u8* mem, u32 add
    {
       if (((sh->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
          return sh->bp.memorybreakpoint[i].oldreadlong(sh, mem, addr);
+   }
+   SH2_struct *otherSH = (sh == MSH2)?SSH2:MSH2;
+   // the breakpoint might have been set for the other core.
+   for (i = 0; i < otherSH->bp.nummemorybreakpoints; i++)
+   {
+      if (((otherSH->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
+         return otherSH->bp.memorybreakpoint[i].oldreadlong(sh, mem, addr);
    }
    return 0;
 }
@@ -2701,6 +2721,16 @@ static void FASTCALL SH2MemoryBreakpointWriteByte(SH2_struct *sh, u8* mem, u32 a
          return;
       }
    }
+   SH2_struct *otherSH = (sh == MSH2)?SSH2:MSH2;
+   // the breakpoint might have been set for the other core.
+   for (i = 0; i < otherSH->bp.nummemorybreakpoints; i++)
+   {
+     if (((otherSH->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
+     {
+        otherSH->bp.memorybreakpoint[i].oldwritebyte(sh, mem, addr, val);
+        return;
+     }
+   }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2733,6 +2763,16 @@ static void FASTCALL SH2MemoryBreakpointWriteWord(SH2_struct *sh, u8* mem, u32 a
          return;
       }
    }
+   SH2_struct *otherSH = (sh == MSH2)?SSH2:MSH2;
+   // the breakpoint might have been set for the other core.
+   for (i = 0; i < otherSH->bp.nummemorybreakpoints; i++)
+   {
+     if (((otherSH->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
+     {
+        otherSH->bp.memorybreakpoint[i].oldwriteword(sh, mem, addr, val);
+        return;
+     }
+   }
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2764,6 +2804,16 @@ static void FASTCALL SH2MemoryBreakpointWriteLong(SH2_struct *sh, u8* mem, u32 a
          sh->bp.memorybreakpoint[i].oldwritelong(sh, mem, addr, val);
          return;
       }
+   }
+   SH2_struct *otherSH = (sh == MSH2)?SSH2:MSH2;
+   // the breakpoint might have been set for the other core.
+   for (i = 0; i < otherSH->bp.nummemorybreakpoints; i++)
+   {
+     if (((otherSH->bp.memorybreakpoint[i].addr >> 16) & 0xFFF) == ((addr >> 16) & 0xFFF))
+     {
+        otherSH->bp.memorybreakpoint[i].oldwritelong(sh, mem, addr, val);
+        return;
+     }
    }
 }
 
