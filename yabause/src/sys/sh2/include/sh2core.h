@@ -481,6 +481,7 @@ typedef struct SH2_struct_s
    u32 cycleLost;
    int cdiff;
    u32 interruptReturnAddress;
+   u32 itTriggerCycles;
     u32 frtcycles;
     u32 wdtcycles;
 

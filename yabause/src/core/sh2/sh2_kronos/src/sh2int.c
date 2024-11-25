@@ -59,6 +59,8 @@ extern void BiosBUPVerify(SH2_struct * context);
 extern void BiosBUPGetDate(SH2_struct * context);
 extern void BiosBUPSetDate(SH2_struct * context);
 
+#define INTERRUPT_HANDLING_DELAY 2
+
 void decode(SH2_struct *context);
 
 //////////////////////////////////////////////////////////////////////////////
@@ -327,7 +329,8 @@ static void executeLastPC(SH2_struct *context) {
 
 static void decodeInt(SH2_struct *context) {
   executeLastPC(context);
-  SH2HandleInterrupts(context);
+  if (context->itTriggerCycles >= context->cycles) SH2KronosNotifyInterrupt(context);
+  else SH2HandleInterrupts(context);
 }
 
 static void outOfInt(SH2_struct *context) {
@@ -895,6 +898,7 @@ static void SH2KronosNotifyInterrupt(SH2_struct *context) {
       addr = context->regs.PC>>1;
 
     int id = (addr >> 19) & 0xFFF;
+  context->itTriggerCycles = context->cycles + INTERRUPT_HANDLING_DELAY;
     cacheCode[context->isslave][cacheId[id]][addr & cacheMask[cacheId[id]]] = decodeInt;
   }
 }
