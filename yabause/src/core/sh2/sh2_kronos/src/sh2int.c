@@ -338,11 +338,17 @@ static void outOfInt(SH2_struct *context) {
   executeLastPC(context);
 }
 
+int SH2KronosInterpreterDebugInit(void)
+{
+  int ret = SH2KronosInterpreterInit();
+  SH2SetExecSet(1);
+  return ret;
+}
 int SH2KronosInterpreterInit(void)
 {
 
    int i,j;
-
+   SH2SetExecSet(0);
    if (SH2Core->id == SH2CORE_KRONOS_INTERPRETER) {
      //Optimize while(1) loop
      opcodeTable[0xAFFE] = SH2InfiniteLoop;
@@ -611,7 +617,9 @@ FASTCALL void SH2KronosDebugInterpreterExecSave(SH2_struct *context, u32 cycles,
         memcpy(&context->regs, oldRegs, sizeof(sh2regs_struct));
         return;
       }
-
+      if (context->bp.inbreakpoint) {
+        return;
+      }
 #ifdef SH2_UBC
     if (ubcinterrupt)
        SH2UBCInterrupt(context, ubcflag);
@@ -712,6 +720,9 @@ FASTCALL void SH2KronosDebugInterpreterExec(SH2_struct *context, u32 cycles)
         SH2HandleTrackInfLoop(context);
         cacheCode[context->isslave][cacheId[id]][(context->regs.PC >> 1) & cacheMask[cacheId[id]]] = opcodeTable[context->instruction];
         opcodeTable[context->instruction](context);
+        if (context->bp.inbreakpoint) {
+          return;
+        }
       }
 
 #ifdef SH2_UBC
@@ -993,7 +1004,7 @@ SH2Interface_struct SH2KronosDebugInterpreter = {
    SH2CORE_KRONOS_DEBUG_INTERPRETER,
    "SH2 Debug",
 
-   SH2KronosInterpreterInit,
+   SH2KronosInterpreterDebugInit,
    SH2KronosInterpreterDeInit,
    SH2KronosInterpreterReset,
    SH2KronosDebugInterpreterExec,

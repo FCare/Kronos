@@ -410,7 +410,6 @@ typedef struct
    void (*BreakpointCallBack)(void *, u32, void *);
    void *BreakpointUserData;
    int inbreakpoint;
-   int breaknow;
 } breakpoint_struct;
 
 typedef struct
@@ -557,20 +556,13 @@ typedef struct
 static INLINE void SH2HandleBreakpoints(SH2_struct *context)
 {
    int i;
-
-   for (i=0; i < context->bp.numcodebreakpoints; i++) {
-
-      if ((context->regs.PC == context->bp.codebreakpoint[i].addr) && context->bp.inbreakpoint == 0) {
+   if (context->bp.inbreakpoint == 0) {
+     for (i=0; i < context->bp.numcodebreakpoints; i++) {
+       if (context->regs.PC == context->bp.codebreakpoint[i].addr)  {
          context->bp.inbreakpoint = 1;
-         if (context->bp.BreakpointCallBack)
-             context->bp.BreakpointCallBack(context, context->bp.codebreakpoint[i].addr, context->bp.BreakpointUserData);
-         context->bp.inbreakpoint = 0;
-      }
-   }
-
-   if (context->bp.breaknow) {
-      context->bp.breaknow = 0;
-      context->bp.BreakpointCallBack(context, context->regs.PC, context->bp.BreakpointUserData);
+         return;
+       }
+     }
    }
 }
 
@@ -585,6 +577,8 @@ void SH2PowerOn(SH2_struct *context);
 void FASTCALL SH2Exec(SH2_struct *context, u32 cycles);
 void FASTCALL SH2TestExec(SH2_struct *context, u32 cycles);
 void SH2NMI(SH2_struct *context);
+
+void SH2SetExecSet(int debug);
 
 void SH2GetRegisters(SH2_struct *context, sh2regs_struct * r);
 void SH2SetRegisters(SH2_struct *context, sh2regs_struct * r);
