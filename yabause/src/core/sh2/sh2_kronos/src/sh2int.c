@@ -440,6 +440,7 @@ int SH2KronosInterpreterInit(void)
    SSH2->backtraceEnabled = 0;
    MSH2->stepOverOut.enabled = 0;
    SSH2->stepOverOut.enabled = 0;
+   MSH2->isDelayed = SSH2->isDelayed = 0;
 
    return 0;
 }

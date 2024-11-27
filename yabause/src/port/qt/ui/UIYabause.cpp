@@ -1048,27 +1048,41 @@ void UIYabause::on_aViewFullscreen_triggered( bool b )
 	fullscreenRequested( b );
 }
 
-void UIYabause::breakpointHandlerMSH2(bool displayMessage)
+void UIYabause::breakpointHandlerMSH2(breakpoint_userdata *userdata)
 {
 	ScspMuteAudio(SCSP_MUTE_SYSTEM);
-	if (displayMessage) {
-		if (CommonDialogs::information( QtYabause::translate( "MSH2 reached breakpoint at " ).append("0x%1").arg(MSH2->regs.PC, 0, 16)))
+	if (userdata) {
+		if (userdata->PCAddress == userdata->BPAddress) {
+			if (CommonDialogs::information( QtYabause::translate( "MSH2 reached code breakpoint at " ).append("0x%1").arg(userdata->PCAddress, 0, 16)))
 			UIDebugSH2(UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
-		else
+			else
 			ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+		} else {
+			if (CommonDialogs::information( QtYabause::translate( "MSH2 reached data breakpoint at " ).append("0x%1, PC 0x%2").arg(userdata->BPAddress, 0, 16).arg(userdata->PCAddress, 0, 16) ))
+			UIDebugSH2(UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
+			else
+			ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+		}
 	} else {
 		UIDebugSH2(UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
 	}
 }
 
-void UIYabause::breakpointHandlerSSH2(bool displayMessage)
+void UIYabause::breakpointHandlerSSH2(breakpoint_userdata *userdata)
 {
 	ScspMuteAudio(SCSP_MUTE_SYSTEM);
-	if (displayMessage) {
-		if (CommonDialogs::information( QtYabause::translate( "SSH2 reached breakpoint at " ).append("0x%1").arg(SSH2->regs.PC, 0, 16)))
+	if (userdata) {
+		if (userdata->PCAddress == userdata->BPAddress) {
+			if (CommonDialogs::information( QtYabause::translate( "SSH2 reached code breakpoint at " ).append("0x%1").arg(userdata->PCAddress, 0, 16)))
 			UIDebugSH2(UIDebugCPU::PROC_SSH2, mYabauseThread, this ).exec();
-		else
+			else
 			ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+		} else {
+			if (CommonDialogs::information( QtYabause::translate( "SSH2 reached data breakpoint at " ).append("0x%1, PC 0x%2").arg(userdata->BPAddress, 0, 16).arg(userdata->PCAddress, 0, 16) ))
+			UIDebugSH2(UIDebugCPU::PROC_SSH2, mYabauseThread, this ).exec();
+			else
+			ScspUnMuteAudio(SCSP_MUTE_SYSTEM);
+		}
 	} else {
 		UIDebugSH2(UIDebugCPU::PROC_SSH2, mYabauseThread, this ).exec();
 	}

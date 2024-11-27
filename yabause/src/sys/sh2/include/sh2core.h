@@ -373,6 +373,13 @@ typedef struct
   writelongfunc oldwritelong;
 } memorybreakpoint_struct;
 
+
+typedef struct
+{
+  u32 PCAddress;
+  u32 BPAddress;
+} breakpoint_userdata;
+
 void SH2SetBreakpointCallBack(SH2_struct *context, void (*func)(void *, u32, void *), void *userdata);
 int SH2AddCodeBreakpoint(SH2_struct *context, u32 addr);
 int SH2DelCodeBreakpoint(SH2_struct *context, u32 addr);
@@ -408,7 +415,7 @@ typedef struct
    memorybreakpoint_struct memorybreakpoint[MAX_BREAKPOINTS];
    int nummemorybreakpoints;
    void (*BreakpointCallBack)(void *, u32, void *);
-   void *BreakpointUserData;
+   breakpoint_userdata BreakpointUserData;
    int inbreakpoint;
 } breakpoint_struct;
 
@@ -511,6 +518,7 @@ typedef struct SH2_struct_s
     u32 BUPTableAddr;
     void (*SH2InterruptibleExec)(struct SH2_struct_s *context, u32 cycles);
     u32 blockingMask;
+    u32 isDelayed;
 //ENd debug
 } SH2_struct;
 
@@ -560,6 +568,8 @@ static INLINE void SH2HandleBreakpoints(SH2_struct *context)
      for (i=0; i < context->bp.numcodebreakpoints; i++) {
        if (context->regs.PC == context->bp.codebreakpoint[i].addr)  {
          context->bp.inbreakpoint = 1;
+         context->bp.BreakpointUserData.PCAddress = (context->isDelayed != 0)?context->isDelayed:context->regs.PC;
+         context->bp.BreakpointUserData.PCAddress = (context->isDelayed != 0)?context->isDelayed:context->regs.PC;
          return;
        }
      }

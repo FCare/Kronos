@@ -140,7 +140,7 @@ static void SH2StandardExecFast(SH2_struct *context, u32 cycles) {
   int oldbp = context->bp.inbreakpoint;
   SH2Core->Exec(context, cycles);
   if (context->bp.inbreakpoint && !oldbp) {
-    context->bp.BreakpointCallBack(context, 0, context->bp.BreakpointUserData);
+    context->bp.BreakpointCallBack(context, 0, &context->bp.BreakpointUserData);
     context->bp.inbreakpoint = 0;
   }
 }
@@ -154,7 +154,7 @@ static void SH2BlockableExecDebug(SH2_struct *context, u32 cycles) {
     int oldbp = context->bp.inbreakpoint;
     SH2Core->ExecSave(context, cycles, &oldRegs);
     if (context->bp.inbreakpoint && !oldbp) {
-      context->bp.BreakpointCallBack(context, 0, context->bp.BreakpointUserData);
+      context->bp.BreakpointCallBack(context, 0, &context->bp.BreakpointUserData);
       context->bp.inbreakpoint = 0;
     }
   } else {
@@ -2520,7 +2520,6 @@ void SH2DumpHistory(SH2_struct *context){
 
 void SH2SetBreakpointCallBack(SH2_struct *context, void (*func)(void *, u32, void *), void *userdata) {
    context->bp.BreakpointCallBack = func;
-   context->bp.BreakpointUserData = userdata;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2626,6 +2625,8 @@ static u8 FASTCALL SH2MemoryBreakpointReadByte(SH2_struct *sh, u8* mem, u32 addr
          if (sh->bp.BreakpointCallBack && sh->bp.inbreakpoint == 0)
          {
             sh->bp.inbreakpoint = 1;
+            sh->bp.BreakpointUserData.PCAddress = (sh->isDelayed != 0)?sh->isDelayed:sh->regs.PC;
+            sh->bp.BreakpointUserData.BPAddress = addr;
          }
 
          return sh->bp.memorybreakpoint[i].oldreadbyte(sh, mem, addr);
@@ -2659,6 +2660,8 @@ static u16 FASTCALL SH2MemoryBreakpointReadWord(SH2_struct *sh, u8* mem, u32 add
          if (sh->bp.BreakpointCallBack && sh->bp.inbreakpoint == 0)
          {
             sh->bp.inbreakpoint = 1;
+            sh->bp.BreakpointUserData.PCAddress = (sh->isDelayed != 0)?sh->isDelayed:0Xcafedead;
+            sh->bp.BreakpointUserData.BPAddress = addr;
          }
          return sh->bp.memorybreakpoint[i].oldreadword(sh, mem, addr);
       }
@@ -2691,6 +2694,8 @@ static u32 FASTCALL SH2MemoryBreakpointReadLong(SH2_struct *sh, u8* mem, u32 add
          if (sh->bp.BreakpointCallBack && sh->bp.inbreakpoint == 0)
          {
             sh->bp.inbreakpoint = 1;
+            sh->bp.BreakpointUserData.PCAddress = (sh->isDelayed != 0)?sh->isDelayed:sh->regs.PC;
+            sh->bp.BreakpointUserData.BPAddress = addr;
          }
          return sh->bp.memorybreakpoint[i].oldreadlong(sh, mem, addr);
       }
@@ -2725,6 +2730,8 @@ static void FASTCALL SH2MemoryBreakpointWriteByte(SH2_struct *sh, u8* mem, u32 a
          if (sh->bp.BreakpointCallBack && sh->bp.inbreakpoint == 0)
          {
             sh->bp.inbreakpoint = 1;
+            sh->bp.BreakpointUserData.PCAddress = (sh->isDelayed != 0)?sh->isDelayed:sh->regs.PC;
+            sh->bp.BreakpointUserData.BPAddress = addr;
          }
 
          sh->bp.memorybreakpoint[i].oldwritebyte(sh, mem, addr, val);
@@ -2766,6 +2773,8 @@ static void FASTCALL SH2MemoryBreakpointWriteWord(SH2_struct *sh, u8* mem, u32 a
          if (sh->bp.BreakpointCallBack && sh->bp.inbreakpoint == 0)
          {
             sh->bp.inbreakpoint = 1;
+            sh->bp.BreakpointUserData.PCAddress = (sh->isDelayed != 0)?sh->isDelayed:sh->regs.PC;
+            sh->bp.BreakpointUserData.BPAddress = addr;
          }
 
          sh->bp.memorybreakpoint[i].oldwriteword(sh, mem, addr, val);
@@ -2807,6 +2816,8 @@ static void FASTCALL SH2MemoryBreakpointWriteLong(SH2_struct *sh, u8* mem, u32 a
          if (sh->bp.BreakpointCallBack && sh->bp.inbreakpoint == 0)
          {
             sh->bp.inbreakpoint = 1;
+            sh->bp.BreakpointUserData.PCAddress = (sh->isDelayed != 0)?sh->isDelayed:sh->regs.PC;
+            sh->bp.BreakpointUserData.BPAddress = addr;
          }
 
          sh->bp.memorybreakpoint[i].oldwritelong(sh, mem, addr, val);
