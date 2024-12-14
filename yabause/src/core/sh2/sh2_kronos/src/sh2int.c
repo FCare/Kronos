@@ -339,12 +339,6 @@ static void outOfInt(SH2_struct *context) {
   executeLastPC(context);
 }
 
-int SH2KronosInterpreterDebugInit(void)
-{
-  int ret = SH2KronosInterpreterInit();
-  SH2SetExecSet(1);
-  return ret;
-}
 int SH2KronosInterpreterInit(void)
 {
 
@@ -445,6 +439,12 @@ int SH2KronosInterpreterInit(void)
    return 0;
 }
 
+int SH2KronosInterpreterDebugInit(void)
+{
+  int ret = SH2KronosInterpreterInit();
+  SH2SetExecSet(1);
+  return ret;
+}
 //////////////////////////////////////////////////////////////////////////////
 
 void SH2KronosInterpreterDeInit(void)
