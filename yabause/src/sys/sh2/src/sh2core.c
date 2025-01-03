@@ -41,7 +41,6 @@ static void WDTExec(SH2_struct *context);
 u8 SCIReceiveByte(void);
 void SCITransmitByte(u8);
 
-
 void enableCache(SH2_struct *ctx);
 void disableCache(SH2_struct *ctx);
 void InvalidateCache(SH2_struct *ctx);
@@ -53,6 +52,10 @@ static void (*SH2StandardExec)(SH2_struct *context, u32 cycles);
 
 void DMATransferCycles(SH2_struct *context, Dmac * dmac, int cycles);
 int DMAProc(SH2_struct *context, int cycles );
+
+// Profiler forward declaration
+int SH2ProfilerInit(SH2_struct* context);
+void SH2ProfilerDeInit(SH2_struct *context);
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -238,6 +241,9 @@ int SH2Init(int coreid)
    if (SH2TrackInfLoopInit(MSH2) != 0)
       return -1;
 
+   if (SH2ProfilerInit(MSH2) != 0)
+      return -1;
+
    MSH2->onchip.BCR1 = 0x0000;
    MSH2->isslave = 0;
    MSH2->isAccessingCPUBUS = 0;
@@ -265,6 +271,9 @@ int SH2Init(int coreid)
   SSH2->SH2InterruptibleExec = SH2StandardExec;
 
    if (SH2TrackInfLoopInit(SSH2) != 0)
+      return -1;
+
+   if (SH2ProfilerInit(SSH2) != 0)
       return -1;
 
     SSH2->interruptReturnAddress = 0;
@@ -330,11 +339,13 @@ void SH2DeInit()
 {
    if (SH2Core)
       SH2Core->DeInit();
+
    SH2Core = NULL;
 
    if (MSH2)
    {
       SH2TrackInfLoopDeInit(MSH2);
+      SH2ProfilerDeInit(MSH2);
       free(MSH2);
    }
    MSH2 = NULL;
@@ -342,8 +353,10 @@ void SH2DeInit()
    if (SSH2)
    {
       SH2TrackInfLoopDeInit(SSH2);
+      SH2ProfilerDeInit(SSH2);
       free(SSH2);
    }
+
    SSH2 = NULL;
 }
 
@@ -624,6 +637,45 @@ void SH2NMI(SH2_struct *context)
    context->onchip.ICR |= 0x8000;
    SH2IntcSetNmi(context);
    SH2EvaluateInterrupt(context);
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+int SH2ProfilerInit(SH2_struct* context)
+{
+  if (context)
+  {
+    context->profilerInfo.stackPos = -1;
+    context->profilerInfo.startMonitorAddress = 0x06002000;
+    context->profilerInfo.endMonitorAddress = 0x06104000;
+    context->profilerInfo.profilerEnabled = 0;
+    memset(context->profilerInfo.profile, 0,
+      PROFILE_NUM_INFOS * sizeof(SH2_ProfilerInfo));
+
+    memset(context->profilerInfo.stack, 0,
+      PROFILE_STACK_SIZE * sizeof(SH2_ProfilerStackInfo));
+
+    return 0;
+  }
+  else
+  {
+    return -1;
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
+void SH2ProfilerDeInit(SH2_struct *context)
+{
+   if (!context)
+     return;
+
+   for (u32 i = 0; i < PROFILE_NUM_INFOS; ++i)
+   {
+      SH2_ProfilerInfo* info = &context->profilerInfo.profile[i];
+      info->time = 0;
+      info->count = 0;
+   }
 }
 
 //////////////////////////////////////////////////////////////////////////////

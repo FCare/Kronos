@@ -217,6 +217,9 @@ protected slots:
         void on_aViewDebugSCSPChan_triggered();
 	void on_aViewDebugSCUDSP_triggered();
 	void on_aViewDebugMemoryEditor_triggered();
+   // profiler menu
+	void on_aProfilerToggle_triggered();
+	void on_aProfilerShowResults_triggered();
 	// help menu
 	void on_aHelpReport_triggered();
 	void on_aHelpCompatibilityList_triggered();

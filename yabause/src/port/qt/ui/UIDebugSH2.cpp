@@ -119,12 +119,19 @@ UIDebugSH2::UIDebugSH2(UIDebugCPU::PROCTYPE proc, YabauseThread *mYabauseThread,
 	connect( pbLoadCode, SIGNAL( clicked() ), this, SLOT( loadCodeAddress() ) );
 
   restoreAddr2line();
+  restoreCppFilt();
 }
 
 void UIDebugSH2::restoreAddr2line()
 {
   Settings* settings = QtYabause::settings();
   addr2line = settings->value( "Debug/Addr2Line" ).toString();
+}
+
+void UIDebugSH2::restoreCppFilt()
+{
+  Settings* settings = QtYabause::settings();
+  cppfilt = settings->value( "Debug/CppFilt" ).toString();
 }
 
 void UIDebugSH2::updateRegList()
@@ -232,55 +239,59 @@ void UIDebugSH2::loadCodeAddress()
     updateCodePage(static_cast<uint32_t>(std::stoull(newAddress, nullptr, 16)));
 }
 
+QString UIDebugSH2::findElfPath()
+{
+   QString elfPath;
+   VolatileSettings *vs = QtYabause::volatileSettings();
+   if (vs->value("General/CdRom") != CDCORE_ISO)
+   {
+      return "";
+   }
+   else
+   {
+      const QString isoPathString{ vs->value( "Recents/ISOs" ).toString() };
+      const QFileInfo fileInfo(isoPathString);
+      QDir searchPath = fileInfo.dir();
+
+      const QString filename = fileInfo.completeBaseName() + ".elf";
+      YuiMsg("looking for %s\n", filename.toStdString().c_str());
+
+      if (searchPath.cd("build")) {
+         if (searchPath.exists(filename)) {
+            // Found in build folder
+            return QFileInfo(searchPath, filename).absoluteFilePath();
+         }
+         else {
+            searchPath.cdUp();
+         }
+     }
+
+     if (elfPath.isEmpty()) {
+        if (searchPath.exists(filename)) {
+          // Found in local folder
+          return QFileInfo(searchPath, filename).absoluteFilePath();
+        }
+     }
+   }
+
+   return "";
+}
+
 void UIDebugSH2::updateCodePage(u32 evaluateAddress)
 {
   YuiMsg("Address to inspect %x\n", evaluateAddress);
   if (addr2line.isEmpty())
     restoreAddr2line();
+  
+  if (cppfilt.isEmpty())
+    restoreCppFilt();
 
-  QString elfPath;
+  QString elfPath = findElfPath();
+  if (elfPath.isEmpty())
+     return;
+
   const QString program{ addr2line };
 
-  VolatileSettings *vs = QtYabause::volatileSettings();
-	if ( vs->value( "General/CdRom" ) != CDCORE_ISO )
-  {
-    YuiMsg("Not using ISO, ignoring code\n");
-    return;
-  }
-  else
-  {
-    const QString isoPathString{ vs->value( "Recents/ISOs" ).toString() };
-    const QFileInfo fileInfo(isoPathString);
-    QDir searchPath = fileInfo.dir();
-    const QString filename = fileInfo.completeBaseName() + ".elf";
-
-    YuiMsg("looking for %s\n", filename.toStdString().c_str());
-
-    if (searchPath.cd("build")) {
-      YuiMsg("looking for %s in %s\n", filename.toStdString().c_str(), searchPath.path().toStdString().c_str());
-      if (searchPath.exists(filename)) {
-        //Found in build folder
-        elfPath = QFileInfo(searchPath, filename).absoluteFilePath();
-        printf("Found %s !!\n", elfPath.toStdString().c_str());
-      }
-      else {
-        searchPath.cdUp();
-      }
-    }
-    if (elfPath.isEmpty()) {
-      YuiMsg("looking for %s in %s\n", filename.toStdString().c_str(), searchPath.path().toStdString().c_str());
-      if (searchPath.exists(filename)) {
-        //Found in local folder
-        YuiMsg("Found %s in %s\n", filename.toStdString().c_str(), searchPath.path().toStdString().c_str());
-        elfPath = QFileInfo(searchPath, filename).absoluteFilePath();
-      }
-      else {
-        // Not found at all
-        YuiMsg("Could not find elf file, ignoring code\n");
-        return;
-      }
-    }
-  }
   std::stringstream hexAddress;
   hexAddress << std::setfill('0') << std::setw(8) << std::hex
              << evaluateAddress;

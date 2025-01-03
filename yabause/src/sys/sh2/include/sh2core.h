@@ -426,7 +426,21 @@ typedef struct
 } backtrace_struct;
 //END debug
 
+typedef struct
+{
+  u32 address;
+  u64 startTime;
+} SH2_ProfilerStackInfo;
 
+typedef struct 
+{
+  double time;
+  u32 count;
+} SH2_ProfilerInfo;
+
+#define PROFILE_STACK_SIZE 16384
+#define PROFILE_NUM_INFOS (1024 * 1024)
+ 
 void SH2IntcSetIrl(SH2_struct *sh, u8 irl, u8 d);
 void SH2IntcSetNmi(SH2_struct *sh);
 void SH2EvaluateInterrupt(SH2_struct *sh);
@@ -521,6 +535,15 @@ typedef struct SH2_struct_s
     u32 isDelayed;
     u32 divcycles;
 //ENd debug
+
+    struct {
+      SH2_ProfilerInfo profile[PROFILE_NUM_INFOS];
+      SH2_ProfilerStackInfo stack[PROFILE_STACK_SIZE];
+      s32 stackPos;
+      u32 startMonitorAddress;
+      u32 endMonitorAddress;
+      u8 profilerEnabled;
+    } profilerInfo;
 } SH2_struct;
 
 typedef struct

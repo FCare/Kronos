@@ -28,7 +28,9 @@ class UIDebugSH2 : public UIDebugCPU
 private:
    SH2_struct *debugSH2;
    QString addr2line;
+   QString cppfilt;
    void restoreAddr2line();
+   void restoreCppFilt();
 
 public:
    UIDebugSH2( UIDebugCPU::PROCTYPE proc, YabauseThread *mYabauseThread, QWidget* parent = 0 );
@@ -50,6 +52,9 @@ public:
    void reserved1();
    void reserved2();
 	void reserved3();
+
+   static QString findElfPath();
+
 protected:
 
 protected slots:
