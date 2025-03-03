@@ -1633,7 +1633,7 @@ bool retro_load_game(const struct retro_game_info *info)
 
    // Check if the path lead to a ST-V game
    // Store the game "id", if no game id found then this is most likely not a ST-V game
-   char *stvgame;
+   char *stvgame = NULL;
    if (strcmp(path_get_extension(info->path), "zip") == 0)
       STVGetSingle(info->path, stv_bios_path, &stvgame);
 
@@ -1705,6 +1705,7 @@ bool retro_load_game(const struct retro_game_info *info)
       // Configure addon cart settings
       configure_saturn_addon_cart();
 
+      yinit.stvgame          = "";
       yinit.cdcoretype       = CDCORE_ISO;
       yinit.cdpath           = disk_paths[disk_index];
       yinit.biospath         = (hle_bios_force ? NULL : bios_path);
