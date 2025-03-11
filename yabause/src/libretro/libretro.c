@@ -61,6 +61,7 @@ static bool hle_bios_force = false;
 static int addon_cart_type = CART_NONE;
 static int mesh_mode = ORIGINAL_MESH;
 static int banding_mode = ORIGINAL_BANDING;
+static int video_filter_type = 0;
 
 static int g_skipframe = 0;
 static int g_videoformattype = -1;
@@ -1008,6 +1009,13 @@ void check_variables(void)
          banding_mode = IMPROVED_BANDING;
    }
 
+   var.key = "kronos_video_filter_type";
+   var.value = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      video_filter_type = atoi(var.value);
+   }
+
    var.key = "kronos_wireframe_mode";
    var.value = NULL;
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
@@ -1584,6 +1592,7 @@ bool retro_load_game_common()
    yinit.skipframe               = g_skipframe;
    yinit.stv_favorite_region     = stv_favorite_region;
    yinit.resolution_mode         = resolution_mode;
+   yinit.video_filter_type       = video_filter_type;
    yinit.auto_cart               = 1;
 
    return true;
@@ -1773,34 +1782,35 @@ void retro_run(void)
       set_descriptors();
    }
 
-   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
-   {
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
+      // Store previous value for some settings
       int prev_resolution_mode = resolution_mode;
       int prev_force_downsampling = force_downsampling;
       int prev_multitap[2] = {multitap[0],multitap[1]};
       bool prev_service_enabled = service_enabled;
-      bool var_updated = false;
-      if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &var_updated) && var_updated) {
-        check_variables();
-        // If resolution_mode > initial_resolution_mode, we'll need a restart to reallocate the max size for buffer
-        if (resolution_mode > initial_resolution_mode)
-        {
-          log_cb(RETRO_LOG_INFO, "Restart the core for the new resolution\n");
-          resolution_mode = initial_resolution_mode;
-        }
-        resolution_need_update = (prev_resolution_mode != resolution_mode || prev_force_downsampling != force_downsampling);
-        if (prev_resolution_mode != resolution_mode && VIDCore)
-        VIDCore->SetSettingValue(VDP_SETTING_RESOLUTION_MODE, resolution_mode);
-        if(PERCore && (prev_multitap[0] != multitap[0] || prev_multitap[1] != multitap[1] || prev_service_enabled != service_enabled))
-        PERCore->Init();
-        if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_MESH_MODE, (force_downsampling ? IMPROVED_MESH : mesh_mode)); // we want improved mesh with downsampling, otherwise it'll cause gfx glitches
-        if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_BANDING_MODE, banding_mode);
-        if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_WIREFRAME, wireframe_mode);
-        // changing video format on the fly is causing issues
-        //if (g_videoformattype != -1)
-        //   YabauseSetVideoFormat(g_videoformattype);
-        YabauseSetSkipframe(g_skipframe);
+
+      // Check new settings
+      check_variables();
+
+      // If resolution_mode > initial_resolution_mode, we'll need a restart to reallocate the max size for buffer
+      if (resolution_mode > initial_resolution_mode)
+      {
+         log_cb(RETRO_LOG_INFO, "Restart the core for the new resolution\n");
+         resolution_mode = initial_resolution_mode;
       }
+      resolution_need_update = (prev_resolution_mode != resolution_mode || prev_force_downsampling != force_downsampling);
+      if (prev_resolution_mode != resolution_mode && VIDCore)
+      VIDCore->SetSettingValue(VDP_SETTING_RESOLUTION_MODE, resolution_mode);
+      if(PERCore && (prev_multitap[0] != multitap[0] || prev_multitap[1] != multitap[1] || prev_service_enabled != service_enabled))
+      PERCore->Init();
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_MESH_MODE, (force_downsampling ? IMPROVED_MESH : mesh_mode)); // we want improved mesh with downsampling, otherwise it'll cause gfx glitches
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_BANDING_MODE, banding_mode);
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_WIREFRAME, wireframe_mode);
+      if (VIDCore) VIDCore->SetSettingValue(VDP_SETTING_FILTERMODE, video_filter_type);
+      // changing video format on the fly is causing issues
+      //if (g_videoformattype != -1)
+      //   YabauseSetVideoFormat(g_videoformattype);
+      YabauseSetSkipframe(g_skipframe);
    }
    // It appears polling can happen outside of HandleEvents
    update_inputs();
