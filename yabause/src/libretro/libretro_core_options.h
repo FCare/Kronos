@@ -175,6 +175,22 @@ struct retro_core_option_definition option_defs_us[] = {
       "disabled"
    },
    {
+      "kronos_video_filter_type",
+      "Filter",
+      "Apply filter.",
+      {
+         { "0", "None" },
+         { "1", "Bilinear" },
+         { "2", "BiCubic" },
+         { "3", "Deinterlacing Adaptative" },
+         { "4", "Deinterlacing Debug Adaptative" },
+         { "5", "Deinterlacing Bob" },
+         { "6", "Scanline" },
+         { NULL, NULL},
+      },
+      "0"
+   },
+   {
       "kronos_wireframe_mode",
       "Wireframe mode",
       "Wireframe mode, requires OpenGL CS renderer.",
