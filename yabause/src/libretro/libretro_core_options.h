@@ -176,16 +176,12 @@ struct retro_core_option_definition option_defs_us[] = {
    },
    {
       "kronos_video_filter_type",
-      "Filter",
-      "Apply filter.",
+      "Deinterlace Filter",
+      "Apply deinterlace filter.",
       {
          { "0", "None" },
-         { "1", "Bilinear" },
-         { "2", "BiCubic" },
-         { "3", "Deinterlacing Adaptative" },
-         { "4", "Deinterlacing Debug Adaptative" },
-         { "5", "Deinterlacing Bob" },
-         { "6", "Scanline" },
+         { "3", "Adaptative" },
+         { "5", "Bob" },
          { NULL, NULL},
       },
       "0"
