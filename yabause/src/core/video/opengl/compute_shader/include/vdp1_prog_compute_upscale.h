@@ -46,7 +46,15 @@ SHADER_VERSION_COMPUTE
 "  ivec2 texel = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);\n"
 "  ivec2 coord = ivec2(int(texel.x * upscale.x),int(texel.y * upscale.y));\n"
 "  texel.y = texel.y;\n"
-"  if (any(greaterThanEqual(coord, ivec2(512, 256)))) return;"
+/* BUG CORRIGE : la limite etait figee a (512,256), la moitie de la
+ * vraie capacite du framebuffer VDP1 Hi-Res (1024x256). Tout pixel
+ * source au-dela de X=512 etait silencieusement rejete ici, avant
+ * meme d'etre copie vers la texture affichee -- exactement le
+ * rognage observe a l'ecran, independamment de la region (NTSC/PAL)
+ * et independamment des tailles de buffer cote C (deja corrigees).
+ * On utilise desormais imageSize(fbSurface), qui reflete la taille
+ * reelle de la texture source liee, quel que soit le mode VDP1. */
+"  if (any(greaterThanEqual(coord, imageSize(fbSurface)))) return;"
 "  vec4 pix = imageLoad(fbSurface, coord);\n"
 "  if (pix.a != 0.0) imageStore(outSurface,texel,vec4(pix.r, pix.g, 0.0, 0.0));\n"
 "}\n";
@@ -68,8 +76,14 @@ SHADER_VERSION_COMPUTE
 "  ivec2 texel = ivec2(gl_GlobalInvocationID.x, gl_GlobalInvocationID.y);\n"
 "  int x = int(texel.x * upscale.x);\n"
 "  int y = int(texel.y * upscale.y);\n"
-"  if (x >= 512 || y >= 256 ) return;\n"
-"  int idx = int(x) + int(y)*512;\n"
+/* BUG CORRIGE : meme limite figee a 512x256 que vdp1_write_f
+ * ci-dessus, avec en plus un stride (idx = x + y*512) egalement figé
+ * -- doublement faux en Hi-Res (1024 de large). On utilise desormais
+ * la taille reelle de s_texture pour la limite ET pour le stride,
+ * afin que Vdp1FB[] garde une disposition ligne-major coherente avec
+ * la texture source quelle que soit sa largeur. */
+"  if (x >= size.x || y >= size.y ) return;\n"
+"  int idx = int(x) + int(y)*size.x;\n"
 "  vec4 pix = imageLoad(s_texture, ivec2(vec2(texel.x,texel.y)));\n"
 "  uint val = (uint(pix.r*255.0)<<24) | (uint(pix.g*255.0)<<16);\n"
 "  Vdp1FB[idx] = val;\n"
