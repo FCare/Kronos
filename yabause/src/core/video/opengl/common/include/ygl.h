@@ -659,6 +659,14 @@ typedef struct {
 
    InterlaceMode interlace;
    float last_back_color[4];
+
+   /* Per-line sprite compositor state written by VIDCSReadColorOffset (vidcs.c).
+    * sprite_rgb_priority_per_line: VDP2 §9.2 RGB sprites use PRISA register 0
+    *   when SPCLMD=1; -1 means palette path (do not force RGB priority).
+    * msb_shadow_enabled_per_line: VDP2 §14.1 MSB shadow when SPWINEN=0 and
+    *   sprite type is 2..7. Sized like other per-line arrays (270). */
+   int sprite_rgb_priority_per_line[270];
+   u8 msb_shadow_enabled_per_line[270];
 } Ygl;
 
 extern Ygl * _Ygl;

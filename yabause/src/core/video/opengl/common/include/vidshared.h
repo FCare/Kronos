@@ -134,6 +134,11 @@ typedef struct
    u32 addr, charaddr, paladdr;
    int colornumber;
    int isbitmap;
+   /* Bitmap-mode VRAM window for compute-shader cell fetch (vidcs.c):
+    * base = character bank start (charaddr); wrap_size = bitmap byte length
+    * derived from colornumber × cellw × cellh (0 = tile mode, no wrap). */
+   u32 bitmap_base;
+   u32 bitmap_wrap_size;
    u16 supplementdata;
    int auxmode;
    int enable;
