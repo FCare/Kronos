@@ -1,0 +1,31 @@
+# Build: make -f Makefile.cs_struct_members
+# From: yabause/src/tests/
+SRC_ROOT := ..
+INCS := \
+  -I$(SRC_ROOT)/sys/vdp1/include \
+  -I$(SRC_ROOT)/sys/vdp2/include \
+  -I$(SRC_ROOT)/sys/memory/include \
+  -I$(SRC_ROOT)/sys/sh2/include \
+  -I$(SRC_ROOT)/sys/scu/include \
+  -I$(SRC_ROOT)/sys/scsp/include \
+  -I$(SRC_ROOT)/sys/smpc/include \
+  -I$(SRC_ROOT)/sys/bios/include \
+  -I$(SRC_ROOT)/ctrl/include \
+  -I$(SRC_ROOT)/ctrl/threads \
+  -I$(SRC_ROOT)/utils/include \
+  -I$(SRC_ROOT)/core/video/opengl/common/include \
+  -I$(SRC_ROOT)/core/video/opengl/compute_shader/include \
+  -I$(SRC_ROOT)/core/osd/include \
+  -I$(SRC_ROOT)
+
+CFLAGS := -std=c11 -Wall -DHAVE_LIBGL -D_USEGLEW_ -D_OGL3_ $(INCS)
+
+.PHONY: test clean
+test: cs_struct_members_test
+	./cs_struct_members_test
+
+cs_struct_members_test: cs_struct_members_test.c
+	$(CC) $(CFLAGS) -o $@ $<
+
+clean:
+	rm -f cs_struct_members_test

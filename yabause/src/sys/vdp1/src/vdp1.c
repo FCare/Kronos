@@ -447,6 +447,7 @@ int Vdp1Init(void) {
    Vdp1Regs->userclipY1=0;
    Vdp1Regs->userclipX2=1024;
    Vdp1Regs->userclipY2=512;
+   Vdp1Regs->userclipMode=0;
 
    Vdp1Regs->localX=0;
    Vdp1Regs->localY=0;

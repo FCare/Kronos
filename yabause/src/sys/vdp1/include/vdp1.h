@@ -63,7 +63,10 @@ typedef struct {
    u16 userclipY1;
    u16 userclipX2;
    u16 userclipY2;
-
+   /* ST-013 §6.3 CMDPMOD Cmod (bit 9): 0 = inside drawing, 1 = outside drawing.
+    * Latched from the last user-clipping command's CMDPMOD so the CS path can
+    * forward clip mode to shaders (vidcs.c VIDCSVdp1UserClipping*). */
+   u16 userclipMode;
 
 } Vdp1;
 
