@@ -35,6 +35,7 @@
 #include "UIDebugSCSPDSP.h"
 #include "UIMemoryEditor.h"
 #include "UIMemoryTransfer.h"
+#include "UIProfiler.h"
 #include "UIAbout.h"
 #include "../YabauseGL.h"
 #include "../QtYabause.h"
@@ -1167,6 +1168,25 @@ void UIYabause::on_aViewDebugMemoryEditor_triggered()
 {
 	YabauseLocker locker( mYabauseThread );
 	UIMemoryEditor( UIDebugCPU::PROC_MSH2, mYabauseThread, this ).exec();
+}
+
+void UIYabause::on_aProfilerToggle_triggered() {
+	YabauseLocker locker( mYabauseThread );
+   if (mYabauseThread->init() == 0 && MSH2 && SSH2) {
+      MSH2->profilerInfo.profilerEnabled ^= 1;
+      SSH2->profilerInfo.profilerEnabled ^= 1;
+      YuiMsg( "Master profiler %s\n",
+         MSH2->profilerInfo.profilerEnabled ? "enabled" : "disabled" );
+      YuiMsg( "Slave profiler %s\n",
+         SSH2->profilerInfo.profilerEnabled ? "enabled" : "disabled" );
+   } else {
+      QMessageBox::critical(this, "Error", "Please start emulation first");
+   }
+}
+
+void UIYabause::on_aProfilerShowResults_triggered() {
+	YabauseLocker locker( mYabauseThread );
+	UIProfiler( mYabauseThread, this ).exec();
 }
 
 void UIYabause::on_aHelpCompatibilityList_triggered()

@@ -53,21 +53,22 @@ set( kronos_qt_FORMS
 	ui/UIPadSetting.ui
 	ui/UISTVSetting.ui
 	ui/UI3DControlPadSetting.ui
-    ui/UIWheelSetting.ui
-    ui/UIMissionStickSetting.ui
-    ui/UIDoubleMissionStickSetting.ui
+	ui/UIWheelSetting.ui
+	ui/UIMissionStickSetting.ui
+	ui/UIDoubleMissionStickSetting.ui
 	ui/UIGunSetting.ui
 	ui/UIMouseSetting.ui
-    ui/UIDebugCPU.ui
-    ui/UIDebugSCSP.ui
-    ui/UIDebugSCSPDSP.ui
-    ui/UIDebugVDP1.ui
-    ui/UIDebugVDP2.ui
-    ui/UIDebugVDP2Viewer.ui
-    ui/UIHexInput.ui
-    ui/UIMemoryTransfer.ui
-    ui/UIMemoryEditor.ui
-    ui/UIMemorySearch.ui )
+	ui/UIDebugCPU.ui
+	ui/UIDebugSCSP.ui
+	ui/UIDebugSCSPDSP.ui
+	ui/UIDebugVDP1.ui
+	ui/UIDebugVDP2.ui
+	ui/UIDebugVDP2Viewer.ui
+	ui/UIHexInput.ui
+	ui/UIProfiler.ui
+	ui/UIMemoryTransfer.ui
+	ui/UIMemoryEditor.ui
+	ui/UIMemorySearch.ui )
 
 # pure C headers
 set( kronos_qt_HEADERS
@@ -89,30 +90,31 @@ set( kronos_qt_MOC_HEADERS
 	ui/UIPortManager.h
 	ui/UIControllerSetting.h
 	ui/UIPadSetting.h
-        ui/UISTVSetting.h
+	ui/UISTVSetting.h
 	ui/UI3DControlPadSetting.h
-    ui/UIWheelSetting.h
-    ui/UIMissionStickSetting.h
-    ui/UIDoubleMissionStickSetting.h
+	ui/UIWheelSetting.h
+	ui/UIMissionStickSetting.h
+	ui/UIDoubleMissionStickSetting.h
 	ui/UIGunSetting.h
 	ui/UIMouseSetting.h
 	ui/UIShortcutManager.h
-    ui/UIDebugCPU.h
-    ui/UIDebugM68K.h
-    ui/UIDebugSCSP.h
-    ui/UIDebugSCSPChan.h
-    ui/UIDebugSCSPDSP.h
-    ui/UIDebugSCUDSP.h
-    ui/UIDebugSH2.h
-    ui/UIDebugVDP1.h
-    ui/UIDebugVDP2.h
-    ui/UIDebugVDP2Viewer.h
-    ui/UIDisasm.h
-    ui/UIHexInput.h
-    ui/UIMemoryTransfer.h
-    ui/UIHexEditor.h
-    ui/UIMemoryEditor.h
-    ui/UIMemorySearch.h
+	ui/UIDebugCPU.h
+	ui/UIDebugM68K.h
+	ui/UIDebugSCSP.h
+	ui/UIDebugSCSPChan.h
+	ui/UIDebugSCSPDSP.h
+	ui/UIDebugSCUDSP.h
+	ui/UIDebugSH2.h
+	ui/UIDebugVDP1.h
+	ui/UIDebugVDP2.h
+	ui/UIDebugVDP2Viewer.h
+	ui/UIDisasm.h
+	ui/UIHexInput.h
+	ui/UIProfiler.h
+	ui/UIMemoryTransfer.h
+	ui/UIHexEditor.h
+	ui/UIMemoryEditor.h
+	ui/UIMemorySearch.h
 	YabauseGL.h
 	VolatileSettings.h
 	Settings.h
@@ -135,30 +137,31 @@ set( kronos_qt_SOURCES
 	ui/UIPortManager.cpp
 	ui/UIControllerSetting.cpp
 	ui/UIPadSetting.cpp
-        ui/UISTVSetting.cpp
+	ui/UISTVSetting.cpp
 	ui/UI3DControlPadSetting.cpp
-    ui/UIWheelSetting.cpp
-    ui/UIMissionStickSetting.cpp
-    ui/UIDoubleMissionStickSetting.cpp
+	ui/UIWheelSetting.cpp
+	ui/UIMissionStickSetting.cpp
+	ui/UIDoubleMissionStickSetting.cpp
 	ui/UIGunSetting.cpp
 	ui/UIMouseSetting.cpp
 	ui/UIShortcutManager.cpp
-    ui/UIDebugCPU.cpp
-    ui/UIDebugM68K.cpp
-    ui/UIDebugSCSP.cpp
-    ui/UIDebugSCSPChan.cpp
-    ui/UIDebugSCSPDSP.cpp
-    ui/UIDebugSCUDSP.cpp
-    ui/UIDebugSH2.cpp
-    ui/UIDebugVDP1.cpp
-    ui/UIDebugVDP2.cpp
-    ui/UIDebugVDP2Viewer.cpp
-    ui/UIDisasm.cpp
-    ui/UIHexInput.cpp
-    ui/UIMemoryTransfer.cpp
-    ui/UIHexEditor.cpp
-    ui/UIMemoryEditor.cpp
-    ui/UIMemorySearch.cpp
+	ui/UIDebugCPU.cpp
+	ui/UIDebugM68K.cpp
+	ui/UIDebugSCSP.cpp
+	ui/UIDebugSCSPChan.cpp
+	ui/UIDebugSCSPDSP.cpp
+	ui/UIDebugSCUDSP.cpp
+	ui/UIDebugSH2.cpp
+	ui/UIDebugVDP1.cpp
+	ui/UIDebugVDP2.cpp
+	ui/UIDebugVDP2Viewer.cpp
+	ui/UIDisasm.cpp
+	ui/UIHexInput.cpp
+	ui/UIProfiler.cpp
+	ui/UIMemoryTransfer.cpp
+	ui/UIHexEditor.cpp
+	ui/UIMemoryEditor.cpp
+	ui/UIMemorySearch.cpp
 	Settings.cpp
 	VolatileSettings.cpp
 	YabauseThread.cpp

@@ -23,6 +23,7 @@
     \brief SH2 interpreter interface
 */
 
+#include <assert.h>
 #include "sh2core.h"
 #include "cs0.h"
 #include "debug.h"
@@ -33,8 +34,65 @@
 #include "sh2int_kronos.h"
 #include "opcode_functions_define.h"
 
-extern void SH2HandleInterrupts(SH2_struct *context);
-extern void SH2ExecCb(SH2_struct *context);
+extern void SH2HandleInterrupts(SH2_struct* context);
+extern void SH2ExecCb(SH2_struct* context);
+
+//////////////////////////////////////////////////////////////////////////////
+
+static u8 FASTCALL SH2ProfilerTrackAddr(u32 addr, SH2_struct* sh)
+{
+   return addr >= sh->profilerInfo.startMonitorAddress
+      && addr < sh->profilerInfo.endMonitorAddress;
+}
+
+static void FASTCALL SH2ProfilerTrack(SH2_struct* sh)
+{
+   if (!sh->profilerInfo.profilerEnabled) {
+      return;
+   }
+
+   const u32 pcAddr = sh->regs.PC;
+   SH2_ProfilerStackInfo* info = NULL;
+
+   if (SH2ProfilerTrackAddr(pcAddr, sh))
+   {
+      const u32 addr = pcAddr - sh->profilerInfo.startMonitorAddress;
+      assert(pcAddr >= PROFILE_START_ADDRESS);
+      assert(addr < PROFILE_NUM_INFOS);
+
+      if (sh->profilerInfo.stackPos < PROFILE_STACK_SIZE)
+      {
+         ++sh->profilerInfo.stackPos;
+         assert(sh->profilerInfo.stackPos >= 0);
+         assert(sh->profilerInfo.stackPos < PROFILE_STACK_SIZE);
+
+         info = &sh->profilerInfo.stack[sh->profilerInfo.stackPos];
+         info->address = addr;
+         info->startTime = YabauseGetTicks();
+      }
+   }
+}
+
+static void FASTCALL SH2ProfilerStopTrack(SH2_struct* sh)
+{
+   if (!sh->profilerInfo.profilerEnabled) {
+      return;
+   }
+
+   const s32 stackPos = sh->profilerInfo.stackPos;
+   if (stackPos >= 0)
+   {
+      SH2_ProfilerStackInfo* stackInfo = &sh->profilerInfo.stack[stackPos];
+      SH2_ProfilerInfo* info = &sh->profilerInfo.profile[stackInfo->address];
+
+      double elapsedTime = (YabauseGetTicks() - stackInfo->startTime) * 1000.0;
+      elapsedTime /= (double) yabsys.tickfreq;
+
+      info->time += elapsedTime;
+      ++info->count;
+      --sh->profilerInfo.stackPos;
+   }
+}
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -295,6 +353,8 @@ static void SH2bsr(SH2_struct * sh, u32 disp)
    sh->regs.PC = sh->regs.PC+(disp<<1);
    sh->regs.PC += 2;
 
+   SH2ProfilerTrack(sh);
+
    sh->cycles += 2;
    SH2delay(sh, temp + 2);
 }
@@ -308,6 +368,9 @@ static void SH2bsrf(SH2_struct * sh, u32 n)
    sh->regs.PR = sh->regs.PC + 4;
    sh->regs.PC += sh->regs.R[n];
    sh->regs.PC += 2;
+
+   SH2ProfilerTrack(sh);
+
    sh->cycles += 2;
    SH2delay(sh, temp + 2);
 }
@@ -753,6 +816,9 @@ static void SH2jsr(SH2_struct * sh, u32 m)
    sh->regs.PR = sh->regs.PC + 4;
    sh->regs.PC = sh->regs.R[m] - 4;
    sh->regs.PC += 2;
+
+   SH2ProfilerTrack(sh);
+
    sh->cycles += 2;
    SH2delay(sh, temp + 2);
 }
@@ -1658,6 +1724,9 @@ static void SH2rte(SH2_struct * sh)
 {
    u32 temp;
    temp=sh->regs.PC;
+
+   SH2ProfilerStopTrack(sh);
+
    sh->regs.PC = SH2MappedMemoryReadLong(sh, sh->regs.R[15]) - 4;
    sh->regs.R[15] += 4;
    sh->regs.SR.all = SH2MappedMemoryReadLong(sh, sh->regs.R[15]) & 0x000003F3;
@@ -1678,8 +1747,10 @@ static void SH2rte(SH2_struct * sh)
 static void SH2rts(SH2_struct * sh)
 {
    u32 temp;
-
    temp = sh->regs.PC;
+
+   SH2ProfilerStopTrack(sh);
+
    sh->regs.PC = sh->regs.PR - 4;
    sh->cycles += 2;
    sh->regs.PC += 2;

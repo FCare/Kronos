@@ -242,10 +242,22 @@
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <widget class="QMenu" name="mProfiler">
+     <property name="title">
+      <string>Profiler</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../resources/resources.qrc">
+       <normaloff>:/actions/icons/actions/frame_skipping.png</normaloff>:/actions/icons/actions/frame_skipping.png</iconset>
+     </property>
+     <addaction name="aProfilerToggle"/>
+     <addaction name="aProfilerShowResults"/>
+    </widget>
     <addaction name="aToolsBackupManager"/>
     <addaction name="aToolsCheatsList"/>
     <addaction name="aToolsCheatSearch"/>
     <addaction name="aToolsTransfer"/>
+    <addaction name="mProfiler"/>
    </widget>
    <widget class="QMenu" name="mEmulation">
     <property name="title">
@@ -972,6 +984,16 @@
    </property>
    <property name="text">
     <string>SCSP Channels</string>
+   </property>
+  </action>
+  <action name="aProfilerToggle">
+   <property name="text">
+    <string>Toggle Profiler</string>
+   </property>
+  </action>
+  <action name="aProfilerShowResults">
+   <property name="text">
+    <string>Results</string>
    </property>
   </action>
  </widget>
