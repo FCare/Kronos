@@ -276,11 +276,17 @@ int YabauseSh2Init(yabauseinit_struct *init)
       YabSetError(YAB_ERR_CANNOTINIT, _("Cartridge"));
       return -1;
    }
-   if (STVSingleInit(init->stvgamepath, init->stvbiospath, init->eepromdir, init->stv_favorite_region) != 0) {
-     if (STVInit(init->stvgame, init->cartpath, init->eepromdir, init->stv_favorite_region) != 0)
-     {
-       YabSetError(YAB_ERR_CANNOTINIT, _("STV emulation"));
-       return -1;
+   // Only an ST-V game carries these, and a Saturn disc has neither. Running it
+   // regardless fails for every Saturn game and takes the whole init down with
+   // it, since both calls refuse a null path and a null romset.
+   if (init->stvgamepath != NULL || init->stvgame != NULL)
+   {
+     if (STVSingleInit(init->stvgamepath, init->stvbiospath, init->eepromdir, init->stv_favorite_region) != 0) {
+       if (STVInit(init->stvgame, init->cartpath, init->eepromdir, init->stv_favorite_region) != 0)
+       {
+         YabSetError(YAB_ERR_CANNOTINIT, _("STV emulation"));
+         return -1;
+       }
      }
    }
 
@@ -398,11 +404,17 @@ TRACE_EMULATOR("YabauseInit");
       return -1;
    }
 
-   if (STVSingleInit(init->stvgamepath, init->stvbiospath, init->eepromdir, init->stv_favorite_region) != 0) {
-     if (STVInit(init->stvgame, init->cartpath, init->eepromdir, init->stv_favorite_region) != 0)
-     {
-       YabSetError(YAB_ERR_CANNOTINIT, _("STV emulation"));
-       return -1;
+   // Only an ST-V game carries these, and a Saturn disc has neither. Running it
+   // regardless fails for every Saturn game and takes the whole init down with
+   // it, since both calls refuse a null path and a null romset.
+   if (init->stvgamepath != NULL || init->stvgame != NULL)
+   {
+     if (STVSingleInit(init->stvgamepath, init->stvbiospath, init->eepromdir, init->stv_favorite_region) != 0) {
+       if (STVInit(init->stvgame, init->cartpath, init->eepromdir, init->stv_favorite_region) != 0)
+       {
+         YabSetError(YAB_ERR_CANNOTINIT, _("STV emulation"));
+         return -1;
+       }
      }
    }
 
@@ -561,11 +573,17 @@ static int YabauseRefreshInit(yabauseinit_struct *init) {
      return -1;
   }
 
-  if (STVSingleInit(init->stvgamepath, init->stvbiospath, init->eepromdir, init->stv_favorite_region) != 0) {
-    if (STVInit(init->stvgame, init->cartpath, init->eepromdir, init->stv_favorite_region) != 0)
-    {
-      YabSetError(YAB_ERR_CANNOTINIT, _("STV emulation"));
-      return -1;
+  // Only an ST-V game carries these, and a Saturn disc has neither. Running it
+  // regardless fails for every Saturn game and takes the whole init down with
+  // it, since both calls refuse a null path and a null romset.
+  if (init->stvgamepath != NULL || init->stvgame != NULL)
+  {
+    if (STVSingleInit(init->stvgamepath, init->stvbiospath, init->eepromdir, init->stv_favorite_region) != 0) {
+      if (STVInit(init->stvgame, init->cartpath, init->eepromdir, init->stv_favorite_region) != 0)
+      {
+        YabSetError(YAB_ERR_CANNOTINIT, _("STV emulation"));
+        return -1;
+      }
     }
   }
 
