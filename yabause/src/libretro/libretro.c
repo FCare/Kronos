@@ -125,6 +125,14 @@ void retro_set_environment(retro_environment_t cb)
       filestream_vfs_init(&vfs_iface_info);
 #endif
 
+   /* The BIOS checks go through the frontend's VFS, so it can see which file
+    * was looked for */
+   struct retro_vfs_interface_info path_vfs_info;
+   path_vfs_info.required_interface_version = PATH_REQUIRED_VFS_VERSION;
+   path_vfs_info.iface                      = NULL;
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VFS_INTERFACE, &path_vfs_info))
+      path_vfs_init(&path_vfs_info);
+
    libretro_set_core_options(environ_cb);
 
    static const struct retro_controller_description peripherals[] = {
@@ -1265,9 +1273,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
 
 static int does_file_exist(const char *filename)
 {
-   struct stat st;
-   int result = stat(filename, &st);
-   return result == 0;
+   return path_is_valid(filename);
 }
 
 static void extract_basename(char *buf, const char *path, size_t size)
